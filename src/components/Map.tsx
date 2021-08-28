@@ -73,22 +73,29 @@ export function MapObject(
   const icon = useMemo(() =>
     divIcon({
       html: renderToStaticMarkup(
-        <div className="flex flex-row absolute w-64 items-center">
+        <div className="flex flex-row absolute w-64">
           <MapIcon
             obj={obj}
             className="relative bg-opacity-70"
           />
           <div
-            className="bg-gray-700 bg-opacity-40 text-white flex flex-col absolute"
-            style={{ left: 36 }}
+            className="bg-gray-700 bg-opacity-40 flex flex-col absolute"
+            style={{ left: 24, top: -6 }}
           >
             {obj.types.includes("Air") &&
               (
-                <div>
-                  {obj.name}
-                  {!obj.pilot.startsWith(obj.group)
-                    ? <>{" -"} {obj.pilot}</>
-                    : null}
+                <div className="flex flex-col">
+                  <div className="font-bold text-white">
+                    {obj.name}
+                    {!obj.pilot.startsWith(obj.group)
+                      ? <>{" -"} {obj.pilot}</>
+                      : null}
+                  </div>
+                  <div className="text-pink-300">
+                    {Math.floor(
+                      (obj.altitude * 3.28084) / 1000,
+                    )}
+                  </div>
                 </div>
               )}
             <div>
@@ -281,8 +288,8 @@ export default function Map(): JSX.Element {
       doubleClickZoom={false}
       center={Syria.center as LatLngExpression}
       zoom={9}
-      minZoom={9}
-      maxZoom={14}
+      minZoom={8}
+      maxZoom={12}
       scrollWheelZoom={true}
       className="h-full w-full relative"
     >

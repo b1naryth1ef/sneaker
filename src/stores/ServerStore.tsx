@@ -29,7 +29,13 @@ const SIDCPlatforms: Record<string, string> = {
   "LHA_Tarawa": "CLCV",
   "Mi-24P": "MHA-",
   "SA342Mistral": "MHA-",
+  "Ka-50": "MHA-",
 };
+
+type Event = {
+  e: "CREATE";
+  o: Array<RawObjectData>;
+} | { e: "DELETE"; id: Array<number> };
 
 type RawObjectData = {
   id: number;
@@ -124,25 +130,19 @@ function doLongPoll() {
 
   const eventSource = new EventSource("http://localhost:7788");
   eventSource.onmessage = (event) => {
-    const objectData = JSON.parse(event.data) as
-      | RawObjectData
-      | Array<RawObjectData>;
+    const eventData = JSON.parse(event.data) as Event;
     serverStore.setState((state) => {
-      if (Array.isArray(objectData)) {
-        let objects = state.objects;
-        for (const obj of objectData) {
+      let objects = state.objects;
+      if (eventData.e === "CREATE") {
+        for (const obj of eventData.o) {
           objects = objects.set(obj.id, new ObjectMetadata(obj));
         }
-        return { ...state, objects };
-      } else {
-        return {
-          ...state,
-          objects: state.objects.set(
-            objectData.id,
-            new ObjectMetadata(objectData),
-          ),
-        };
+      } else if (eventData.e === "DELETE") {
+        for (const objId of eventData.id) {
+          objects = objects.remove(objId);
+        }
       }
+      return { ...state, objects };
     });
   };
   eventSource.onerror = () => {

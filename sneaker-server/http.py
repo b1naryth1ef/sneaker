@@ -27,7 +27,7 @@ class TacViewObserver:
 
     async def on_frame(self, frame):
         self._updated_objects |= frame.updated_objects
-        self._deleted_objects |= frame.updated_objects
+        self._deleted_objects |= frame.deleted_objects
 
         if not self._last_dispatch or time.time() - self._last_dispatch > 2:
             await self.dispatch()
@@ -36,7 +36,8 @@ class TacViewObserver:
         offset = get_offset()
 
         self._last_dispatch = time.time()
-        events = []
+
+        created = []
         for object_id in self._updated_objects:
             obj: TacViewObject = self._client.state.objects.get(object_id)
             if not obj:
@@ -45,10 +46,23 @@ class TacViewObserver:
             if not obj.types & SYNCED_TYPES:
                 continue
 
-            events.append(obj.serialize(offset))
+            created.append(obj.serialize(offset))
+
+        events = []
+        if created:
+            events.append(json.dumps({"e": "CREATE", "o": created}))
+
+        if self._deleted_objects:
+            events.append(
+                json.dumps({"e": "DELETE", "id": list(self._deleted_objects)})
+            )
 
         for sub in self._app["subscribers"]:
-            await sub.put(json.dumps(events))
+            for event in events:
+                await sub.put(event)
+
+        self._updated_objects = set()
+        self._deleted_objects = set()
 
 
 async def stream_events(request):
@@ -68,7 +82,14 @@ async def stream_events(request):
 
                 await resp.send(
                     json.dumps(
-                        [i.serialize(offset) for i in objs if i.types & SYNCED_TYPES]
+                        {
+                            "e": "CREATE",
+                            "o": [
+                                i.serialize(offset)
+                                for i in objs
+                                if i.types & SYNCED_TYPES
+                            ],
+                        }
                     )
                 )
 
