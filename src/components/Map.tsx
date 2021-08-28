@@ -157,38 +157,38 @@ function MapObjects() {
     setZoom(zoomEvent.getZoom());
   });
 
-  const [braaStartPos, setBraaStartPos] = useState<LatLng | null>(null);
-  const [cursorPos, setCursorPos] = useState<LatLng | null>(null);
+  const [braaStartPos, setBraaStartPos] = useState<number | LatLng | null>(
+    null,
+  );
+  const [cursorPos, setCursorPos] = useState<number | LatLng | null>(null);
+  const isSnapDown = useKeyPress("s");
 
   useMapEvent("contextmenu", (e) => {});
 
   useMapEvent("mousemove", (e) => {
     let snappedObject = null;
     if (isSnapDown) {
-      snappedObject = objects.sort((
-        a,
-        b,
+      snappedObject = objects.map((
+        obj,
       ) =>
-        getDistance([a.latitude, a.longitude], [
-          e.latlng.lat,
-          e.latlng.lng,
-        ]) - getDistance([b.latitude, b.longitude], [
-          e.latlng.lat,
-          e.latlng.lng,
-        ])
-      ).first();
+        [
+          obj.id,
+          getDistance([obj.latitude, obj.longitude], [
+            e.latlng.lat,
+            e.latlng.lng,
+          ]),
+        ] as [number, number]
+      ).sort((a, b) => a[1] - b[1]).first();
     }
 
     if (snappedObject) {
       setCursorPos(
-        new LatLng(snappedObject.latitude, snappedObject.longitude),
+        snappedObject[0],
       );
     } else {
       setCursorPos(e.latlng);
     }
   });
-
-  const isSnapDown = useKeyPress("s");
 
   const mouseDownEvent = useMapEvent("mousedown", (e) => {
     if (e.originalEvent.button === 2) {
@@ -206,9 +206,7 @@ function MapObjects() {
           ])
         ).first();
         if (snappedObject) {
-          setBraaStartPos(
-            new LatLng(snappedObject.latitude, snappedObject.longitude),
-          );
+          setBraaStartPos(snappedObject.id);
         }
       } else {
         setBraaStartPos(e.latlng);
@@ -216,6 +214,24 @@ function MapObjects() {
       mouseUpEvent.dragging.disable();
     }
   });
+
+  const braaObj = typeof braaStartPos === "number" &&
+    serverStore.getState().objects.get(braaStartPos);
+  let braaPos: LatLngExpression | undefined = undefined;
+  if (typeof braaStartPos === "number" && braaObj) {
+    braaPos = [braaObj.latitude, braaObj.longitude];
+  } else if (braaStartPos) {
+    braaPos = braaStartPos as LatLng;
+  }
+
+  const cursorObj = typeof cursorPos === "number" &&
+    serverStore.getState().objects.get(cursorPos);
+  let ourCursorPos: LatLngExpression | undefined = undefined;
+  if (typeof cursorPos === "number" && cursorObj) {
+    ourCursorPos = [cursorObj.latitude, cursorObj.longitude];
+  } else if (cursorPos) {
+    ourCursorPos = cursorPos as LatLng;
+  }
 
   const mouseUpEvent = useMapEvent("mouseup", (e) => {
     if (e.originalEvent.button === 2) {
@@ -226,22 +242,25 @@ function MapObjects() {
     }
   });
 
-  const icon = useMemo(() =>
-    braaStartPos && cursorPos
-      ? divIcon({
-        html: renderToStaticMarkup(
-          <div
-            className="absolute text-indigo-300 ml-10 text-xl whitespace-nowrap bg-gray-600 p-2"
-          >
-            {Math.floor(getGreatCircleBearing(braaStartPos, cursorPos)) +
-              Syria.magDec} / {Math.floor(
-                getDistance(braaStartPos, cursorPos) * 0.00053995680345572,
-              )}NM
-          </div>,
-        ),
-        className: "",
-      })
-      : null, [braaStartPos, cursorPos]);
+  const icon = useMemo(() => {
+    if (!braaPos || !ourCursorPos) {
+      return null;
+    }
+
+    return divIcon({
+      html: renderToStaticMarkup(
+        <div
+          className="absolute text-indigo-300 ml-10 text-xl whitespace-nowrap bg-gray-600 p-2"
+        >
+          {Math.floor(getGreatCircleBearing(braaPos, ourCursorPos)) +
+            Syria.magDec} / {Math.floor(
+              getDistance(braaPos, ourCursorPos) * 0.00053995680345572,
+            )}NM
+        </div>,
+      ),
+      className: "",
+    });
+  }, [braaPos, ourCursorPos, objects]);
 
   return (
     <>
@@ -257,12 +276,12 @@ function MapObjects() {
           zoom={zoom}
         />
       ))}
-      {braaStartPos !== null && cursorPos !== null && (
+      {braaPos && ourCursorPos && (
         <>
           <Polyline
             positions={[
-              cursorPos,
-              braaStartPos,
+              ourCursorPos,
+              braaPos,
             ]}
             pathOptions={{
               weight: 2,
@@ -271,7 +290,7 @@ function MapObjects() {
           />
           {icon && (
             <Marker
-              position={cursorPos}
+              position={ourCursorPos}
               icon={icon}
               zIndexOffset={30}
             />

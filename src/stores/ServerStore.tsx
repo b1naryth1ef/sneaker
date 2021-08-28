@@ -30,6 +30,7 @@ const SIDCPlatforms: Record<string, string> = {
   "Mi-24P": "MHA-",
   "SA342Mistral": "MHA-",
   "Ka-50": "MHA-",
+  "Su-25T": "MFA-",
 };
 
 type Event = {
