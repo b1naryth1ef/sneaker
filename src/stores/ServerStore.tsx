@@ -1,13 +1,6 @@
 import Immutable from "immutable";
 import create from "zustand";
 
-enum SIDCIdentity {
-  Friendly = "f",
-  Unknown = "u",
-  Neutral = "n",
-  Hostile = "h",
-}
-
 const SIDCPlatforms: Record<string, string> = {
   "E-3A": "MFRW",
   "MiG-19P": "MFF-",
@@ -22,6 +15,7 @@ const SIDCPlatforms: Record<string, string> = {
   "F-14A-135-GR": "MFF-",
   "F-16C_50": "MFF-",
   "F-5E-3": "MFF-",
+  "F-15C": "MFF-",
   "AV8BNA": "MFL-",
   "F-4E": "MFF-",
   "JF-17": "MFF-",
@@ -84,6 +78,9 @@ export class ObjectMetadata {
 
 export function generateSIDC(target: ObjectMetadata): string {
   const ident = target.coalition === "Allies" ? "H" : "F";
+  if (target.types.includes("Bullseye")) {
+    return `G${ident}G-GPWA--`;
+  }
 
   let battleDimension = "z";
   if (target.types.includes("Air")) {

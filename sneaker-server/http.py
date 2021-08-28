@@ -8,6 +8,8 @@ from aiohttp_sse import sse_response
 
 from .tacview_client import TacViewClient, TacViewObject
 
+SYNCED_TYPES = {"Air", "Sea", "Bullseye"}
+
 
 def chunks(data, n):
     n = max(1, n)
@@ -31,17 +33,7 @@ class TacViewObserver:
             await self.dispatch()
 
     async def dispatch(self):
-        offset = None
-        global_obj = self._client.state.objects.get(0)
-        if not global_obj:
-            print("Missing global obj, cannot dispatch data")
-            return
-
-        if "ReferenceLongitude" in global_obj.properties:
-            offset = [
-                float(global_obj.properties["ReferenceLatitude"]),
-                float(global_obj.properties["ReferenceLongitude"]),
-            ]
+        offset = get_offset()
 
         self._last_dispatch = time.time()
         events = []
@@ -50,7 +42,7 @@ class TacViewObserver:
             if not obj:
                 continue
 
-            if "Air" not in obj.types and "Sea" not in obj.types:
+            if not obj.types & SYNCED_TYPES:
                 continue
 
             events.append(obj.serialize(offset))
@@ -66,17 +58,7 @@ async def stream_events(request):
         async with sse_response(
             request, headers={"Access-Control-Allow-Origin": "*"}
         ) as resp:
-            offset = None
-            global_obj = app["tacview"].state.objects.get(0)
-            if not global_obj:
-                raise Exception("Failed to find global object")
-
-            if "ReferenceLongitude" in global_obj.properties:
-                offset = [
-                    float(global_obj.properties["ReferenceLatitude"]),
-                    float(global_obj.properties["ReferenceLongitude"]),
-                ]
-
+            offset = get_offset()
             for object_ids in chunks(list(app["tacview"].state.objects.keys()), 16):
                 objs = [
                     app["tacview"].state.objects[i]
@@ -86,11 +68,7 @@ async def stream_events(request):
 
                 await resp.send(
                     json.dumps(
-                        [
-                            i.serialize(offset)
-                            for i in objs
-                            if "Air" in i.types or "Sea" in i.types
-                        ]
+                        [i.serialize(offset) for i in objs if i.types & SYNCED_TYPES]
                     )
                 )
 
@@ -105,6 +83,28 @@ async def cors(request):
     return Response(text="", status=204, headers={"Access-Control-Allow-Origin": "*"})
 
 
+async def get_objects(request):
+    offset = get_offset()
+
+    limit = request.query.get("limit", 100)
+    target_type = request.query.get("type")
+
+    objects = []
+    for obj in app["tacview"].state.objects.values():
+        if target_type and target_type.title() not in obj.types:
+            continue
+
+        objects.append(obj.serialize(offset))
+        if len(objects) == limit:
+            break
+
+    return Response(
+        text=json.dumps(objects),
+        status=200,
+        headers={"Content-Type": "application/json"},
+    )
+
+
 async def start_tacview_client(app):
     app["tacview"] = TacViewClient(app["tacview_host"], app["tacview_port"])
     TacViewObserver(app)
@@ -117,8 +117,23 @@ async def stop_tacview_client(app):
     await app["tacview_task"]
 
 
+def get_offset():
+    global_obj = app["tacview"].state.objects.get(0)
+    if not global_obj:
+        print("Missing global obj, cannot dispatch data")
+        return
+
+    if "ReferenceLongitude" in global_obj.properties:
+        offset = [
+            float(global_obj.properties["ReferenceLatitude"]),
+            float(global_obj.properties["ReferenceLongitude"]),
+        ]
+    return offset
+
+
 app = web.Application()
 app.on_startup.append(start_tacview_client)
 app.on_cleanup.append(stop_tacview_client)
 app.router.add_route("GET", "/", stream_events)
 app.router.add_route("OPTIONS", "/", cors)
+app.router.add_route("GET", "/objects", get_objects)

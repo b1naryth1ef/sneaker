@@ -1,7 +1,7 @@
 import asyncio
 import re
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, List, NamedTuple, Set
+from typing import Any, Dict, NamedTuple, Set
 
 split_by_comma = re.compile(r"(?<!\\),")
 
@@ -9,7 +9,7 @@ split_by_comma = re.compile(r"(?<!\\),")
 @dataclass
 class TacViewObject:
     id: int
-    types: List[str] = field(default_factory=list)
+    types: Set[str] = field(default_factory=set)
     properties: Dict[str, Any] = field(default_factory=dict)
     longitude: float = 0
     latitude: float = 0
@@ -18,6 +18,7 @@ class TacViewObject:
 
     def serialize(self, coord_offset=None):
         data = asdict(self)
+        data["types"] = list(data["types"])
         if coord_offset is not None:
             data["latitude"] += coord_offset[0]
             data["longitude"] += coord_offset[1]
@@ -58,7 +59,7 @@ class TacViewObject:
             if k == "T":
                 self._update_position(v)
             elif k == "Type":
-                self.types = v.split("+")
+                self.types = set(v.split("+"))
             else:
                 self.properties[k] = v
 
