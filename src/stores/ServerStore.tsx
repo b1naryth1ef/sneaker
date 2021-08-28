@@ -28,6 +28,7 @@ const SIDCPlatforms: Record<string, string> = {
   "CVN_73": "CLCV",
   "LHA_Tarawa": "CLCV",
   "Mi-24P": "MHA-",
+  "SA342Mistral": "MHA-",
 };
 
 type RawObjectData = {

@@ -10,6 +10,7 @@ import {
   TileLayer,
   useMapEvent,
 } from "react-leaflet";
+import { useKeyPress } from "../hooks/useKeyPress";
 import { Syria } from "../maps/Syria";
 import {
   generateSIDC,
@@ -139,7 +140,8 @@ export function MapObject(
 function MapObjects() {
   const objects = serverStore((state) =>
     state.objects.valueSeq().filter((k) =>
-      !k.types.includes("Bullseye") || k.coalition !== "Allies"
+      (!k.types.includes("Bullseye") || k.coalition !== "Allies") &&
+      !k.types.includes("Parachutist")
     )
   );
   const [activeObjectId, setActiveObjectId] = useState<number | null>(null);
@@ -154,20 +156,66 @@ function MapObjects() {
   useMapEvent("contextmenu", (e) => {});
 
   useMapEvent("mousemove", (e) => {
-    setCursorPos(e.latlng);
+    let snappedObject = null;
+    if (isSnapDown) {
+      snappedObject = objects.sort((
+        a,
+        b,
+      ) =>
+        getDistance([a.latitude, a.longitude], [
+          e.latlng.lat,
+          e.latlng.lng,
+        ]) - getDistance([b.latitude, b.longitude], [
+          e.latlng.lat,
+          e.latlng.lng,
+        ])
+      ).first();
+    }
+
+    if (snappedObject) {
+      setCursorPos(
+        new LatLng(snappedObject.latitude, snappedObject.longitude),
+      );
+    } else {
+      setCursorPos(e.latlng);
+    }
   });
+
+  const isSnapDown = useKeyPress("s");
 
   const mouseDownEvent = useMapEvent("mousedown", (e) => {
     if (e.originalEvent.button === 2) {
+      if (isSnapDown) {
+        const snappedObject = objects.sort((
+          a,
+          b,
+        ) =>
+          getDistance([a.latitude, a.longitude], [
+            e.latlng.lat,
+            e.latlng.lng,
+          ]) - getDistance([b.latitude, b.longitude], [
+            e.latlng.lat,
+            e.latlng.lng,
+          ])
+        ).first();
+        if (snappedObject) {
+          setBraaStartPos(
+            new LatLng(snappedObject.latitude, snappedObject.longitude),
+          );
+        }
+      } else {
+        setBraaStartPos(e.latlng);
+      }
       mouseUpEvent.dragging.disable();
-      setBraaStartPos(e.latlng);
     }
   });
 
   const mouseUpEvent = useMapEvent("mouseup", (e) => {
+    if (e.originalEvent.button === 2) {
+      mouseDownEvent.dragging.enable();
+    }
     if (braaStartPos) {
       setBraaStartPos(null);
-      mouseDownEvent.dragging.enable();
     }
   });
 
@@ -210,8 +258,8 @@ function MapObjects() {
               braaStartPos,
             ]}
             pathOptions={{
-              weight: 1,
-              color: "white",
+              weight: 2,
+              color: "yellow",
             }}
           />
           {icon && (
