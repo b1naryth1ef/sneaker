@@ -1,5 +1,5 @@
 export const Syria = {
   name: "Syria",
-  center: [36.10, 35.36],
+  center: [35.57, 35.69],
   magDec: -5,
 };

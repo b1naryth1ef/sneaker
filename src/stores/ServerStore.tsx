@@ -1,37 +1,6 @@
 import Immutable from "immutable";
 import create from "zustand";
-
-const SIDCPlatforms: Record<string, string> = {
-  "E-3A": "MFRW",
-  "MiG-19P": "MFF-",
-  "MiG-25PD": "MFF-",
-  "MiG-23MLD": "MFF-",
-  "MiG-21Bis": "MFF-",
-  "MiG-29A": "MFF-",
-  "M-2000C": "MFF-",
-  "FA-18C_hornet": "MFF-",
-  "Su-17M4": "MFF-",
-  "F-14B": "MFF-",
-  "F-14A-135-GR": "MFF-",
-  "F-16C_50": "MFF-",
-  "F-5E-3": "MFF-",
-  "F-15C": "MFF-",
-  "AV8BNA": "MFL-",
-  "F-4E": "MFF-",
-  "JF-17": "MFF-",
-  "E-2C": "MFRW",
-  "KC130": "MFKD",
-  "KC135MPRS": "MFKD",
-  "KC-135": "MFKB",
-  "S-3B Tanker": "MFKD",
-  "Stennis": "CLCV",
-  "CVN_73": "CLCV",
-  "LHA_Tarawa": "CLCV",
-  "Mi-24P": "MHA-",
-  "SA342Mistral": "MHA-",
-  "Ka-50": "MHA-",
-  "Su-25T": "MFA-",
-};
+import { planes } from "../dcs/aircraft";
 
 type Event = {
   e: "CREATE";
@@ -99,8 +68,9 @@ export function generateSIDC(target: ObjectMetadata): string {
     battleDimension = "g";
   }
 
-  if (SIDCPlatforms[target.name] !== undefined) {
-    return `S${ident}${battleDimension}-${SIDCPlatforms[target.name]}--`;
+  const plane = planes[target.name];
+  if (plane !== undefined) {
+    return `S${ident}${battleDimension}-${plane.sidcPlatform}--`;
   } else if (target.types.includes("Air")) {
     console.log(
       `Missing AIR SIDC platform definition: ${target.name} (${

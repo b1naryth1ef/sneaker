@@ -10,8 +10,8 @@ import {
   TileLayer,
   useMapEvent,
 } from "react-leaflet";
+import { Syria } from "../dcs/maps/Syria";
 import { useKeyPress } from "../hooks/useKeyPress";
-import { Syria } from "../maps/Syria";
 import {
   generateSIDC,
   ObjectMetadata,
