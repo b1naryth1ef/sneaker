@@ -12,16 +12,16 @@ const ColorMode = ms.ColorMode(
 
 export function MapIcon(
   { obj, className, size }: {
-    obj: Entity;
+    obj: Entity | string;
     className?: string;
     size?: number;
   },
 ): JSX.Element {
-  if (obj.types.length === 0) {
+  if (typeof obj === "object" && obj.types.length === 0) {
     return <></>;
   }
 
-  const svg = new ms.Symbol(obj.sidc, {
+  const svg = new ms.Symbol(typeof obj === "object" ? obj.sidc : obj, {
     size: size || 26,
     frame: true,
     fill: false,

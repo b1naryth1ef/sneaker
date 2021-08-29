@@ -9,153 +9,11 @@ import {
   TileLayer,
   useMapEvent,
 } from "react-leaflet";
-import { planes } from "../dcs/aircraft";
 import { Syria } from "../dcs/maps/Syria";
 import { useKeyPress } from "../hooks/useKeyPress";
 import { serverStore } from "../stores/ServerStore";
-import {
-  EntityTrackPing,
-  estimatedAltitudeRate,
-  estimatedSpeed,
-  trackStore,
-} from "../stores/TrackStore";
-import { Entity } from "../types/entity";
-import { computeBRAA, getBearing, getCardinal } from "../util";
-import { MapIcon } from "./MapIcon";
-
-function MapEntityTrail({ track }: { track: Array<EntityTrackPing> }) {
-  return (
-    <>
-      {track.map((ping, idx) => (
-        <Marker
-          key={ping.time}
-          position={ping.position}
-          icon={divIcon({
-            iconSize: [5, 5],
-            className: `bg-gray-100 bg-opacity-${100 - (idx * 10)}`,
-          })}
-          zIndexOffset={30}
-        />
-      ))}
-    </>
-  );
-}
-
-export function MapObject(
-  { obj, active, setActive, scale }: {
-    obj: Entity;
-    active: boolean;
-    setActive: () => void;
-    scale: number;
-  },
-) {
-  const position: LatLngExpression = [obj.latitude, obj.longitude];
-  const plane = planes[obj.name];
-  const track = trackStore((state) => state.tracks.get(obj.id));
-
-  if (
-    obj.types.includes("Ground") ||
-    obj.types.length == 0
-  ) {
-    return <></>;
-  }
-
-  const icon = useMemo(() =>
-    divIcon({
-      html: renderToStaticMarkup(
-        <div className="flex flex-row absolute w-64">
-          <MapIcon
-            obj={obj}
-            className="relative bg-opacity-70"
-            size={16}
-          />
-          <div
-            className="bg-gray-700 bg-opacity-40 flex flex-col absolute"
-            style={{ left: 24, top: -6 }}
-          >
-            {obj.types.includes("Air") &&
-              (
-                <>
-                  <div className="font-bold text-white">
-                    {obj.name}
-                    {!obj.pilot.startsWith(obj.group)
-                      ? <>{" -"} {obj.pilot}</>
-                      : null}
-                  </div>
-                  <div className="flex flex-row gap-2">
-                    <div className="text-pink-300">
-                      {Math.floor(
-                        (obj.altitude * 3.28084) / 1000,
-                      )}
-                    </div>
-                    {track && (
-                      <>
-                        <div className="text-green-400">
-                          {Math.floor(estimatedSpeed(track))}
-                        </div>
-                        <div className="text-yellow-400">
-                          {Math.floor(estimatedAltitudeRate(track))}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </>
-              )}
-            <div>
-              {active &&
-                (
-                  <div className="flex flex-col">
-                    <span className="text-red-200">
-                      {plane && plane.natoName}
-                    </span>
-                    <span className="text-gray-100">
-                      {JSON.stringify(obj)}
-                    </span>
-                  </div>
-                )}
-            </div>
-          </div>
-        </div>,
-      ),
-      className: "",
-    }), [obj.name, obj.group, obj.pilot, active, track]);
-
-  const dirArrowEnd = track && computeBRAA(
-    position[0],
-    position[1],
-    obj.heading,
-    // knots -> meters per second -> 30 seconds
-    ((estimatedSpeed(track) * 0.514444)) * 30,
-  );
-
-  return (
-    <>
-      {dirArrowEnd && obj.types.includes("Air") && (
-        <Polyline
-          positions={[
-            position,
-            dirArrowEnd,
-          ]}
-          pathOptions={{
-            color: obj.coalition !== "Allies" ? "#17c2f6" : "#ff8080",
-            weight: 1,
-          }}
-        />
-      )}
-      <Marker
-        position={position}
-        icon={icon}
-        eventHandlers={{
-          click: () => {
-            setActive();
-          },
-        }}
-        zIndexOffset={0}
-      />
-      {track && <MapEntityTrail track={track} />}
-    </>
-  );
-}
+import { getBearing, getCardinal } from "../util";
+import { MapEntity } from "./MapEntity";
 
 function MapObjects() {
   const entities = serverStore((state) =>
@@ -295,9 +153,9 @@ function MapObjects() {
   return (
     <>
       {entities.map((obj) => (
-        <MapObject
+        <MapEntity
           key={obj.id}
-          obj={obj}
+          entity={obj}
           active={obj.id === activeObjectId}
           setActive={() =>
             activeObjectId === obj.id
