@@ -1,6 +1,5 @@
 import { getDistance, getGreatCircleBearing } from "geolib";
 import { divIcon, LatLng, LatLngExpression } from "leaflet";
-import ms from "milsymbol";
 import React, { useMemo, useState } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
@@ -12,46 +11,9 @@ import {
 } from "react-leaflet";
 import { Syria } from "../dcs/maps/Syria";
 import { useKeyPress } from "../hooks/useKeyPress";
-import {
-  generateSIDC,
-  ObjectMetadata,
-  serverStore,
-} from "../stores/ServerStore";
+import { ObjectMetadata, serverStore } from "../stores/ServerStore";
 import { computeBRAA } from "../util";
-
-const ColorMode = ms.ColorMode(
-  "#ffffff",
-  "#17c2f6",
-  "#ff8080",
-  "#ffffff",
-  "#ffffff",
-);
-
-function MapIcon(
-  { obj, className }: {
-    obj: ObjectMetadata;
-    className?: string;
-  },
-) {
-  if (obj.types.length === 0) {
-    return <></>;
-  }
-
-  const svg = new ms.Symbol(generateSIDC(obj), {
-    size: 26,
-    frame: true,
-    fill: false,
-    colorMode: ColorMode,
-    strokeWidth: 8,
-  }).asSVG();
-  return (
-    <span
-      dangerouslySetInnerHTML={{ __html: svg }}
-      className={className}
-      style={{ "transform": "translateX(-40%) translateY(-45%)" }}
-    />
-  );
-}
+import { MapIcon } from "./MapIcon";
 
 export function MapObject(
   { obj, active, setActive, zoom }: {
