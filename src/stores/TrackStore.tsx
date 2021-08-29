@@ -65,7 +65,10 @@ export function updateTracks(data: Array<RawEntityData>) {
       ...state,
       tracks: state.tracks.withMutations((obj) => {
         for (const entity of data) {
-          if (!entity.types.includes("Air")) {
+          if (
+            !entity.types.includes("Air") ||
+            entity.types.includes("Parachutist")
+          ) {
             continue;
           }
 

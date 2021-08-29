@@ -13,7 +13,7 @@ import { Entity } from "../types/entity";
 import { computeBRAA } from "../util";
 import { MapIcon } from "./MapIcon";
 
-function MapEntityTrail({ track }: { track: Array<EntityTrackPing> }) {
+export function MapEntityTrail({ track }: { track: Array<EntityTrackPing> }) {
   return (
     <>
       {track.map((ping, idx) => (
@@ -47,7 +47,7 @@ function MapEntityInner({ entity }: { entity: Entity }) {
   );
 }
 
-function MapTrackedEntityInner(
+export function MapTrackedEntityInner(
   { entity, active, track, hideLabel }: {
     entity: Entity;
     active: boolean;
@@ -63,24 +63,28 @@ function MapTrackedEntityInner(
     return <></>;
   }
 
+  const icon = useMemo(() => (
+    <MapIcon
+      obj={track.length < 5 ? "SPA-------" : entity}
+      className="relative bg-opacity-70"
+      size={16}
+    />
+  ), [entity.name, track.length]);
+
   return (
-    <div className="flex flex-row absolute w-64">
-      <MapIcon
-        obj={track.length < 5 ? "SPA-------" : entity}
-        className="relative bg-opacity-70"
-        size={16}
-      />
+    <div className="flex flex-row z-40 w-80">
+      {icon}
       {!hideLabel && (
         <div
-          className="bg-gray-700 bg-opacity-40 flex flex-col absolute"
+          className="bg-gray-700 bg-opacity-40 flex flex-col absolute text-sm"
           style={{ left: 24, top: -6 }}
         >
           {entity.types.includes("Air") && track.length >= 5 &&
             (
               <>
-                <div className="font-bold text-white">
+                <div className="text-white">
                   {entity.name}
-                  {!entity.pilot.startsWith(entity.group)
+                  {entity.pilot && !entity.pilot.startsWith(entity.group)
                     ? <>{" -"} {entity.pilot}</>
                     : null}
                 </div>
@@ -157,13 +161,14 @@ export function MapEntity(
     }), [entity, active, track, hideLabel]);
 
   const speed = track && estimatedSpeed(track);
-  const dirArrowEnd = speed && speed >= 15 && computeBRAA(
-    position[0],
-    position[1],
-    entity.heading,
-    // knots -> meters per second -> 30 seconds
-    ((speed * 0.514444)) * 30,
-  );
+  const dirArrowEnd = speed && speed >= 15 && track && track.length >= 5 &&
+    computeBRAA(
+      position[0],
+      position[1],
+      entity.heading,
+      // knots -> meters per second -> 30 seconds
+      ((speed * 0.514444)) * 30,
+    );
 
   return (
     <>

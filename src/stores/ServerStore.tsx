@@ -23,10 +23,10 @@ export const serverStore = create<ServerStoreData>(() => {
 
 function doLongPoll() {
   // TODO: retry / restart on error
-
   const eventSource = new EventSource("http://localhost:7788");
   eventSource.onmessage = (event) => {
     const eventData = JSON.parse(event.data) as Event;
+    console.log("mm");
     serverStore.setState((state) => {
       return {
         ...state,
