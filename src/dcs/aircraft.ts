@@ -1,10 +1,24 @@
-class Plane {
+class Aircraft {
   id: string;
   sidcPlatform: string;
+  natoName?: string;
 
-  constructor(id: string, sidcPlatform?: string) {
+  constructor(id: string, sidcPlatform: string, natoName?: string) {
     this.id = id;
     this.sidcPlatform = sidcPlatform || "MFF-";
+    this.natoName = natoName;
+  }
+}
+
+class Plane extends Aircraft {
+  constructor(id: string, sidcPlatform?: string, natoName?: string) {
+    super(id, sidcPlatform || "MFF-", natoName);
+  }
+}
+
+class Helicopter extends Aircraft {
+  constructor(id: string, sidcPlatform?: string, natoName?: string) {
+    super(id, sidcPlatform || "MHA-", natoName);
   }
 }
 
@@ -17,21 +31,21 @@ export const planes: Record<string, Plane> = {
   "Tu-22M3": new Plane("Tu_22M3", "MFB-"),
   "F-4E": new Plane("F_4E"),
   "B-52H": new Plane("B_52H", "MFB-"),
-  "MiG-27K": new Plane("MiG_27K"),
-  "Su-27": new Plane("Su_27"),
-  "MiG-23MLD": new Plane("MiG_23MLD"),
+  "MiG-27K": new Plane("MiG_27K", undefined, "Flanker"),
+  "Su-27": new Plane("Su_27", undefined, "Flanker"),
+  "MiG-23MLD": new Plane("MiG_23MLD", undefined, "Flogger"),
   "Su-25": new Plane("Su_25", "MFA-"),
   "Su-25TM": new Plane("Su_25TM", "MFA-"),
   "Su-25T": new Plane("Su_25T", "MFA-"),
-  "Su-33": new Plane("Su_33"),
-  "MiG-25PD": new Plane("MiG_25PD"),
-  "MiG-25RBT": new Plane("MiG_25RBT"),
-  "Su-30": new Plane("Su_30"),
-  "Su-17M4": new Plane("Su_17M4"),
-  "MiG-31": new Plane("MiG_31"),
+  "Su-33": new Plane("Su_33", undefined, "Flanker"),
+  "MiG-25PD": new Plane("MiG_25PD", undefined, "Foxbat"),
+  "MiG-25RBT": new Plane("MiG_25RBT", undefined, "Foxbat"),
+  "Su-30": new Plane("Su_30", undefined, "Flanker"),
+  "Su-17M4": new Plane("Su_17M4", undefined, "Fitter"),
+  "MiG-31": new Plane("MiG_31", undefined, "Foxhound"),
   "Tu-95MS": new Plane("Tu_95MS", "MFB-"),
-  "Su-24M": new Plane("Su_24M"),
-  "Su-24MR": new Plane("Su_24MR"),
+  "Su-24M": new Plane("Su_24M", undefined, "Fencer"),
+  "Su-24MR": new Plane("Su_24MR", undefined, "Fencer"),
   "Tu-160": new Plane("Tu_160", "MFB-"),
   "F-117A": new Plane("F_117A", "MFA-"),
   "B-1B": new Plane("B_1B", "MFB-"),
@@ -40,9 +54,9 @@ export const planes: Record<string, Plane> = {
   "Mirage 2000-5": new Plane("Mirage_2000_5"),
   "F-15C": new Plane("F_15C"),
   "F-15E": new Plane("F_15E"),
-  "MiG-29A": new Plane("MiG_29A"),
-  "MiG-29G": new Plane("MiG_29G"),
-  "MiG-29S": new Plane("MiG_29S"),
+  "MiG-29A": new Plane("MiG_29A", undefined, "Fulcrum"),
+  "MiG-29G": new Plane("MiG_29G", undefined, "Fulcrum"),
+  "MiG-29S": new Plane("MiG_29S", undefined, "Fulcrum"),
   "Tu-142": new Plane("Tu_142", "MFR-"),
   "C-130": new Plane("C_130", "MFC-"),
   "An-26B": new Plane("An_26B", "MFC-"),
@@ -99,11 +113,32 @@ export const planes: Record<string, Plane> = {
   "M-2000C": new Plane("M_2000C"),
   "MQ-9 Reaper": new Plane("MQ_9_Reaper", "MFQD"),
   "MiG-15bis": new Plane("MiG_15bis"),
-  "MiG-19P": new Plane("MiG_19P"),
-  "MiG-21Bis": new Plane("MiG_21Bis"),
-  "Su-34": new Plane("Su_34"),
+  "MiG-19P": new Plane("MiG_19P", undefined, "Farmer"),
+  "MiG-21Bis": new Plane("MiG_21Bis", undefined, "Fishbed"),
+  "Su-34": new Plane("Su_34", undefined, "Fullback"),
   "Yak-52": new Plane("Yak_52"),
   "B-17G": new Plane("B_17G", "MFB-"),
   "Ju-88A4": new Plane("Ju_88A4"),
   "TF-51D": new Plane("TF_51D"),
+  "Ka-50": new Helicopter("Ka_50"),
+  "Mi-24V": new Helicopter("Mi_24V"),
+  "Mi-8MT": new Helicopter("Mi_8MT"),
+  "Mi-26": new Helicopter("Mi_26"),
+  "Ka-27": new Helicopter("Ka_27"),
+  "UH-60A": new Helicopter("UH_60A", "MHU-"),
+  "CH-53E": new Helicopter("CH_53E", "MHC-"),
+  "CH-47D": new Helicopter("CH_47D", "MHC-"),
+  "SH-3W": new Helicopter("SH_3W"),
+  "AH-64A": new Helicopter("AH_64A"),
+  "AH-64D": new Helicopter("AH_64D"),
+  "AH-1W": new Helicopter("AH_1W"),
+  "SH-60B": new Helicopter("SH_60B"),
+  "UH-1H": new Helicopter("UH_1H"),
+  "Mi-28N": new Helicopter("Mi_28N"),
+  "OH-58D": new Helicopter("OH_58D"),
+  "Mi-24P": new Helicopter("Mi_24P"),
+  "SA342M": new Helicopter("SA342M"),
+  "SA342L": new Helicopter("SA342L"),
+  "SA342Mistral": new Helicopter("SA342Mistral"),
+  "SA342Minigun": new Helicopter("SA342Minigun"),
 };

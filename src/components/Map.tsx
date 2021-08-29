@@ -1,5 +1,5 @@
-import { getDistance, getGreatCircleBearing } from "geolib";
-import { divIcon, LatLng, LatLngExpression } from "leaflet";
+import { getDistance } from "geolib";
+import { divIcon, LatLngExpression } from "leaflet";
 import React, { useMemo, useState } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
@@ -9,21 +9,49 @@ import {
   TileLayer,
   useMapEvent,
 } from "react-leaflet";
+import { planes } from "../dcs/aircraft";
 import { Syria } from "../dcs/maps/Syria";
 import { useKeyPress } from "../hooks/useKeyPress";
-import { ObjectMetadata, serverStore } from "../stores/ServerStore";
-import { computeBRAA } from "../util";
+import { serverStore } from "../stores/ServerStore";
+import {
+  EntityTrackPing,
+  estimatedAltitudeRate,
+  estimatedSpeed,
+  trackStore,
+} from "../stores/TrackStore";
+import { Entity } from "../types/entity";
+import { computeBRAA, getBearing } from "../util";
 import { MapIcon } from "./MapIcon";
 
+function MapEntityTrail({ track }: { track: Array<EntityTrackPing> }) {
+  return (
+    <>
+      {track.map((ping, idx) => (
+        <Marker
+          key={ping.time}
+          position={ping.position}
+          icon={divIcon({
+            iconSize: [5, 5],
+            className: `bg-gray-100 bg-opacity-${100 - (idx * 10)}`,
+          })}
+          zIndexOffset={30}
+        />
+      ))}
+    </>
+  );
+}
+
 export function MapObject(
-  { obj, active, setActive, zoom }: {
-    obj: ObjectMetadata;
+  { obj, active, setActive, scale }: {
+    obj: Entity;
     active: boolean;
     setActive: () => void;
-    zoom: number;
+    scale: number;
   },
 ) {
   const position: LatLngExpression = [obj.latitude, obj.longitude];
+  const plane = planes[obj.name];
+  const track = trackStore((state) => state.tracks.get(obj.id));
 
   if (
     obj.types.includes("Ground") ||
@@ -39,6 +67,7 @@ export function MapObject(
           <MapIcon
             obj={obj}
             className="relative bg-opacity-70"
+            size={16}
           />
           <div
             className="bg-gray-700 bg-opacity-40 flex flex-col absolute"
@@ -46,50 +75,71 @@ export function MapObject(
           >
             {obj.types.includes("Air") &&
               (
-                <div className="flex flex-col">
+                <>
                   <div className="font-bold text-white">
                     {obj.name}
                     {!obj.pilot.startsWith(obj.group)
                       ? <>{" -"} {obj.pilot}</>
                       : null}
                   </div>
-                  <div className="text-pink-300">
-                    {Math.floor(
-                      (obj.altitude * 3.28084) / 1000,
+                  <div className="flex flex-row gap-2">
+                    <div className="text-pink-300">
+                      {Math.floor(
+                        (obj.altitude * 3.28084) / 1000,
+                      )}
+                    </div>
+                    {track && (
+                      <>
+                        <div className="text-green-400">
+                          {Math.floor(estimatedSpeed(track))}
+                        </div>
+                        <div className="text-yellow-400">
+                          {Math.floor(estimatedAltitudeRate(track))}
+                        </div>
+                      </>
                     )}
                   </div>
-                </div>
+                </>
               )}
             <div>
               {active &&
                 (
-                  <span className="text-gray-100">
-                    {JSON.stringify(obj)}
-                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-red-200">
+                      {plane && plane.natoName}
+                    </span>
+                    <span className="text-gray-100">
+                      {JSON.stringify(obj)}
+                    </span>
+                  </div>
                 )}
             </div>
           </div>
         </div>,
       ),
       className: "",
-    }), [obj.name, obj.group, obj.pilot, active, zoom]);
+    }), [obj.name, obj.group, obj.pilot, active, track]);
 
-  const dirArrowEnd = computeBRAA(
+  const dirArrowEnd = track && computeBRAA(
     position[0],
     position[1],
     obj.heading,
-    30000 - (zoom * 2000),
+    // knots -> meters per second -> 30 seconds
+    ((estimatedSpeed(track) * 0.514444)) * 30,
   );
 
   return (
     <>
-      {obj.types.includes("Air") && (
+      {dirArrowEnd && obj.types.includes("Air") && (
         <Polyline
           positions={[
             position,
             dirArrowEnd,
           ]}
-          pathOptions={{ color: "white", weight: 1 }}
+          pathOptions={{
+            color: obj.coalition !== "Allies" ? "#17c2f6" : "#ff8080",
+            weight: 1,
+          }}
         />
       )}
       <Marker
@@ -102,27 +152,37 @@ export function MapObject(
         }}
         zIndexOffset={0}
       />
+      {track && <MapEntityTrail track={track} />}
     </>
   );
 }
 
 function MapObjects() {
-  const objects = serverStore((state) =>
-    state.objects.valueSeq().filter((k) =>
+  const entities = serverStore((state) =>
+    state.entities.valueSeq().filter((k) =>
       (!k.types.includes("Bullseye") || k.coalition !== "Allies") &&
       !k.types.includes("Parachutist")
     )
   );
   const [activeObjectId, setActiveObjectId] = useState<number | null>(null);
-  const [zoom, setZoom] = useState<number>(9);
-  const zoomEvent = useMapEvent("zoom", () => {
-    setZoom(zoomEvent.getZoom());
+  const [scale, setScale] = useState<number>(124);
+  const zoomEvent = useMapEvent("zoomend", () => {
+    const y = zoomEvent.getSize().y;
+    const x = zoomEvent.getSize().x;
+    var maxMeters = zoomEvent.containerPointToLatLng([0, y]).distanceTo(
+      zoomEvent.containerPointToLatLng([x, y]),
+    );
+    setScale(maxMeters / x);
   });
 
-  const [braaStartPos, setBraaStartPos] = useState<number | LatLng | null>(
+  const [braaStartPos, setBraaStartPos] = useState<
+    number | [number, number] | null
+  >(
     null,
   );
-  const [cursorPos, setCursorPos] = useState<number | LatLng | null>(null);
+  const [cursorPos, setCursorPos] = useState<number | [number, number] | null>(
+    null,
+  );
   const isSnapDown = useKeyPress("s");
 
   useMapEvent("contextmenu", (e) => {});
@@ -130,7 +190,7 @@ function MapObjects() {
   useMapEvent("mousemove", (e) => {
     let snappedObject = null;
     if (isSnapDown) {
-      snappedObject = objects.map((
+      snappedObject = entities.map((
         obj,
       ) =>
         [
@@ -148,14 +208,14 @@ function MapObjects() {
         snappedObject[0],
       );
     } else {
-      setCursorPos(e.latlng);
+      setCursorPos([e.latlng.lat, e.latlng.lng]);
     }
   });
 
   const mouseDownEvent = useMapEvent("mousedown", (e) => {
     if (e.originalEvent.button === 2) {
       if (isSnapDown) {
-        const snappedObject = objects.sort((
+        const snappedObject = entities.sort((
           a,
           b,
         ) =>
@@ -171,28 +231,28 @@ function MapObjects() {
           setBraaStartPos(snappedObject.id);
         }
       } else {
-        setBraaStartPos(e.latlng);
+        setBraaStartPos([e.latlng.lat, e.latlng.lng]);
       }
       mouseUpEvent.dragging.disable();
     }
   });
 
   const braaObj = typeof braaStartPos === "number" &&
-    serverStore.getState().objects.get(braaStartPos);
-  let braaPos: LatLngExpression | undefined = undefined;
+    serverStore.getState().entities.get(braaStartPos);
+  let braaPos: [number, number] | undefined = undefined;
   if (typeof braaStartPos === "number" && braaObj) {
     braaPos = [braaObj.latitude, braaObj.longitude];
-  } else if (braaStartPos) {
-    braaPos = braaStartPos as LatLng;
+  } else if (Array.isArray(braaStartPos)) {
+    braaPos = braaStartPos;
   }
 
   const cursorObj = typeof cursorPos === "number" &&
-    serverStore.getState().objects.get(cursorPos);
-  let ourCursorPos: LatLngExpression | undefined = undefined;
+    serverStore.getState().entities.get(cursorPos);
+  let ourCursorPos: [number, number] | undefined = undefined;
   if (typeof cursorPos === "number" && cursorObj) {
     ourCursorPos = [cursorObj.latitude, cursorObj.longitude];
-  } else if (cursorPos) {
-    ourCursorPos = cursorPos as LatLng;
+  } else if (Array.isArray(cursorPos)) {
+    ourCursorPos = cursorPos;
   }
 
   const mouseUpEvent = useMapEvent("mouseup", (e) => {
@@ -214,7 +274,7 @@ function MapObjects() {
         <div
           className="absolute text-indigo-300 ml-10 text-xl whitespace-nowrap bg-gray-600 p-2"
         >
-          {Math.floor(getGreatCircleBearing(braaPos, ourCursorPos)) +
+          {Math.floor(getBearing(braaPos, ourCursorPos)) +
             Syria.magDec} / {Math.floor(
               getDistance(braaPos, ourCursorPos) * 0.00053995680345572,
             )}NM
@@ -222,11 +282,11 @@ function MapObjects() {
       ),
       className: "",
     });
-  }, [braaPos, ourCursorPos, objects]);
+  }, [braaStartPos, cursorPos, entities]);
 
   return (
     <>
-      {objects.map((obj) => (
+      {entities.map((obj) => (
         <MapObject
           key={obj.id}
           obj={obj}
@@ -235,7 +295,7 @@ function MapObjects() {
             activeObjectId === obj.id
               ? setActiveObjectId(null)
               : setActiveObjectId(obj.id)}
-          zoom={zoom}
+          scale={scale}
         />
       ))}
       {braaPos && ourCursorPos && (

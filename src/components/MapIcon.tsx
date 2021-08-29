@@ -1,6 +1,6 @@
 import ms from "milsymbol";
 import React from "react";
-import { generateSIDC, ObjectMetadata } from "../stores/ServerStore";
+import { Entity } from "../types/entity";
 
 const ColorMode = ms.ColorMode(
   "#ffffff",
@@ -11,17 +11,18 @@ const ColorMode = ms.ColorMode(
 );
 
 export function MapIcon(
-  { obj, className }: {
-    obj: ObjectMetadata;
+  { obj, className, size }: {
+    obj: Entity;
     className?: string;
+    size?: number;
   },
 ): JSX.Element {
   if (obj.types.length === 0) {
     return <></>;
   }
 
-  const svg = new ms.Symbol(generateSIDC(obj), {
-    size: 26,
+  const svg = new ms.Symbol(obj.sidc, {
+    size: size || 26,
     frame: true,
     fill: false,
     colorMode: ColorMode,
