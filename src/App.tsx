@@ -1,5 +1,5 @@
 import React from "react";
-import { Map } from "./components/NewNewNewMap";
+import { Map } from "./components/Map";
 import { Syria } from "./dcs/maps/Syria";
 
 function App() {
