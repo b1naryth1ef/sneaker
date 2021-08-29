@@ -24,6 +24,7 @@ function MapObjects() {
   );
   const [activeObjectId, setActiveObjectId] = useState<number | null>(null);
   const [scale, setScale] = useState<number>(124);
+  const [hideLabels, setHideLabels] = useState<boolean>(false);
   const zoomEvent = useMapEvent("zoomend", () => {
     const y = zoomEvent.getSize().y;
     const x = zoomEvent.getSize().x;
@@ -44,6 +45,12 @@ function MapObjects() {
   const isSnapDown = useKeyPress("s");
 
   useMapEvent("contextmenu", (e) => {});
+
+  useMapEvent("keyup", (e) => {
+    if (e.originalEvent.key === "l") {
+      setHideLabels(!hideLabels);
+    }
+  });
 
   useMapEvent("mousemove", (e) => {
     let snappedObject = null;
@@ -162,6 +169,7 @@ function MapObjects() {
               ? setActiveObjectId(null)
               : setActiveObjectId(obj.id)}
           scale={scale}
+          hideLabel={hideLabels}
         />
       ))}
       {braaPos && ourCursorPos && (

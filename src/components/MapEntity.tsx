@@ -48,10 +48,11 @@ function MapEntityInner({ entity }: { entity: Entity }) {
 }
 
 function MapTrackedEntityInner(
-  { entity, active, track }: {
+  { entity, active, track, hideLabel }: {
     entity: Entity;
     active: boolean;
     track: Array<EntityTrackPing>;
+    hideLabel: boolean;
   },
 ) {
   const plane = planes[entity.name];
@@ -69,60 +70,63 @@ function MapTrackedEntityInner(
         className="relative bg-opacity-70"
         size={16}
       />
-      <div
-        className="bg-gray-700 bg-opacity-40 flex flex-col absolute"
-        style={{ left: 24, top: -6 }}
-      >
-        {entity.types.includes("Air") && track.length >= 5 &&
-          (
-            <>
-              <div className="font-bold text-white">
-                {entity.name}
-                {!entity.pilot.startsWith(entity.group)
-                  ? <>{" -"} {entity.pilot}</>
-                  : null}
-              </div>
-              <div className="flex flex-row gap-2">
-                <div className="text-pink-300">
-                  {Math.floor(
-                    (entity.altitude * 3.28084) / 1000,
-                  )}
-                </div>
-                <>
-                  <div className="text-green-400">
-                    {Math.floor(estimatedSpeed(track))}
-                  </div>
-                  <div className="text-yellow-400">
-                    {Math.floor(estimatedAltitudeRate(track))}
-                  </div>
-                </>
-              </div>
-            </>
-          )}
-        <div>
-          {active &&
+      {!hideLabel && (
+        <div
+          className="bg-gray-700 bg-opacity-40 flex flex-col absolute"
+          style={{ left: 24, top: -6 }}
+        >
+          {entity.types.includes("Air") && track.length >= 5 &&
             (
-              <div className="flex flex-col">
-                <span className="text-red-200">
-                  {plane && plane.natoName}
-                </span>
-                <span className="text-gray-100">
-                  {JSON.stringify(entity)}
-                </span>
-              </div>
+              <>
+                <div className="font-bold text-white">
+                  {entity.name}
+                  {!entity.pilot.startsWith(entity.group)
+                    ? <>{" -"} {entity.pilot}</>
+                    : null}
+                </div>
+                <div className="flex flex-row gap-2">
+                  <div className="text-pink-300">
+                    {Math.floor(
+                      (entity.altitude * 3.28084) / 1000,
+                    )}
+                  </div>
+                  <>
+                    <div className="text-green-400">
+                      {Math.floor(estimatedSpeed(track))}
+                    </div>
+                    <div className="text-yellow-400">
+                      {Math.floor(estimatedAltitudeRate(track))}
+                    </div>
+                  </>
+                </div>
+              </>
             )}
+          <div>
+            {active &&
+              (
+                <div className="flex flex-col">
+                  <span className="text-red-200">
+                    {plane && plane.natoName}
+                  </span>
+                  <span className="text-gray-100">
+                    {JSON.stringify(entity)}
+                  </span>
+                </div>
+              )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
 
 export function MapEntity(
-  { entity, active, setActive, scale }: {
+  { entity, active, setActive, scale, hideLabel }: {
     entity: Entity;
     active: boolean;
     setActive: () => void;
     scale: number;
+    hideLabel: boolean;
   },
 ) {
   const position: LatLngExpression = [entity.latitude, entity.longitude];
@@ -135,9 +139,6 @@ export function MapEntity(
     return <></>;
   }
 
-  // console.log(track && track.length > 0 && estimatedAltitudeRate(track));
-  // console.log(track && track.length > 0 && estimatedSpeed(track));
-
   const icon = useMemo(() =>
     divIcon({
       html: renderToStaticMarkup(
@@ -147,12 +148,13 @@ export function MapEntity(
               entity={entity}
               track={track}
               active={active}
+              hideLabel={hideLabel}
             />
           )
           : <MapEntityInner entity={entity} />,
       ),
       className: "",
-    }), [entity, active, track]);
+    }), [entity, active, track, hideLabel]);
 
   const speed = track && estimatedSpeed(track);
   const dirArrowEnd = speed && speed >= 15 && computeBRAA(
