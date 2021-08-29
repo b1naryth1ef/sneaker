@@ -20,7 +20,7 @@ import {
   trackStore,
 } from "../stores/TrackStore";
 import { Entity } from "../types/entity";
-import { computeBRAA, getBearing } from "../util";
+import { computeBRAA, getBearing, getCardinal } from "../util";
 import { MapIcon } from "./MapIcon";
 
 function MapEntityTrail({ track }: { track: Array<EntityTrackPing> }) {
@@ -269,15 +269,23 @@ function MapObjects() {
       return null;
     }
 
+    let bearing = Math.round(getBearing(braaPos, ourCursorPos)) +
+      Syria.magDec;
+    if (bearing > 360) {
+      bearing = bearing - 360;
+    } else if (bearing < 0) {
+      bearing = bearing + 360;
+    }
+
     return divIcon({
       html: renderToStaticMarkup(
         <div
           className="absolute text-indigo-300 ml-10 text-xl whitespace-nowrap bg-gray-600 p-2"
         >
-          {Math.floor(getBearing(braaPos, ourCursorPos)) +
-            Syria.magDec} / {Math.floor(
-              getDistance(braaPos, ourCursorPos) * 0.00053995680345572,
-            )}NM
+          {bearing}
+          {getCardinal(bearing)} / {Math.floor(
+            getDistance(braaPos, ourCursorPos) * 0.00053995680345572,
+          )}NM
         </div>,
       ),
       className: "",
