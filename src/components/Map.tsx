@@ -1,6 +1,12 @@
 import * as maptalks from "maptalks";
 import ms from "milsymbol";
-import React, { MutableRefObject, useEffect, useRef, useState } from "react";
+import React, {
+  MutableRefObject,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { renderToString } from "react-dom/server";
 import { computeDistanceBetween } from "spherical-geometry-js";
 import { DCSMap } from "../dcs/maps/DCSMap";
@@ -14,6 +20,15 @@ import {
 import { computeBRAA, getBearing, getCardinal } from "../util";
 import { EntityInfo, iconCache, MapSimpleEntity } from "./MapEntity";
 import { colorMode } from "./MapIcon";
+
+const syncVisibility = (geo: maptalks.Geometry, value: boolean) => {
+  const isVisible = geo.isVisible();
+  if (!isVisible && value) {
+    geo.show();
+  } else if (isVisible && !value) {
+    geo.hide();
+  }
+};
 
 function MapRadarTracks(
   { map, selectedEntityId, setSelectedEntityId }: {
@@ -122,14 +137,18 @@ function MapRadarTracks(
         iconGeo.setCoordinates(
           [entity.longitude, entity.latitude],
         );
-        trackVisible ? iconGeo.show() : iconGeo.hide();
+        syncVisibility(iconGeo, trackVisible);
       }
 
       const infoGeo = infoLayer.getGeometryById(
         `${entityId}-info`,
       ) as maptalks.Label;
       if (!infoGeo) {
-        const infoText = new maptalks.Label("test", [0, 0], {
+        let name = entity.name;
+        if (entity.pilot && !entity.pilot.startsWith(entity.group)) {
+          name = `${entity.pilot} (${name})`;
+        }
+        const infoText = new maptalks.Label(name, [0, 0], {
           id: `${entityId}-info`,
           draggable: false,
           visible: true,
@@ -159,28 +178,29 @@ function MapRadarTracks(
         });
         infoLayer.addGeometry(infoText);
       } else {
-        let name = entity.name;
-        if (entity.pilot && !entity.pilot.startsWith(entity.group)) {
-          name = `${entity.pilot} (${name})`;
-        }
-
-        if (triggeredEntityIds.has(entity.id.toString())) {
-          infoGeo.setSymbol({
-            ...infoGeo.getSymbol(),
-            markerLineWidth: 4,
-          });
+        const symbol = infoGeo.getSymbol();
+        if (
+          triggeredEntityIds.has(entity.id.toString())
+        ) {
+          if ((symbol as any).markerLineWidth !== 4) {
+            infoGeo.setSymbol({
+              ...symbol,
+              markerLineWidth: 4,
+            });
+          }
         } else {
-          infoGeo.setSymbol({
-            ...infoGeo.getSymbol(),
-            markerLineWidth: 1,
-          });
+          if ((symbol as any).markerLineWidth !== 1) {
+            infoGeo.setSymbol({
+              ...symbol,
+              markerLineWidth: 1,
+            });
+          }
         }
 
-        (infoGeo.setContent as any)(name);
         infoGeo.setCoordinates(
           [entity.longitude, entity.latitude],
         );
-        trackVisible ? infoGeo.show() : infoGeo.hide();
+        syncVisibility(infoGeo, trackVisible);
       }
 
       const infoAltitudeGeo = infoLayer.getGeometryById(
@@ -222,7 +242,7 @@ function MapRadarTracks(
         infoAltitudeGeo.setCoordinates(
           [entity.longitude, entity.latitude],
         );
-        trackVisible ? infoAltitudeGeo.show() : infoAltitudeGeo.hide();
+        syncVisibility(infoAltitudeGeo, trackVisible);
       }
 
       const infoSpeedGeo = infoLayer.getGeometryById(
@@ -260,7 +280,8 @@ function MapRadarTracks(
         infoSpeedGeo.setCoordinates(
           [entity.longitude, entity.latitude],
         );
-        trackVisible ? infoSpeedGeo.show() : infoSpeedGeo.hide();
+
+        syncVisibility(infoSpeedGeo, trackVisible);
       }
 
       const infoAltRateGeo = infoLayer.getGeometryById(
@@ -298,7 +319,7 @@ function MapRadarTracks(
         infoAltRateGeo.setCoordinates(
           [entity.longitude, entity.latitude],
         );
-        trackVisible ? infoAltRateGeo.show() : infoAltRateGeo.hide();
+        syncVisibility(infoAltRateGeo, trackVisible);
       }
 
       let threatCircle = alertLayer.getGeometryById(
@@ -348,6 +369,10 @@ function MapRadarTracks(
         });
         alertLayer.addGeometry(warningCircle);
       } else {
+        syncVisibility(
+          warningCircle,
+          trackOptions?.warningRadius && trackVisible || false,
+        );
         if (trackOptions?.warningRadius) {
           warningCircle.setCoordinates(
             [entity.longitude, entity.latitude],
@@ -355,9 +380,6 @@ function MapRadarTracks(
           warningCircle.setRadius(
             trackOptions.warningRadius * 1609.34,
           );
-          trackVisible ? warningCircle.show() : warningCircle.hide();
-        } else {
-          warningCircle.hide();
         }
       }
 
@@ -394,16 +416,19 @@ function MapRadarTracks(
 
       if (!trackVisible) {
         for (const trackGeo of trackPointGeos) {
-          trackGeo.hide();
+          if (trackGeo.isVisible()) {
+            trackGeo.hide();
+          }
         }
       } else {
-        track.slice(1, numShownPings + 1).forEach((trackPoint, index) => {
-          const trackPointGeo = trackPointGeos[index];
-          if (trackVisible) {
-            trackPointGeo.show();
-          } else {
-            trackPointGeo.hide();
-          }
+        for (
+          let index = 1;
+          index < track.length && index < numShownPings;
+          index++
+        ) {
+          const trackPoint = track[index];
+          const trackPointGeo = trackPointGeos[index - 1];
+          syncVisibility(trackPointGeo, trackVisible);
           trackPointGeo.setCoordinates([
             trackPoint.position[1],
             trackPoint.position[0],
@@ -426,7 +451,7 @@ function MapRadarTracks(
               "markerFillOpacity": (100 - (index * 10)) / 100,
             },
           );
-        });
+        }
       }
 
       const speed = track && estimatedSpeed(track);
@@ -537,7 +562,10 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
   const bullsEntity = entities.find((it) =>
     it.types.includes("Bullseye") && it.coalition !== "Allies"
   );
-  const ships = entities.filter((it) => it.types.includes("Sea"));
+  const ships = useMemo(
+    () => entities.filter((it) => it.types.includes("Sea")),
+    [entities],
+  );
 
   const selectedTrack = trackStore((
     state,
@@ -710,7 +738,11 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
             "layers": [infoLayer, iconLayer],
           }, (geos: Array<maptalks.Geometry>) => {
             if (geos.length >= 1) {
-              setDrawBraaStart(geos[0].getId() as number);
+              let id = geos[0].getId();
+              if (typeof id === "string") {
+                id = parseInt(id);
+              }
+              setDrawBraaStart(id);
             }
           });
         } else {
