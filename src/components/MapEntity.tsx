@@ -59,7 +59,7 @@ export function MapTrackedEntityInner(
   const speed = estimatedSpeed(track);
 
   // Not visible to our radar
-  if (speed === -1 || speed < 15) {
+  if (speed === -1 || speed < 25) {
     return <></>;
   }
 
@@ -161,7 +161,7 @@ export function MapEntity(
     }), [entity, active, track, hideLabel]);
 
   const speed = track && estimatedSpeed(track);
-  const dirArrowEnd = speed && speed >= 15 && track && track.length >= 5 &&
+  const dirArrowEnd = speed && speed >= 25 && track && track.length >= 5 &&
     computeBRAA(
       position[0],
       position[1],
@@ -194,7 +194,7 @@ export function MapEntity(
         }}
         zIndexOffset={0}
       />
-      {track && track.length >= 5 && speed && speed > 15 &&
+      {track && track.length >= 5 && speed && speed > 25 &&
         <MapEntityTrail track={track} />}
     </>
   );

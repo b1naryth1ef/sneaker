@@ -2,10 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-@import "~leaflet/dist/leaflet.css";
+/* Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
 
-.test {
-  fill: none;
-  stroke-width: 3;
-  stroke: #491ec4;
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
