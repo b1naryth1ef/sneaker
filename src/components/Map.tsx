@@ -9,6 +9,7 @@ import {
   EntityTrackPing,
   estimatedAltitudeRate,
   estimatedSpeed,
+  setTrackOptions,
   trackStore,
 } from "../stores/TrackStore";
 import { Entity } from "../types/entity";
@@ -24,6 +25,8 @@ function EntityInfo(
     track: Array<EntityTrackPing>;
   },
 ) {
+  const trackOptions = trackStore((state) => state.trackOptions.get(entity.id));
+
   return (
     <div
       className="m-2 absolute flex flex-col bg-gray-300 border border-gray-500 shadow select-none rounded-sm"
@@ -63,11 +66,33 @@ function EntityInfo(
           <div className="flex flex-col gap-1">
             <div className="flex flex-row flex-grow">
               <span className="text-yellow-600 pr-2 flex-grow">WR</span>
-              <input className="w-16"></input>
+              <input
+                className="w-16"
+                value={trackOptions?.warningRadius || ""}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value);
+                  if (val !== NaN) {
+                    setTrackOptions(entity.id, {
+                      warningRadius: val,
+                    });
+                  }
+                }}
+              />
             </div>
             <div className="flex flex-row flex-grow">
               <span className="text-red-600 pr-2 flex-grow">TR</span>
-              <input className="w-16"></input>
+              <input
+                className="w-16"
+                value={trackOptions?.threatRadius || ""}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value);
+                  if (val !== NaN) {
+                    setTrackOptions(entity.id, {
+                      threatRadius: val,
+                    });
+                  }
+                }}
+              />
             </div>
           </div>
         </div>
@@ -127,9 +152,10 @@ function MapSimpleEntity(
 }
 
 function MapRadarTracks(
-  { map, setSelectedEntity }: {
+  { map, selectedEntityId, setSelectedEntityId }: {
     map: maptalks.Map;
-    setSelectedEntity: (v: number | null) => void;
+    selectedEntityId: number | null;
+    setSelectedEntityId: (v: number | null) => void;
   },
 ) {
   const radarTracks = trackStore((state) => state.tracks.entrySeq().toArray());
@@ -139,6 +165,9 @@ function MapRadarTracks(
     const vvLayer = map.getLayer("track-vv") as maptalks.VectorLayer;
     const trailLayer = map.getLayer("trails") as maptalks.VectorLayer;
     const infoLayer = map.getLayer("track-info") as maptalks.VectorLayer;
+    const alertLayer = map.getLayer(
+      "track-alert-radius",
+    ) as maptalks.VectorLayer;
     for (const geo of vvLayer.getGeometries()) {
       if (!entities.has(geo.id as number)) {
         geo.remove();
@@ -163,12 +192,23 @@ function MapRadarTracks(
       }
     }
 
+    for (const geo of alertLayer.getGeometries()) {
+      const geoA: any = geo;
+      if (!geoA._id) continue;
+      const [geoId, _] = (geoA._id as string).split("-");
+      if (!entities.has(parseInt(geoId))) {
+        geo.remove();
+      }
+    }
+
     for (const [entityId, track] of radarTracks) {
       const trackVisible = estimatedSpeed(track) >= 25;
       const entity = entities.get(entityId);
       if (!entity) {
         continue;
       }
+
+      const trackOptions = trackStore.getState().trackOptions.get(entityId);
 
       const iconGeo = trailLayer.getGeometryById(
         `${entityId}-icon`,
@@ -201,7 +241,7 @@ function MapRadarTracks(
           iconGeo,
         );
         iconGeo.on("click", (e) => {
-          setSelectedEntity(entity.id);
+          setSelectedEntityId(entity.id);
         });
       } else {
         iconGeo.setCoordinates(
@@ -240,7 +280,7 @@ function MapRadarTracks(
           },
         });
         infoText.on("click", (e) => {
-          setSelectedEntity(entity.id);
+          setSelectedEntityId(entity.id);
         });
         infoLayer.addGeometry(infoText);
       } else {
@@ -374,6 +414,66 @@ function MapRadarTracks(
         trackVisible ? infoAltRateGeo.show() : infoAltRateGeo.hide();
       }
 
+      let threatCircle = alertLayer.getGeometryById(
+        `${entityId}-threat`,
+      ) as maptalks.Circle;
+      if (!threatCircle) {
+        threatCircle = new maptalks.Circle([0, 0], 500, {
+          id: `${entityId}-threat`,
+          draggable: false,
+          visible: false,
+          editable: false,
+          symbol: {
+            lineColor: "red",
+            lineWidth: 2,
+            lineOpacity: 0.75,
+          },
+        });
+        alertLayer.addGeometry(threatCircle);
+      } else {
+        if (trackOptions?.threatRadius) {
+          threatCircle.setCoordinates(
+            [entity.longitude, entity.latitude],
+          );
+          threatCircle.setRadius(
+            trackOptions.threatRadius * 1609.34,
+          );
+          trackVisible ? threatCircle.show() : threatCircle.hide();
+        } else {
+          threatCircle.hide();
+        }
+      }
+
+      let warningCircle = alertLayer.getGeometryById(
+        `${entityId}-warning`,
+      ) as maptalks.Circle;
+      if (!warningCircle) {
+        warningCircle = new maptalks.Circle([0, 0], 500, {
+          id: `${entityId}-warning`,
+          draggable: false,
+          visible: false,
+          editable: false,
+          symbol: {
+            lineColor: "yellow",
+            lineWidth: 2,
+            lineOpacity: 0.75,
+          },
+        });
+        alertLayer.addGeometry(warningCircle);
+      } else {
+        if (trackOptions?.warningRadius) {
+          warningCircle.setCoordinates(
+            [entity.longitude, entity.latitude],
+          );
+          warningCircle.setRadius(
+            trackOptions.warningRadius * 1609.34,
+          );
+          trackVisible ? warningCircle.show() : warningCircle.hide();
+        } else {
+          warningCircle.hide();
+        }
+      }
+
       let index = 0;
       for (const trackPoint of track.slice(1)) {
         const trackPointGeo = trailLayer.getGeometryById(
@@ -472,6 +572,44 @@ function MapRadarTracks(
       }
     }
   }, [radarTracks]);
+
+  useEffect(() => {
+    const alertLayer = map.getLayer(
+      "track-alert-radius",
+    ) as maptalks.VectorLayer;
+    for (const geo of alertLayer.getGeometries()) {
+      const [entityId, typeName] = ((geo as any)._id as string).split("-");
+      if (selectedEntityId && parseInt(entityId) === selectedEntityId) {
+        if (typeName === "threat") {
+          geo.setSymbol({
+            lineColor: "red",
+            lineWidth: 2,
+            lineOpacity: 0.75,
+          });
+        } else if (typeName === "warning") {
+          geo.setSymbol({
+            lineColor: "yellow",
+            lineWidth: 2,
+            lineOpacity: 0.75,
+          });
+        }
+      } else {
+        if (typeName === "threat") {
+          geo.setSymbol({
+            lineColor: "red",
+            lineWidth: 1,
+            lineOpacity: 0.50,
+          });
+        } else if (typeName === "warning") {
+          geo.setSymbol({
+            lineColor: "yellow",
+            lineWidth: 1,
+            lineOpacity: 0.50,
+          });
+        }
+      }
+    }
+  }, [radarTracks, selectedEntityId]);
 
   return <></>;
 }
@@ -601,6 +739,12 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
           forceRenderOnRotating: true,
         }),
         new maptalks.VectorLayer("track-info", [], {
+          hitDetect: false,
+          forceRenderOnZooming: true,
+          forceRenderOnMoving: true,
+          forceRenderOnRotating: true,
+        }),
+        new maptalks.VectorLayer("track-alert-radius", [], {
           hitDetect: false,
           forceRenderOnZooming: true,
           forceRenderOnMoving: true,
@@ -756,7 +900,8 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
         (
           <MapRadarTracks
             map={map.current}
-            setSelectedEntity={setSelectedEntityId}
+            selectedEntityId={selectedEntityId}
+            setSelectedEntityId={setSelectedEntityId}
           />
         )}
       {map.current && bullsEntity &&

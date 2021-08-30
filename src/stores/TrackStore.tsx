@@ -5,6 +5,12 @@ import { RawEntityData } from "../types/entity";
 
 const DEFAULT_NUM_PREVIOUS_PINGS = 8;
 
+export type TrackOptions = {
+  warningRadius?: number;
+  threatRadius?: number;
+  hideInfo?: boolean;
+};
+
 export type EntityTrackPing = {
   time: number;
   position: [number, number];
@@ -14,6 +20,7 @@ export type EntityTrackPing = {
 
 type TrackStoreData = {
   tracks: Immutable.Map<number, Array<EntityTrackPing>>;
+  trackOptions: Immutable.Map<number, TrackOptions>;
   config: { numPreviousPings: number };
 };
 
@@ -53,6 +60,7 @@ function entityTrackPing(entity: RawEntityData): EntityTrackPing {
 export const trackStore = create<TrackStoreData>(() => {
   return {
     tracks: Immutable.Map<number, Array<EntityTrackPing>>(),
+    trackOptions: Immutable.Map<number, TrackOptions>(),
     config: {
       numPreviousPings: DEFAULT_NUM_PREVIOUS_PINGS,
     },
@@ -91,6 +99,18 @@ export function deleteTracks(data: Array<number>) {
         for (const entityId of data) {
           obj.delete(entityId);
         }
+      }),
+    };
+  });
+}
+
+export function setTrackOptions(entityId: number, opts: TrackOptions) {
+  trackStore.setState((state) => {
+    return {
+      ...state,
+      trackOptions: state.trackOptions.set(entityId, {
+        ...state.trackOptions.get(entityId) || {},
+        ...opts,
       }),
     };
   });
