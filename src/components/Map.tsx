@@ -590,7 +590,7 @@ function MapRadarTracks(
           geo.setSymbol({
             lineColor: "yellow",
             lineWidth: 2,
-            lineOpacity: 0.75,
+            lineOpacity: 0.60,
           });
         }
       } else {
@@ -604,7 +604,7 @@ function MapRadarTracks(
           geo.setSymbol({
             lineColor: "yellow",
             lineWidth: 1,
-            lineOpacity: 0.50,
+            lineOpacity: 0.25,
           });
         }
       }
