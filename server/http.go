@@ -66,8 +66,8 @@ func (h *httpServer) publishLoop() {
 
 		if len(deleted) > 0 {
 			data, err := json.Marshal(map[string]interface{}{
-				"e": "DELETE",
-				"o": deleted,
+				"e":  "DELETE",
+				"id": deleted,
 			})
 			if err != nil {
 				log.Printf("JSON failed: %v", err)

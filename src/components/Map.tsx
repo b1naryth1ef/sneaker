@@ -51,7 +51,6 @@ function EntityInfo(
           <button
             className="p-1 text-xs bg-blue-300 border border-blue-400"
             onClick={() => {
-              console.log("ANIMATING MAP");
               map.animateTo({
                 center: [entity.longitude, entity.latitude],
                 zoom: 10,
@@ -158,10 +157,16 @@ function MapRadarTracks(
     setSelectedEntityId: (v: number | null) => void;
   },
 ) {
-  const radarTracks = trackStore((state) => state.tracks.entrySeq().toArray());
+  const [radarTracks, triggeredEntityIds] = trackStore((state) => [
+    state.tracks.entrySeq().toArray(),
+    new Set(state.alertTriggers.map((it) => {
+      const [alertEntityId, alertType, entityId] = it.split("-");
+      return entityId;
+    })),
+  ]);
+
   useEffect(() => {
     const entities = serverStore.getState().entities;
-    const tracks = trackStore.getState().tracks;
 
     const vvLayer = map.getLayer("track-vv") as maptalks.VectorLayer;
     const trailLayer = map.getLayer("trails") as maptalks.VectorLayer;
@@ -288,6 +293,18 @@ function MapRadarTracks(
         let name = entity.name;
         if (entity.pilot && !entity.pilot.startsWith(entity.group)) {
           name = `${entity.pilot} (${name})`;
+        }
+
+        if (triggeredEntityIds.has(entity.id.toString())) {
+          infoGeo.setSymbol({
+            ...infoGeo.getSymbol(),
+            markerLineWidth: 4,
+          });
+        } else {
+          infoGeo.setSymbol({
+            ...infoGeo.getSymbol(),
+            markerLineWidth: 1,
+          });
         }
 
         (infoGeo.setContent as any)(name);
@@ -476,7 +493,7 @@ function MapRadarTracks(
       }
 
       let index = 0;
-      for (const trackPoint of track.slice(1)) {
+      for (const trackPoint of track.slice(1, 10)) {
         const trackPointGeo = trailLayer.getGeometryById(
           `${entityId}-${index}`,
         ) as maptalks.Marker;
@@ -572,7 +589,7 @@ function MapRadarTracks(
         // TODO: idk
       }
     }
-  }, [radarTracks]);
+  }, [radarTracks, triggeredEntityIds]);
 
   useEffect(() => {
     const alertLayer = map.getLayer(
@@ -640,9 +657,9 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
     ),
     state.entities.filter((it) => it.types.includes("Sea")),
   ]);
-  const selectedTrack = trackStore((state) =>
-    selectedEntityId && state.tracks.get(selectedEntityId)
-  );
+  const selectedTrack = trackStore((
+    state,
+  ) => selectedEntityId && state.tracks.get(selectedEntityId));
 
   useEffect(() => {
     if (!mapContainer.current || map.current !== null) {
