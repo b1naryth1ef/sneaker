@@ -1,12 +1,15 @@
 package server
 
 import (
+	"bytes"
 	"encoding/json"
 	"log"
 	"net/http"
+	"path/filepath"
 	"sync"
 	"time"
 
+	"github.com/b1naryth1ef/sneaker"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -78,6 +81,23 @@ func (h *httpServer) publishLoop() {
 		}
 
 	}
+}
+
+func (h *httpServer) static(w http.ResponseWriter, r *http.Request) {
+	param := chi.URLParam(r, "*")
+	if param == "" {
+		param = "index.html"
+	}
+
+	f, err := sneaker.Static.ReadFile("dist/" + param)
+	if err != nil {
+		http.Error(w, "Not Found", http.StatusNotFound)
+		return
+	}
+
+	fileName := filepath.Base(param)
+
+	http.ServeContent(w, r, fileName, time.Now(), bytes.NewReader(f))
 }
 
 func (h *httpServer) events(w http.ResponseWriter, r *http.Request) {
@@ -181,6 +201,7 @@ func Run(config *Config) error {
 			MaxAge:           300,
 		}))
 
+	r.Get("/*", server.static)
 	r.Get("/events", server.events)
 	return http.ListenAndServe(config.Bind, r)
 }
