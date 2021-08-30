@@ -1,58 +1,100 @@
 import { getDistance } from "geolib";
 import * as maptalks from "maptalks";
-import React, {
-  MutableRefObject,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import ms from "milsymbol";
+import React, { MutableRefObject, useEffect, useRef, useState } from "react";
+import { renderToString } from "react-dom/server";
 import { DCSMap } from "../dcs/maps/DCSMap";
 import { serverStore } from "../stores/ServerStore";
-import { estimatedSpeed, trackStore } from "../stores/TrackStore";
+import {
+  EntityTrackPing,
+  estimatedAltitudeRate,
+  estimatedSpeed,
+  trackStore,
+} from "../stores/TrackStore";
+import { Entity } from "../types/entity";
 import { computeBRAA, getBearing, getCardinal } from "../util";
-import { MapTrackedEntityInner } from "./MapEntity";
+import { colorMode } from "./MapIcon";
 
-function Marker(
-  { map, latitude, longitude, children, zoom }: {
+const iconCache: Record<string, string> = {};
+
+function EntityInfo(
+  { map, entity, track }: {
     map: maptalks.Map;
-    latitude: number;
-    longitude: number;
-    children?: React.ReactNode;
-    zoom: number;
+    entity: Entity;
+    track: Array<EntityTrackPing>;
   },
 ) {
-  const targetCoord = new maptalks.Coordinate(
-    longitude,
-    latitude,
-  );
-
-  const targetPosition = map.coordinateToContainerPoint(targetCoord).round();
   return (
     <div
-      onContextMenu={(e) => {
-        e.preventDefault();
-      }}
-      style={{
-        position: "absolute",
-        top: targetPosition.y,
-        left: targetPosition.x,
-        pointerEvents: "none",
-      }}
+      className="m-2 absolute flex flex-col bg-gray-300 border border-gray-500 shadow select-none rounded-sm"
     >
-      {children}
+      <div className="p-2 bg-gray-400 text-sm">
+        <b>{entity.group}</b>
+      </div>
+      <div className="p-2 flex flex-row">
+        <div className="flex flex-col pr-2">
+          <div>{entity.name}</div>
+          <div>{entity.pilot}</div>
+          <div>
+            Heading: {Math.round(entity.heading)}
+            {getCardinal(entity.heading)}
+          </div>
+          <div>Altitude: {Math.round(entity.altitude * 3.28084)}</div>
+          <div>GS: {Math.round(estimatedSpeed(track))}</div>
+        </div>
+        <div
+          className="flex flex-col border-l border-black px-2 gap-1 flex-grow"
+        >
+          <button
+            className="p-1 text-xs bg-blue-300 border border-blue-400"
+            onClick={() => {
+              console.log("ANIMATING MAP");
+              map.animateTo({
+                center: [entity.longitude, entity.latitude],
+                zoom: 10,
+              }, {
+                duration: 250,
+                easing: "out",
+              });
+            }}
+          >
+            Snap
+          </button>
+          <div className="flex flex-col gap-1">
+            <div className="flex flex-row flex-grow">
+              <span className="text-yellow-600 pr-2 flex-grow">WR</span>
+              <input className="w-16"></input>
+            </div>
+            <div className="flex flex-row flex-grow">
+              <span className="text-red-600 pr-2 flex-grow">TR</span>
+              <input className="w-16"></input>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
 
-function MapRadarTracks({ map, zoom }: { map: maptalks.Map; zoom: number }) {
+function MapBullseye({ map }: { map: maptalks.Map }) {
+  useEffect(() => {
+  });
+}
+
+function MapRadarTracks(
+  { map, setSelectedEntity }: {
+    map: maptalks.Map;
+    setSelectedEntity: (v: number | null) => void;
+  },
+) {
   const radarTracks = trackStore((state) => state.tracks.entrySeq().toArray());
   useEffect(() => {
     const entities = serverStore.getState().entities;
 
-    const layer = map.getLayer("tracks") as maptalks.VectorLayer;
+    const vvLayer = map.getLayer("track-vv") as maptalks.VectorLayer;
     const trailLayer = map.getLayer("trails") as maptalks.VectorLayer;
-    for (const geo of layer.getGeometries()) {
+    const infoLayer = map.getLayer("track-info") as maptalks.VectorLayer;
+    for (const geo of vvLayer.getGeometries()) {
       if (!entities.has(geo.id as number)) {
         geo.remove();
       }
@@ -67,11 +109,224 @@ function MapRadarTracks({ map, zoom }: { map: maptalks.Map; zoom: number }) {
       }
     }
 
+    for (const geo of infoLayer.getGeometries()) {
+      const geoA: any = geo;
+      if (!geoA._id) continue;
+      const [geoId, _] = (geoA._id as string).split("-");
+      if (!entities.has(parseInt(geoId))) {
+        geo.remove();
+      }
+    }
+
     for (const [entityId, track] of radarTracks) {
       const trackVisible = estimatedSpeed(track) >= 25;
       const entity = entities.get(entityId);
       if (!entity) {
         continue;
+      }
+
+      const iconGeo = trailLayer.getGeometryById(
+        `${entityId}-icon`,
+      ) as maptalks.Marker;
+      if (!iconGeo) {
+        if (iconCache[entity.sidc] === undefined) {
+          iconCache[entity.sidc] = new ms.Symbol(entity.sidc, {
+            size: 16,
+            frame: true,
+            fill: false,
+            colorMode: colorMode,
+            strokeWidth: 8,
+          }).toDataURL();
+        }
+        const iconGeo = new maptalks.Marker(
+          [entity.longitude, entity.latitude],
+          {
+            id: `${entityId}-icon`,
+            draggable: false,
+            visible: true,
+            editable: false,
+            symbol: {
+              markerFile: iconCache[entity.sidc],
+              markerDy: 10,
+            },
+          },
+        );
+
+        trailLayer.addGeometry(
+          iconGeo,
+        );
+        iconGeo.on("click", (e) => {
+          setSelectedEntity(entity.id);
+        });
+      } else {
+        iconGeo.setCoordinates(
+          [entity.longitude, entity.latitude],
+        );
+        trackVisible ? iconGeo.show() : iconGeo.hide();
+      }
+
+      const infoGeo = infoLayer.getGeometryById(
+        `${entityId}-info`,
+      ) as maptalks.Label;
+      if (!infoGeo) {
+        const infoText = new maptalks.Label("test", [0, 0], {
+          id: `${entityId}-info`,
+          draggable: false,
+          visible: true,
+          editable: false,
+          boxStyle: {
+            "padding": [2, 2],
+            "horizontalAlignment": "left",
+            "symbol": {
+              "markerType": "square",
+              "markerFill": "#4B5563",
+              "markerFillOpacity": 0.5,
+              "markerLineColor": entity.coalition !== "Allies"
+                ? "#17c2f6"
+                : "#ff8080",
+              textHorizontalAlignment: "right",
+              textDx: 20,
+            },
+          },
+          "textSymbol": {
+            "textFaceName": '"microsoft yahei"',
+            "textFill": "white",
+            "textSize": 12,
+          },
+        });
+        infoText.on("click", (e) => {
+          setSelectedEntity(entity.id);
+        });
+        infoLayer.addGeometry(infoText);
+      } else {
+        let name = entity.name;
+        if (entity.pilot && !entity.pilot.startsWith(entity.group)) {
+          name = `${entity.pilot} (${name})`;
+        }
+
+        (infoGeo.setContent as any)(name);
+        infoGeo.setCoordinates(
+          [entity.longitude, entity.latitude],
+        );
+        trackVisible ? infoGeo.show() : infoGeo.hide();
+      }
+
+      const infoAltitudeGeo = infoLayer.getGeometryById(
+        `${entityId}-altitude`,
+      ) as maptalks.Label;
+      if (!infoAltitudeGeo) {
+        const infoAltitudeText = new maptalks.Label("", [0, 0], {
+          id: `${entityId}-altitude`,
+          draggable: false,
+          visible: false,
+          editable: false,
+          boxStyle: {
+            "padding": [2, 2],
+            "horizontalAlignment": "left",
+            "symbol": {
+              "markerType": "square",
+              "markerFillOpacity": 0,
+              "markerLineOpacity": 0,
+              textHorizontalAlignment: "right",
+              textDx: 20,
+              textDy: 18,
+            },
+          },
+          "textSymbol": {
+            "textFaceName": '"microsoft yahei"',
+            "textFill": "#FFC0CB",
+            "textSize": 12,
+          },
+        });
+        infoLayer.addGeometry(infoAltitudeText);
+      } else {
+        (infoAltitudeGeo.setContent as any)(
+          `${
+            Math.floor(
+              (entity.altitude * 3.28084) / 1000,
+            )
+          }`,
+        );
+        infoAltitudeGeo.setCoordinates(
+          [entity.longitude, entity.latitude],
+        );
+        trackVisible ? infoAltitudeGeo.show() : infoAltitudeGeo.hide();
+      }
+
+      const infoSpeedGeo = infoLayer.getGeometryById(
+        `${entityId}-speed`,
+      ) as maptalks.Label;
+      if (!infoSpeedGeo) {
+        const infoSpeedText = new maptalks.Label("", [0, 0], {
+          id: `${entityId}-speed`,
+          draggable: false,
+          visible: false,
+          editable: false,
+          boxStyle: {
+            "padding": [2, 2],
+            "horizontalAlignment": "left",
+            "symbol": {
+              "markerType": "square",
+              "markerFillOpacity": 0,
+              "markerLineOpacity": 0,
+              textHorizontalAlignment: "right",
+              textDx: 40,
+              textDy: 18,
+            },
+          },
+          "textSymbol": {
+            "textFaceName": '"microsoft yahei"',
+            "textFill": "orange",
+            "textSize": 12,
+          },
+        });
+        infoLayer.addGeometry(infoSpeedText);
+      } else {
+        (infoSpeedGeo.setContent as any)(
+          `${Math.round(estimatedSpeed(track))}`,
+        );
+        infoSpeedGeo.setCoordinates(
+          [entity.longitude, entity.latitude],
+        );
+        trackVisible ? infoSpeedGeo.show() : infoSpeedGeo.hide();
+      }
+
+      const infoAltRateGeo = infoLayer.getGeometryById(
+        `${entityId}-altrate`,
+      ) as maptalks.Label;
+      if (!infoAltRateGeo) {
+        const infoAltRateText = new maptalks.Label("", [0, 0], {
+          id: `${entityId}-altrate`,
+          draggable: false,
+          visible: false,
+          editable: false,
+          boxStyle: {
+            "padding": [2, 2],
+            "horizontalAlignment": "left",
+            "symbol": {
+              "markerType": "square",
+              "markerFillOpacity": 0,
+              "markerLineOpacity": 0,
+              textHorizontalAlignment: "right",
+              textDx: 70,
+              textDy: 18,
+            },
+          },
+          "textSymbol": {
+            "textFaceName": '"microsoft yahei"',
+            "textFill": "#6EE7B7",
+            "textSize": 12,
+          },
+        });
+        infoLayer.addGeometry(infoAltRateText);
+      } else {
+        (infoAltRateGeo.setContent as any)(
+          `${Math.round(estimatedAltitudeRate(track))}`,
+        );
+        infoAltRateGeo.setCoordinates(
+          [entity.longitude, entity.latitude],
+        );
+        trackVisible ? infoAltRateGeo.show() : infoAltRateGeo.hide();
       }
 
       let index = 0;
@@ -113,8 +368,9 @@ function MapRadarTracks({ map, zoom }: { map: maptalks.Map; zoom: number }) {
                 : entity.coalition !== "Allies"
                 ? "#17c2f6"
                 : "#ff8080",
-              "markerLineOpacity": 0,
-              "markerLineDasharray": [],
+              "markerLineColor": "black",
+              "markerLineOpacity": 0.2,
+              "markerLineWidth": 1,
               "markerWidth": 5,
               "markerHeight": 5,
               "markerDx": 0,
@@ -136,13 +392,13 @@ function MapRadarTracks({ map, zoom }: { map: maptalks.Map; zoom: number }) {
           // knots -> meters per second -> 30 seconds
           ((speed * 0.514444)) * 30,
         );
-      const geo = layer.getGeometryById(
+      const geo = vvLayer.getGeometryById(
         entityId,
       ) as (maptalks.LineString | null);
 
       if (dirArrowEnd) {
         if (!geo) {
-          layer.addGeometry(
+          vvLayer.addGeometry(
             new maptalks.LineString([
               [track[0].position[1], track[0].position[0]],
               [dirArrowEnd[1], dirArrowEnd[0]],
@@ -154,7 +410,7 @@ function MapRadarTracks({ map, zoom }: { map: maptalks.Map; zoom: number }) {
                 "lineColor": entity.coalition !== "Allies"
                   ? "#17c2f6"
                   : "#ff8080",
-                "lineWidth": 1,
+                "lineWidth": 1.5,
               },
             }),
           );
@@ -172,47 +428,30 @@ function MapRadarTracks({ map, zoom }: { map: maptalks.Map; zoom: number }) {
     }
   }, [radarTracks]);
 
-  const els = useMemo(
-    () =>
-      radarTracks.map(([entityId, track]) => {
-        const entity = serverStore.getState().entities.get(entityId);
-        if (!entity) {
-          return <></>;
-        }
-
-        return (
-          <Marker
-            latitude={entity.latitude}
-            longitude={entity.longitude}
-            zoom={zoom}
-            map={map}
-            key={entityId}
-          >
-            <MapTrackedEntityInner
-              entity={entity}
-              active={false}
-              track={track}
-              hideLabel={false}
-            />
-          </Marker>
-        );
-      }),
-    [radarTracks],
-  );
-
-  return <>{els}</>;
+  return <></>;
 }
 
 export function Map({ dcsMap }: { dcsMap: DCSMap }) {
   const mapContainer: MutableRefObject<HTMLDivElement | null> = useRef(null);
   const map: MutableRefObject<maptalks.Map | null> = useRef(null);
+  const entityInfoPanel: MutableRefObject<maptalks.control.Panel | null> =
+    useRef(null);
+  const selectedCircle: MutableRefObject<maptalks.Circle | null> = useRef(null);
   const [zoom, setZoom] = useState<number>(8);
+  const [selectedEntityId, setSelectedEntityId] = useState<number | null>(null);
 
   const [drawBraaStart, setDrawBraaStart] = useState<
     [number, number] | null
   >(null);
   const [cursorPos, setCursorPos] = useState<[number, number] | null>(
     null,
+  );
+
+  const selectedEntity = serverStore((state) =>
+    selectedEntityId && state.entities.get(selectedEntityId)
+  );
+  const selectedTrack = trackStore((state) =>
+    selectedEntityId && state.tracks.get(selectedEntityId)
   );
 
   useEffect(() => {
@@ -237,45 +476,99 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
       },
     });
 
-    var point = new maptalks.Marker(
-      [0, 0],
-      {
-        id: "braa-text",
-        visible: false,
-        editable: false,
-        shadowBlur: 0,
-        shadowColor: "black",
-        draggable: false,
-        dragShadow: false,
-        drawOnAxis: null,
-        symbol: {},
+    var braaText = new maptalks.Label("", [0, 0], {
+      id: "braa-text",
+      "draggable": false,
+      visible: false,
+      editable: false,
+      "boxStyle": {
+        "padding": [2, 2],
+        "verticalAlignment": "top",
+        "horizontalAlignment": "left",
+        "symbol": {
+          "markerType": "square",
+          "markerFill": "rgb(135,196,240)",
+          "markerFillOpacity": 0.9,
+          "markerLineColor": "#34495e",
+          "markerLineWidth": 1,
+        },
       },
-    );
+      "textSymbol": {
+        "textFaceName": '"microsoft yahei"',
+        "textFill": "orange",
+        "textSize": 18,
+        "textVerticalAlignment": "top",
+      },
+    });
+
+    selectedCircle.current = new maptalks.Circle([0, 0], 500, {
+      visible: false,
+      symbol: {
+        lineColor: "white",
+        lineWidth: 2,
+        lineOpacity: 0.75,
+      },
+    });
+
+    entityInfoPanel.current = new maptalks.control.Panel({
+      "position": "bottom-left",
+      "draggable": true,
+      "custom": false,
+      "content": renderToString(
+        <div></div>,
+      ),
+    });
 
     map.current = new maptalks.Map(mapContainer.current, {
-      layerCanvasLimitOnInteracting: true,
+      layerCanvasLimitOnInteracting: -1,
       hitDetect: false,
       panAnimation: false,
       dragRotate: false,
       dragPitch: false,
       touchZoom: false,
       doubleClickZoom: false,
+      fpsOnInteracting: 0,
       center: [dcsMap.center[1], dcsMap.center[0]],
       zoom: 8,
       seamlessZoom: true,
       baseLayer: new maptalks.TileLayer("base", {
         urlTemplate:
-          "https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png",
+          "https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_nolabels/{z}/{x}/{y}.png",
         subdomains: ["a", "b", "c"],
       }),
       layers: [
-        new maptalks.VectorLayer("braa", [braaLine, point], {
-          zindex: 50,
+        new maptalks.VectorLayer("trails", [], {
+          hitDetect: false,
+          forceRenderOnZooming: true,
+          forceRenderOnMoving: true,
+          forceRenderOnRotating: true,
         }),
-        new maptalks.VectorLayer("tracks", [], { zindex: 10 }),
-        new maptalks.VectorLayer("trails", [], { zindex: -10 }),
+        new maptalks.VectorLayer("track-vv", [], {
+          hitDetect: false,
+          forceRenderOnZooming: true,
+          forceRenderOnMoving: true,
+          forceRenderOnRotating: true,
+        }),
+        new maptalks.VectorLayer("track-info", [], {
+          hitDetect: false,
+          forceRenderOnZooming: true,
+          forceRenderOnMoving: true,
+          forceRenderOnRotating: true,
+        }),
+        new maptalks.VectorLayer("braa", [
+          braaLine,
+          braaText,
+          selectedCircle.current,
+        ], {
+          hitDetect: false,
+          forceRenderOnZooming: true,
+          forceRenderOnMoving: true,
+          forceRenderOnRotating: true,
+        }),
       ],
     } as any);
+
+    map.current.addControl(entityInfoPanel.current);
 
     map.current.on("contextmenu", (e) => {
     });
@@ -304,10 +597,39 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
   }, [mapContainer, map]);
 
   useEffect(() => {
+    if (!selectedCircle.current || !map.current) return;
+
+    if (selectedEntity && selectedTrack) {
+      const speed = estimatedSpeed(selectedTrack);
+      if (speed < 25) {
+        setSelectedEntityId(null);
+      }
+
+      selectedCircle.current.show();
+      selectedCircle.current.setRadius(
+        map.current.getScale(zoom) * 3,
+      );
+      selectedCircle.current.setCoordinates([
+        selectedEntity.longitude,
+        selectedEntity.latitude,
+      ]);
+    } else {
+      selectedCircle.current.hide();
+    }
+  }, [
+    selectedEntity,
+    selectedCircle,
+    zoom,
+    map,
+    selectedEntity,
+    selectedTrack,
+  ]);
+
+  useEffect(() => {
     if (!map.current) return;
     const braaLayer = map.current.getLayer("braa") as maptalks.VectorLayer;
     const line = braaLayer.getGeometryById("braa-line") as maptalks.LineString;
-    const text = braaLayer.getGeometryById("braa-text") as maptalks.Marker;
+    const text = braaLayer.getGeometryById("braa-text") as maptalks.Label;
 
     if (drawBraaStart && cursorPos) {
       let start = drawBraaStart;
@@ -324,21 +646,20 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
           [start[1], start[0]],
           [end[1], end[0]],
         ]);
-        text.setCoordinates([end[1], end[0]]);
-        text.setSymbol({
-          "textPlacement": "line",
-          "textFaceName": '"microsoft yahei"',
-          "textName": `${bearing}${getCardinal(bearing)} / ${
+
+        const scale = map.current!.getScale(map.current!.getZoom());
+        text.setCoordinates([end[1], end[0]]).translate(
+          scale / 9000,
+          0,
+        );
+
+        (text.setContent as any)(
+          `${bearing}${getCardinal(bearing)} / ${
             Math.floor(
               getDistance(start, end) * 0.00053995680345572,
             )
           }NM`,
-          "textFill": "#A5B4FC",
-          "textHorizontalAlignment": "right",
-          "textSize": 14,
-          "textDx": 15,
-          "textHaloFill": "white",
-        });
+        );
 
         text.show();
         line.show();
@@ -372,7 +693,21 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
         ref={mapContainer}
       >
       </div>
-      {map.current && <MapRadarTracks map={map.current} zoom={zoom} />}
+      {selectedTrack && selectedEntity && map.current &&
+        (
+          <EntityInfo
+            map={map.current}
+            track={selectedTrack}
+            entity={selectedEntity}
+          />
+        )}
+      {map.current &&
+        (
+          <MapRadarTracks
+            map={map.current}
+            setSelectedEntity={setSelectedEntityId}
+          />
+        )}
     </div>
   );
 }

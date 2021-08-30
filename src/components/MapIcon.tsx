@@ -2,7 +2,7 @@ import ms from "milsymbol";
 import React from "react";
 import { Entity } from "../types/entity";
 
-const ColorMode = ms.ColorMode(
+export const colorMode: ms.ColorMode = ms.ColorMode(
   "#ffffff",
   "#17c2f6",
   "#ff8080",
@@ -25,7 +25,7 @@ export function MapIcon(
     size: size || 26,
     frame: true,
     fill: false,
-    colorMode: ColorMode,
+    colorMode: colorMode,
     strokeWidth: 8,
   }).asSVG();
   return (
