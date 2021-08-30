@@ -76,9 +76,54 @@ function EntityInfo(
   );
 }
 
-function MapBullseye({ map }: { map: maptalks.Map }) {
+function MapSimpleEntity(
+  { map, entity, size, strokeWidth }: {
+    map: maptalks.Map;
+    entity: Entity;
+    size?: number;
+    strokeWidth?: number;
+  },
+) {
   useEffect(() => {
-  });
+    const trailLayer = map.getLayer("trails") as maptalks.VectorLayer;
+    let marker = trailLayer.getGeometryById(
+      `${entity.id}-icon`,
+    ) as maptalks.Marker;
+    if (!marker) {
+      if (iconCache[entity.sidc] === undefined) {
+        iconCache[entity.sidc] = new ms.Symbol(entity.sidc, {
+          size: size || 16,
+          frame: true,
+          fill: false,
+          colorMode: colorMode,
+          strokeWidth: strokeWidth || 8,
+        }).toDataURL();
+      }
+      marker = new maptalks.Marker(
+        [entity.longitude, entity.latitude],
+        {
+          id: `${entity.id}-icon`,
+          draggable: false,
+          visible: true,
+          editable: false,
+          symbol: {
+            markerFile: iconCache[entity.sidc],
+            markerDy: 10,
+          },
+        },
+      );
+      trailLayer.addGeometry(
+        marker,
+      );
+    } else {
+      marker.setCoordinates([
+        entity.longitude,
+        entity.latitude,
+      ]);
+    }
+  }, [entity]);
+
+  return <></>;
 }
 
 function MapRadarTracks(
@@ -447,9 +492,15 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
     null,
   );
 
-  const selectedEntity = serverStore((state) =>
-    selectedEntityId && state.entities.get(selectedEntityId)
-  );
+  const [selectedEntity, bullsEntity, ships] = serverStore((
+    state,
+  ) => [
+    selectedEntityId && state.entities.get(selectedEntityId),
+    state.entities.find((it) =>
+      it.types.includes("Bullseye") && it.coalition !== "Allies"
+    ),
+    state.entities.filter((it) => it.types.includes("Sea")),
+  ]);
   const selectedTrack = trackStore((state) =>
     selectedEntityId && state.tracks.get(selectedEntityId)
   );
@@ -495,7 +546,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
       },
       "textSymbol": {
         "textFaceName": '"microsoft yahei"',
-        "textFill": "orange",
+        "textFill": "white",
         "textSize": 18,
         "textVerticalAlignment": "top",
       },
@@ -708,6 +759,23 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
             setSelectedEntity={setSelectedEntityId}
           />
         )}
+      {map.current && bullsEntity &&
+        (
+          <MapSimpleEntity
+            map={map.current}
+            entity={bullsEntity}
+            size={32}
+            strokeWidth={4}
+          />
+        )}
+      {map.current && ships && ships.map((ship) => (
+        <MapSimpleEntity
+          map={map.current!}
+          entity={ship}
+          size={12}
+          strokeWidth={8}
+        />
+      ))}
     </div>
   );
 }
