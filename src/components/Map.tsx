@@ -1,8 +1,8 @@
-import { getDistance } from "geolib";
 import * as maptalks from "maptalks";
 import ms from "milsymbol";
 import React, { MutableRefObject, useEffect, useRef, useState } from "react";
 import { renderToString } from "react-dom/server";
+import { computeDistanceBetween } from "spherical-geometry-js";
 import { DCSMap } from "../dcs/maps/DCSMap";
 import { serverStore } from "../stores/ServerStore";
 import {
@@ -161,6 +161,7 @@ function MapRadarTracks(
   const radarTracks = trackStore((state) => state.tracks.entrySeq().toArray());
   useEffect(() => {
     const entities = serverStore.getState().entities;
+    const tracks = trackStore.getState().tracks;
 
     const vvLayer = map.getLayer("track-vv") as maptalks.VectorLayer;
     const trailLayer = map.getLayer("trails") as maptalks.VectorLayer;
@@ -851,7 +852,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
         (text.setContent as any)(
           `${bearing}${getCardinal(bearing)} / ${
             Math.floor(
-              getDistance(start, end) * 0.00053995680345572,
+              computeDistanceBetween(start, end) * 0.00053995680345572,
             )
           }NM`,
         );

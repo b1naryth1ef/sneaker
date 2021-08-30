@@ -19,6 +19,7 @@
     "react-leaflet": "^3.2.1",
     "react-map-gl": "^6.1.16",
     "react-router-dom": "^5.2.0",
+    "spherical-geometry-js": "^3.0.0",
     "zustand": "^3.5.6"
   },
   "scripts": {
