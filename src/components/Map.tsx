@@ -6,149 +6,13 @@ import { computeDistanceBetween } from "spherical-geometry-js";
 import { DCSMap } from "../dcs/maps/DCSMap";
 import { serverStore } from "../stores/ServerStore";
 import {
-  EntityTrackPing,
   estimatedAltitudeRate,
   estimatedSpeed,
-  setTrackOptions,
   trackStore,
 } from "../stores/TrackStore";
-import { Entity } from "../types/entity";
 import { computeBRAA, getBearing, getCardinal } from "../util";
+import { EntityInfo, iconCache, MapSimpleEntity } from "./MapEntity";
 import { colorMode } from "./MapIcon";
-
-const iconCache: Record<string, string> = {};
-
-function EntityInfo(
-  { map, entity, track }: {
-    map: maptalks.Map;
-    entity: Entity;
-    track: Array<EntityTrackPing>;
-  },
-) {
-  const trackOptions = trackStore((state) => state.trackOptions.get(entity.id));
-
-  return (
-    <div
-      className="m-2 absolute flex flex-col bg-gray-300 border border-gray-500 shadow select-none rounded-sm"
-    >
-      <div className="p-2 bg-gray-400 text-sm">
-        <b>{entity.group}</b>
-      </div>
-      <div className="p-2 flex flex-row">
-        <div className="flex flex-col pr-2">
-          <div>{entity.name}</div>
-          <div>{entity.pilot}</div>
-          <div>
-            Heading: {Math.round(entity.heading)}
-            {getCardinal(entity.heading)}
-          </div>
-          <div>Altitude: {Math.round(entity.altitude * 3.28084)}</div>
-          <div>GS: {Math.round(estimatedSpeed(track))}</div>
-        </div>
-        <div
-          className="flex flex-col border-l border-black px-2 gap-1 flex-grow"
-        >
-          <button
-            className="p-1 text-xs bg-blue-300 border border-blue-400"
-            onClick={() => {
-              map.animateTo({
-                center: [entity.longitude, entity.latitude],
-                zoom: 10,
-              }, {
-                duration: 250,
-                easing: "out",
-              });
-            }}
-          >
-            Snap
-          </button>
-          <div className="flex flex-col gap-1">
-            <div className="flex flex-row flex-grow">
-              <span className="text-yellow-600 pr-2 flex-grow">WR</span>
-              <input
-                className="w-16"
-                value={trackOptions?.warningRadius || ""}
-                onChange={(e) => {
-                  const val = parseInt(e.target.value);
-                  if (val !== NaN) {
-                    setTrackOptions(entity.id, {
-                      warningRadius: val,
-                    });
-                  }
-                }}
-              />
-            </div>
-            <div className="flex flex-row flex-grow">
-              <span className="text-red-600 pr-2 flex-grow">TR</span>
-              <input
-                className="w-16"
-                value={trackOptions?.threatRadius || ""}
-                onChange={(e) => {
-                  const val = parseInt(e.target.value);
-                  if (val !== NaN) {
-                    setTrackOptions(entity.id, {
-                      threatRadius: val,
-                    });
-                  }
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function MapSimpleEntity(
-  { map, entity, size, strokeWidth }: {
-    map: maptalks.Map;
-    entity: Entity;
-    size?: number;
-    strokeWidth?: number;
-  },
-) {
-  useEffect(() => {
-    const trailLayer = map.getLayer("trails") as maptalks.VectorLayer;
-    let marker = trailLayer.getGeometryById(
-      `${entity.id}-icon`,
-    ) as maptalks.Marker;
-    if (!marker) {
-      if (iconCache[entity.sidc] === undefined) {
-        iconCache[entity.sidc] = new ms.Symbol(entity.sidc, {
-          size: size || 16,
-          frame: true,
-          fill: false,
-          colorMode: colorMode,
-          strokeWidth: strokeWidth || 8,
-        }).toDataURL();
-      }
-      marker = new maptalks.Marker(
-        [entity.longitude, entity.latitude],
-        {
-          id: `${entity.id}-icon`,
-          draggable: false,
-          visible: true,
-          editable: false,
-          symbol: {
-            markerFile: iconCache[entity.sidc],
-            markerDy: 10,
-          },
-        },
-      );
-      trailLayer.addGeometry(
-        marker,
-      );
-    } else {
-      marker.setCoordinates([
-        entity.longitude,
-        entity.latitude,
-      ]);
-    }
-  }, [entity]);
-
-  return <></>;
-}
 
 function MapRadarTracks(
   { map, selectedEntityId, setSelectedEntityId }: {
@@ -169,7 +33,8 @@ function MapRadarTracks(
     const entities = serverStore.getState().entities;
 
     const vvLayer = map.getLayer("track-vv") as maptalks.VectorLayer;
-    const trailLayer = map.getLayer("trails") as maptalks.VectorLayer;
+    const trailLayer = map.getLayer("track-trails") as maptalks.VectorLayer;
+    const iconLayer = map.getLayer("track-icons") as maptalks.VectorLayer;
     const infoLayer = map.getLayer("track-info") as maptalks.VectorLayer;
     const alertLayer = map.getLayer(
       "track-alert-radius",
@@ -180,11 +45,14 @@ function MapRadarTracks(
       }
     }
 
+    for (const geo of iconLayer.getGeometries()) {
+      if (!entities.has((geo as any)._id)) {
+        geo.remove();
+      }
+    }
+
     for (const geo of trailLayer.getGeometries()) {
-      const geoA: any = geo;
-      if (!geoA._id) continue;
-      const [geoId, _] = (geoA._id as string).split("-");
-      if (!entities.has(parseInt(geoId))) {
+      if (!entities.has((geo as any)._id)) {
         geo.remove();
       }
     }
@@ -216,8 +84,8 @@ function MapRadarTracks(
 
       const trackOptions = trackStore.getState().trackOptions.get(entityId);
 
-      const iconGeo = trailLayer.getGeometryById(
-        `${entityId}-icon`,
+      const iconGeo = iconLayer.getGeometryById(
+        entityId,
       ) as maptalks.Marker;
       if (!iconGeo) {
         if (iconCache[entity.sidc] === undefined) {
@@ -232,7 +100,7 @@ function MapRadarTracks(
         const iconGeo = new maptalks.Marker(
           [entity.longitude, entity.latitude],
           {
-            id: `${entityId}-icon`,
+            id: entityId,
             draggable: false,
             visible: true,
             editable: false,
@@ -243,7 +111,7 @@ function MapRadarTracks(
           },
         );
 
-        trailLayer.addGeometry(
+        iconLayer.addGeometry(
           iconGeo,
         );
         iconGeo.on("click", (e) => {
@@ -492,19 +360,18 @@ function MapRadarTracks(
         }
       }
 
-      let index = 0;
-      for (const trackPoint of track.slice(1, 10)) {
-        const trackPointGeo = trailLayer.getGeometryById(
-          `${entityId}-${index}`,
-        ) as maptalks.Marker;
-        if (!trackPointGeo) {
-          trailLayer.addGeometry(
-            new maptalks.Marker([
-              trackPoint.position[1],
-              trackPoint.position[0],
-            ], {
-              id: `${entityId}-${index}`,
-              visible: trackVisible,
+      const numShownPings = 9;
+
+      let trackPingGroup = trailLayer.getGeometryById(
+        entityId,
+      ) as maptalks.GeometryCollection;
+      if (!trackPingGroup) {
+        const trackPings = [];
+        for (let i = 0; i < numShownPings; i++) {
+          trackPings.push(
+            new maptalks.Marker([0, 0], {
+              id: i,
+              visible: false,
               editable: false,
               shadowBlur: 0,
               draggable: false,
@@ -513,7 +380,24 @@ function MapRadarTracks(
               symbol: {},
             }),
           );
-        } else {
+        }
+        trackPingGroup = new maptalks.GeometryCollection(trackPings, {
+          id: entityId,
+        });
+        trailLayer.addGeometry(trackPingGroup);
+      }
+
+      const trackPointGeos = trackPingGroup.getGeometries() as Array<
+        maptalks.Marker
+      >;
+
+      if (!trackVisible) {
+        for (const trackGeo of trackPointGeos) {
+          trackGeo.hide();
+        }
+      } else {
+        track.slice(1, numShownPings + 1).forEach((trackPoint, index) => {
+          const trackPointGeo = trackPointGeos[index];
           if (trackVisible) {
             trackPointGeo.show();
           } else {
@@ -532,7 +416,7 @@ function MapRadarTracks(
                 ? "#17c2f6"
                 : "#ff8080",
               "markerLineColor": "black",
-              "markerLineOpacity": 0.2,
+              "markerLineOpacity": 0.1,
               "markerLineWidth": 1,
               "markerWidth": 5,
               "markerHeight": 5,
@@ -541,9 +425,7 @@ function MapRadarTracks(
               "markerFillOpacity": (100 - (index * 10)) / 100,
             },
           );
-        }
-
-        index++;
+        });
       }
 
       const speed = track && estimatedSpeed(track);
@@ -744,11 +626,8 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
         subdomains: ["a", "b", "c"],
       }),
       layers: [
-        new maptalks.VectorLayer("trails", [], {
+        new maptalks.VectorLayer("track-trails", [], {
           hitDetect: false,
-          forceRenderOnZooming: true,
-          forceRenderOnMoving: true,
-          forceRenderOnRotating: true,
         }),
         new maptalks.VectorLayer("track-vv", [], {
           hitDetect: false,
@@ -757,6 +636,12 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
           forceRenderOnRotating: true,
         }),
         new maptalks.VectorLayer("track-info", [], {
+          hitDetect: false,
+          forceRenderOnZooming: true,
+          forceRenderOnMoving: true,
+          forceRenderOnRotating: true,
+        }),
+        new maptalks.VectorLayer("track-icons", [], {
           hitDetect: false,
           forceRenderOnZooming: true,
           forceRenderOnMoving: true,
