@@ -4,6 +4,7 @@ import React, { MutableRefObject, useEffect, useRef, useState } from "react";
 import { renderToString } from "react-dom/server";
 import { computeDistanceBetween } from "spherical-geometry-js";
 import { DCSMap } from "../dcs/maps/DCSMap";
+import { useKeyPress } from "../hooks/useKeyPress";
 import { serverStore } from "../stores/ServerStore";
 import {
   estimatedAltitudeRate,
@@ -524,24 +525,25 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
   const [selectedEntityId, setSelectedEntityId] = useState<number | null>(null);
 
   const [drawBraaStart, setDrawBraaStart] = useState<
-    [number, number] | null
+    number | [number, number] | null
   >(null);
   const [cursorPos, setCursorPos] = useState<[number, number] | null>(
     null,
   );
 
-  const [selectedEntity, bullsEntity, ships] = serverStore((
-    state,
-  ) => [
-    selectedEntityId && state.entities.get(selectedEntityId),
-    state.entities.find((it) =>
-      it.types.includes("Bullseye") && it.coalition !== "Allies"
-    ),
-    state.entities.filter((it) => it.types.includes("Sea")),
-  ]);
+  const entities = serverStore((state) => state.entities);
+
+  const selectedEntity = selectedEntityId && entities.get(selectedEntityId);
+  const bullsEntity = entities.find((it) =>
+    it.types.includes("Bullseye") && it.coalition !== "Allies"
+  );
+  const ships = entities.filter((it) => it.types.includes("Sea"));
+
   const selectedTrack = trackStore((
     state,
   ) => selectedEntityId && state.tracks.get(selectedEntityId));
+
+  const isSnapPressed = useKeyPress("s");
 
   useEffect(() => {
     if (!mapContainer.current || map.current !== null) {
@@ -679,20 +681,47 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
       setCursorPos([e.coordinate.y, e.coordinate.x]);
     });
 
-    map.current.on("mousedown", (e) => {
-      if (e.domEvent.button === 2) {
-        setDrawBraaStart(
-          [e.coordinate.y, e.coordinate.x],
-        );
-      }
-    });
-
     map.current.on("mouseup", (e) => {
       if (e.domEvent.button === 2) {
         setDrawBraaStart(null);
       }
     });
   }, [mapContainer, map]);
+
+  const mouseDownHandlerRef: MutableRefObject<
+    null | maptalks.EvenableHandlerFun
+  > = useRef(null);
+
+  useEffect(() => {
+    if (!map.current) return;
+    if (mouseDownHandlerRef.current) {
+      map.current.removeEventListener("mousedown", mouseDownHandlerRef.current);
+    }
+
+    mouseDownHandlerRef.current = (e) => {
+      if (!map.current) return;
+      const infoLayer = map.current.getLayer("track-info");
+      const iconLayer = map.current.getLayer("track-icons");
+
+      if (e.domEvent.button === 2) {
+        if (isSnapPressed) {
+          map.current.identify({
+            "coordinate": e.coordinate,
+            "layers": [infoLayer, iconLayer],
+          }, (geos: Array<maptalks.Geometry>) => {
+            if (geos.length >= 1) {
+              setDrawBraaStart(geos[0].getId() as number);
+            }
+          });
+        } else {
+          setDrawBraaStart(
+            [e.coordinate.y, e.coordinate.x],
+          );
+        }
+      }
+    };
+    map.current.on("mousedown", mouseDownHandlerRef.current);
+  }, [map, isSnapPressed]);
 
   useEffect(() => {
     if (!selectedCircle.current || !map.current) return;
@@ -730,8 +759,21 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
     const text = braaLayer.getGeometryById("braa-text") as maptalks.Label;
 
     if (drawBraaStart && cursorPos) {
-      let start = drawBraaStart;
       let end = cursorPos;
+
+      let start: [number, number];
+      if (typeof drawBraaStart === "number") {
+        const entity = entities.get(drawBraaStart);
+        if (!entity) {
+          setDrawBraaStart(null);
+          return;
+        }
+
+        start = [entity.latitude, entity.longitude];
+      } else {
+        start = drawBraaStart;
+      }
+
       if (typeof start !== "number" && typeof end !== "number") {
         let bearing = Math.round(getBearing(start, end)) +
           dcsMap.magDec;
@@ -818,6 +860,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
         )}
       {map.current && ships && ships.map((ship) => (
         <MapSimpleEntity
+          key={ship.id}
           map={map.current!}
           entity={ship}
           size={12}
