@@ -656,6 +656,9 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
         subdomains: ["a", "b", "c"],
       }),
       layers: [
+        new maptalks.VectorLayer("airports", [], {
+          hitDetect: false,
+        }),
         new maptalks.VectorLayer("track-trails", [], {
           hitDetect: false,
         }),
@@ -705,6 +708,16 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
       setZoom(map.current!.getZoom());
     });
 
+    map.current.on("zoomend", (e) => {
+      if (Math.round(map.current!.getZoom()) <= 8) {
+        map.current!.getLayer("airports").hide();
+        map.current!.getLayer("track-info").hide();
+      } else {
+        map.current!.getLayer("airports").show();
+        map.current!.getLayer("track-info").show();
+      }
+    });
+
     map.current.on("mousemove", (e) => {
       setCursorPos([e.coordinate.y, e.coordinate.x]);
     });
@@ -715,6 +728,60 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
       }
     });
   }, [mapContainer, map]);
+
+  // Configure airports
+  useEffect(() => {
+    if (!map.current) return;
+    const layer = map.current.getLayer("airports") as maptalks.VectorLayer;
+    const icon = new ms.Symbol("SFG-IBA----", {
+      size: 14,
+      frame: true,
+      fillOpacity: 0.5,
+      fill: true,
+      colorMode: colorMode,
+    }).toDataURL();
+
+    for (const airport of dcsMap.airports) {
+      const airportLabel = new maptalks.Label(
+        `${airport.name} (${airport.code})`,
+        [airport.position[1], airport.position[0]],
+        {
+          draggable: false,
+          visible: true,
+          editable: false,
+          boxStyle: {
+            "padding": [2, 2],
+            "horizontalAlignment": "left",
+            "symbol": {
+              "markerType": "square",
+              "markerFill": "black",
+              "markerFillOpacity": 0,
+              "markerLineWidth": 0,
+              textHorizontalAlignment: "center",
+              textDy: -25,
+            },
+          },
+          "textSymbol": {
+            "textFaceName": '"microsoft yahei"',
+            "textFill": "white",
+            "textOpacity": 0.5,
+            "textSize": 10,
+          },
+        },
+      );
+      layer.addGeometry(airportLabel);
+
+      const airportMarker = new maptalks.Marker([
+        airport.position[1],
+        airport.position[0],
+      ], {
+        symbol: {
+          markerFile: icon,
+        },
+      });
+      layer.addGeometry(airportMarker);
+    }
+  }, [map]);
 
   const mouseDownHandlerRef: MutableRefObject<
     null | maptalks.EvenableHandlerFun
