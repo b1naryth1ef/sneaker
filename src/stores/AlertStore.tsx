@@ -1,7 +1,7 @@
-import { getPreciseDistance } from "geolib";
 import Immutable from "immutable";
 import create from "zustand";
 import WarningBeep from "../sounds/warning-beep.mp3";
+import { getFlyDistance } from "../util";
 import { serverStore } from "./ServerStore";
 import { estimatedSpeed, trackStore } from "./TrackStore";
 
@@ -57,13 +57,13 @@ export function checkAlerts() {
       }
 
       const d0 = Math.floor(
-        getPreciseDistance([
+        getFlyDistance([
           entity.latitude,
           entity.longitude,
         ], [
           triggerEntity.latitude,
           triggerEntity.longitude,
-        ]) * 0.000539957,
+        ]),
       );
 
       if (opts.warningRadius && d0 <= opts.warningRadius) {
@@ -118,14 +118,13 @@ function clearAlerts() {
           if (
             triggerEntity
           ) {
-            const d0 = getPreciseDistance([
+            const d0 = getFlyDistance([
               triggerEntity.latitude,
               triggerEntity.longitude,
             ], [
               ourEntity.latitude,
               ourEntity.longitude,
-            ]) *
-              0.000539957;
+            ]);
 
             if (
               Math.floor(d0) <= radius

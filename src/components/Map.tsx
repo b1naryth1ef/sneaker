@@ -1,4 +1,3 @@
-import getPreciseDistance from "geolib/es/getPreciseDistance";
 import * as maptalks from "maptalks";
 import ms from "milsymbol";
 import React, {
@@ -19,7 +18,7 @@ import {
   estimatedSpeed,
   trackStore,
 } from "../stores/TrackStore";
-import { computeBRAA, getBearing, getCardinal } from "../util";
+import { computeBRAA, getBearing, getCardinal, getFlyDistance } from "../util";
 import { Console } from "./Console";
 import { EntityInfo, iconCache, MapSimpleEntity } from "./MapEntity";
 import { colorMode } from "./MapIcon";
@@ -364,7 +363,7 @@ function MapRadarTracks(
             [entity.longitude, entity.latitude],
           );
           threatCircle.setRadius(
-            trackOptions.threatRadius * 1609.34,
+            trackOptions.threatRadius * 1852,
           );
           trackVisible ? threatCircle.show() : threatCircle.hide();
         } else {
@@ -398,7 +397,7 @@ function MapRadarTracks(
             [entity.longitude, entity.latitude],
           );
           warningCircle.setRadius(
-            trackOptions.warningRadius * 1609.34,
+            trackOptions.warningRadius * 1852,
           );
         }
       }
@@ -919,8 +918,8 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
 
         (text.setContent as any)(
           `${bearing.toString().padStart(3, "0")}${getCardinal(bearing)} / ${
-            Math.floor(
-              getPreciseDistance(start, end) * 0.00053995680345572,
+            Math.round(
+              getFlyDistance(start, end),
             )
           }NM`,
         );

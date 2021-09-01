@@ -1,7 +1,7 @@
-import { getPreciseDistance } from "geolib";
 import Immutable from "immutable";
 import create from "zustand";
 import { RawEntityData } from "../types/entity";
+import { getFlyDistance } from "../util";
 import { serverStore } from "./ServerStore";
 
 const DEFAULT_NUM_PREVIOUS_PINGS = 16;
@@ -34,10 +34,10 @@ export function estimatedSpeed(pings: Array<EntityTrackPing>): number {
   }
 
   const seconds = (pings[0].time - pings[pings.length - 1].time) / 1000;
-  return (getPreciseDistance(
+  return (getFlyDistance(
     pings[0].position,
     pings[pings.length - 1].position,
-  ) / seconds) * 1.94384;
+  ) / seconds) * 3600;
 }
 
 // Returns the estimated altitude rate (in fpm) of an entity based on its track

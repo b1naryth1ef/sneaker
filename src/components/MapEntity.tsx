@@ -1,5 +1,4 @@
 import classNames from "classnames";
-import { getPreciseDistance } from "geolib";
 import * as maptalks from "maptalks";
 import ms from "milsymbol";
 import React, { useEffect, useMemo } from "react";
@@ -12,7 +11,7 @@ import {
   trackStore,
 } from "../stores/TrackStore";
 import { Entity } from "../types/entity";
-import { getBearing, getCardinal } from "../util";
+import { getBearing, getCardinal, getFlyDistance } from "../util";
 import { colorMode } from "./MapIcon";
 
 export const iconCache: Record<string, string> = {};
@@ -35,14 +34,13 @@ export function EntityInfo(
         return;
       }
 
-      const distance = getPreciseDistance([
+      const distance = getFlyDistance([
         entity.latitude,
         entity.longitude,
       ], [
         targetEntity.latitude,
         targetEntity.longitude,
-      ]) *
-        0.000539957;
+      ]);
 
       return [
         it,
