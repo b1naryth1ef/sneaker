@@ -82,6 +82,8 @@ export const trackStore = create<TrackStoreData>(() => {
   };
 });
 
+(window as any).trackStore = trackStore;
+
 export function updateTracks(data: Array<RawEntityData>) {
   trackStore.setState((state) => {
     return {

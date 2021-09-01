@@ -25,6 +25,8 @@ export const alertStore = create<AlertStoreData>(() => {
   };
 });
 
+(window as any).alertStore = alertStore;
+
 export function checkAlerts() {
   const entities = serverStore.getState().entities;
   const trackState = trackStore.getState();
