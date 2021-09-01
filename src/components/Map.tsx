@@ -787,7 +787,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
   useEffect(() => {
     if (!map.current) return;
     const layer = map.current.getLayer("airports") as maptalks.VectorLayer;
-    const icon = new ms.Symbol("SFG-IBA----", {
+    const icon = new ms.Symbol("SUG-IBA----", {
       size: 14,
       frame: true,
       fillOpacity: 0.5,
