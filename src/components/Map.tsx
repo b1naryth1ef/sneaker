@@ -52,6 +52,7 @@ function MapRadarTracks(
     const trailLayer = map.getLayer("track-trails") as maptalks.VectorLayer;
     const iconLayer = map.getLayer("track-icons") as maptalks.VectorLayer;
     const infoLayer = map.getLayer("track-info") as maptalks.VectorLayer;
+    const nameLayer = map.getLayer("track-name") as maptalks.VectorLayer;
     const alertLayer = map.getLayer(
       "track-alert-radius",
     ) as maptalks.VectorLayer;
@@ -68,6 +69,12 @@ function MapRadarTracks(
     }
 
     for (const geo of trailLayer.getGeometries()) {
+      if (!entities.has((geo as any)._id)) {
+        geo.remove();
+      }
+    }
+
+    for (const geo of nameLayer.getGeometries()) {
       if (!entities.has((geo as any)._id)) {
         geo.remove();
       }
@@ -140,10 +147,10 @@ function MapRadarTracks(
         syncVisibility(iconGeo, trackVisible);
       }
 
-      const infoGeo = infoLayer.getGeometryById(
-        `${entityId}-info`,
+      const nameGeo = nameLayer.getGeometryById(
+        entityId,
       ) as maptalks.Label;
-      if (!infoGeo) {
+      if (!nameGeo) {
         let name = entity.name;
         if (entity.pilot && !entity.pilot.startsWith(entity.group)) {
           name = `${entity.pilot} (${name})`;
@@ -156,8 +163,8 @@ function MapRadarTracks(
           color = "yellow";
         }
 
-        const infoText = new maptalks.Label(name, [0, 0], {
-          id: `${entityId}-info`,
+        const nameLabel = new maptalks.Label(name, [0, 0], {
+          id: entityId,
           draggable: false,
           visible: true,
           editable: false,
@@ -179,24 +186,24 @@ function MapRadarTracks(
             "textSize": 12,
           },
         });
-        infoText.on("click", (e) => {
+        nameLabel.on("click", (e) => {
           setSelectedEntityId(entity.id);
         });
-        infoLayer.addGeometry(infoText);
+        nameLayer.addGeometry(nameLabel);
       } else {
-        const symbol = infoGeo.getSymbol();
+        const symbol = nameGeo.getSymbol();
         if (
           triggeredEntityIds.has(entity.id)
         ) {
           if ((symbol as any).markerLineWidth !== 4) {
-            infoGeo.setSymbol({
+            nameGeo.setSymbol({
               ...symbol,
               markerLineWidth: 4,
             });
           }
         } else {
           if ((symbol as any).markerLineWidth !== 1) {
-            infoGeo.setSymbol({
+            nameGeo.setSymbol({
               ...symbol,
               markerLineWidth: 1,
             });
@@ -208,18 +215,18 @@ function MapRadarTracks(
           color = "yellow";
         }
 
-        const style: any = infoGeo.getBoxStyle();
+        const style: any = nameGeo.getBoxStyle();
         if (style.symbol.markerLineColor !== color) {
-          infoGeo.setBoxStyle({
+          nameGeo.setBoxStyle({
             ...style,
             symbol: { ...style.symbol, markerLineColor: color },
           });
         }
 
-        infoGeo.setCoordinates(
+        nameGeo.setCoordinates(
           [entity.longitude, entity.latitude],
         );
-        syncVisibility(infoGeo, trackVisible);
+        syncVisibility(nameGeo, trackVisible);
       }
 
       const infoAltitudeGeo = infoLayer.getGeometryById(
@@ -592,6 +599,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
   ) => selectedEntityId && state.tracks.get(selectedEntityId));
 
   const isSnapPressed = useKeyPress("s");
+  const isDecluttered = useKeyPress("d");
 
   useEffect(() => {
     if (!mapContainer.current || map.current !== null) {
@@ -692,6 +700,12 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
           forceRenderOnMoving: true,
           forceRenderOnRotating: true,
         }),
+        new maptalks.VectorLayer("track-name", [], {
+          hitDetect: false,
+          forceRenderOnZooming: true,
+          forceRenderOnMoving: true,
+          forceRenderOnRotating: true,
+        }),
         new maptalks.VectorLayer("track-info", [], {
           hitDetect: false,
           forceRenderOnZooming: true,
@@ -752,6 +766,19 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
       }
     });
   }, [mapContainer, map]);
+
+  useEffect(() => {
+    if (!map.current) return;
+    if (isDecluttered) {
+      map.current!.getLayer("airports").hide();
+      map.current!.getLayer("track-name").hide();
+      map.current!.getLayer("track-trails").hide();
+    } else {
+      map.current!.getLayer("airports").show();
+      map.current!.getLayer("track-name").show();
+      map.current!.getLayer("track-trails").show();
+    }
+  }, [map, isDecluttered]);
 
   // Configure airports
   useEffect(() => {
@@ -937,6 +964,21 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
     typeof drawBraaStart === "number" && entities.get(drawBraaStart),
   ]);
 
+  const currentCursorBulls = useMemo(() => {
+    if (!bullsEntity || !cursorPos) return;
+    let bearing = Math.round(
+      getBearing(cursorPos, [bullsEntity.latitude, bullsEntity.longitude]),
+    );
+    return `${bearing.toString().padStart(3, "0")}${getCardinal(bearing)} / ${
+      Math.round(
+        getFlyDistance(cursorPos, [
+          bullsEntity.latitude,
+          bullsEntity.longitude,
+        ]),
+      )
+    }NM`;
+  }, [cursorPos, bullsEntity]);
+
   return (
     <div
       style={{
@@ -960,6 +1002,14 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
         ref={mapContainer}
       >
       </div>
+      {currentCursorBulls &&
+        (
+          <div
+            className="absolute right-0 bottom-0 max-w-xl max-h-32 text-yellow-600 text-3xl bg-gray-400 bg-opacity-20 p-1"
+          >
+            {currentCursorBulls}
+          </div>
+        )}
       {selectedTrack && selectedEntity && map.current &&
         (
           <EntityInfo
