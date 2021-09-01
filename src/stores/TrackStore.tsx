@@ -70,7 +70,6 @@ export const trackStore = create<TrackStoreData>(() => {
         obj = obj.set(parseInt(key), value as TrackOptions);
       }
     });
-    console.log(trackOptions);
   }
 
   return {
@@ -109,14 +108,6 @@ export function updateTracks(data: Array<RawEntityData>) {
 
 export function deleteTracks(data: Array<number>) {
   const entities = serverStore.getState().entities;
-  console.log(
-    "[TrackStore] deleting tracks",
-    data.map((it) => entities.get(it)).filter((it) =>
-      it !== undefined && it.pilot
-    ).map((
-      it,
-    ) => it!.pilot),
-  );
   trackStore.setState((state) => {
     return {
       ...state,
@@ -139,7 +130,6 @@ export function setTrackOptions(entityId: number, opts: TrackOptions) {
 }
 
 trackStore.subscribe((opts: TrackStoreData["trackOptions"]) => {
-  console.log("[TrackStore] saving options");
   localStorage.setItem(
     "track-options",
     JSON.stringify(opts.toJSON()),

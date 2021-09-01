@@ -84,7 +84,6 @@ export function checkAlerts() {
 }
 
 function clearAlerts() {
-  console.log("[AlertStore] clearing alerts");
   alertStore.setState((state) => {
     let result = state.alerts;
     let resultTriggeredEntities = state.triggeredEntities;
