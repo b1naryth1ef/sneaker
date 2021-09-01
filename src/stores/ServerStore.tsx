@@ -21,9 +21,15 @@ export const serverStore = create<ServerStoreData>(() => {
   };
 });
 
+(window as any).serverStore = serverStore;
+
 function doLongPoll() {
   // TODO: retry / restart on error
-  const eventSource = new EventSource("http://eos.hydr0.com:7789/events");
+  const eventSource = new EventSource(
+    process.env.NODE_ENV === "production"
+      ? "/events"
+      : "http://localhost:7789/events",
+  );
   eventSource.onmessage = (event) => {
     const eventData = JSON.parse(event.data) as Event;
     serverStore.setState((state) => {
