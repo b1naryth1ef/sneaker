@@ -1,3 +1,4 @@
+import getPreciseDistance from "geolib/es/getPreciseDistance";
 import * as maptalks from "maptalks";
 import ms from "milsymbol";
 import React, {
@@ -8,9 +9,10 @@ import React, {
   useState,
 } from "react";
 import { renderToString } from "react-dom/server";
-import { computeDistanceBetween } from "spherical-geometry-js";
+import { planes } from "../dcs/aircraft";
 import { DCSMap } from "../dcs/maps/DCSMap";
 import { useKeyPress } from "../hooks/useKeyPress";
+import { alertStore } from "../stores/AlertStore";
 import { serverStore } from "../stores/ServerStore";
 import {
   estimatedAltitudeRate,
@@ -18,6 +20,7 @@ import {
   trackStore,
 } from "../stores/TrackStore";
 import { computeBRAA, getBearing, getCardinal } from "../util";
+import { Console } from "./Console";
 import { EntityInfo, iconCache, MapSimpleEntity } from "./MapEntity";
 import { colorMode } from "./MapIcon";
 
@@ -37,16 +40,14 @@ function MapRadarTracks(
     setSelectedEntityId: (v: number | null) => void;
   },
 ) {
-  const [radarTracks, triggeredEntityIds] = trackStore((state) => [
-    state.tracks.entrySeq().toArray(),
-    new Set(state.alertTriggers.map((it) => {
-      const [alertEntityId, alertType, entityId] = it.split("-");
-      return entityId;
-    })),
-  ]);
+  const radarTracks = trackStore((state) => state.tracks.entrySeq().toArray());
+  const triggeredEntityIds = alertStore((state) =>
+    state.triggeredEntities.keySeq().toSet()
+  );
 
   useEffect(() => {
     const entities = serverStore.getState().entities;
+    const tracks = trackStore.getState().tracks;
 
     const vvLayer = map.getLayer("track-vv") as maptalks.VectorLayer;
     const trailLayer = map.getLayer("track-trails") as maptalks.VectorLayer;
@@ -56,7 +57,7 @@ function MapRadarTracks(
       "track-alert-radius",
     ) as maptalks.VectorLayer;
     for (const geo of vvLayer.getGeometries()) {
-      if (!entities.has(geo.id as number)) {
+      if (!tracks.has(geo.id as number)) {
         geo.remove();
       }
     }
@@ -147,7 +148,15 @@ function MapRadarTracks(
         let name = entity.name;
         if (entity.pilot && !entity.pilot.startsWith(entity.group)) {
           name = `${entity.pilot} (${name})`;
+        } else if (planes[entity.name]?.natoName !== undefined) {
+          name = `${planes[entity.name].natoName} (${entity.name})`;
         }
+
+        let color = entity.coalition !== "Allies" ? "#17c2f6" : "#ff8080";
+        if (trackOptions?.watching) {
+          color = "yellow";
+        }
+
         const infoText = new maptalks.Label(name, [0, 0], {
           id: `${entityId}-info`,
           draggable: false,
@@ -160,9 +169,7 @@ function MapRadarTracks(
               "markerType": "square",
               "markerFill": "#4B5563",
               "markerFillOpacity": 0.5,
-              "markerLineColor": entity.coalition !== "Allies"
-                ? "#17c2f6"
-                : "#ff8080",
+              "markerLineColor": color,
               textHorizontalAlignment: "right",
               textDx: 20,
             },
@@ -180,7 +187,7 @@ function MapRadarTracks(
       } else {
         const symbol = infoGeo.getSymbol();
         if (
-          triggeredEntityIds.has(entity.id.toString())
+          triggeredEntityIds.has(entity.id)
         ) {
           if ((symbol as any).markerLineWidth !== 4) {
             infoGeo.setSymbol({
@@ -195,6 +202,19 @@ function MapRadarTracks(
               markerLineWidth: 1,
             });
           }
+        }
+
+        let color = entity.coalition !== "Allies" ? "#17c2f6" : "#ff8080";
+        if (trackOptions?.watching) {
+          color = "yellow";
+        }
+
+        const style: any = infoGeo.getBoxStyle();
+        if (style.symbol.markerLineColor !== color) {
+          infoGeo.setBoxStyle({
+            ...style,
+            symbol: { ...style.symbol, markerLineColor: color },
+          });
         }
 
         infoGeo.setCoordinates(
@@ -455,7 +475,8 @@ function MapRadarTracks(
       }
 
       const speed = track && estimatedSpeed(track);
-      const dirArrowEnd = speed && speed >= 25 && track && track.length >= 5 &&
+      const dirArrowEnd = speed && speed >= 25 && track &&
+        track.length >= 5 &&
         computeBRAA(
           track[0].position[0],
           track[0].position[1],
@@ -650,6 +671,10 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
       center: [dcsMap.center[1], dcsMap.center[0]],
       zoom: 8,
       seamlessZoom: true,
+      attribution: {
+        content:
+          '<a class="text-blue-300 opacity-50" href="https://github.com/b1naryth1ef/sneaker">GitHub</a>',
+      },
       baseLayer: new maptalks.TileLayer("base", {
         urlTemplate:
           "https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_nolabels/{z}/{x}/{y}.png",
@@ -709,7 +734,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
     });
 
     map.current.on("zoomend", (e) => {
-      if (Math.round(map.current!.getZoom()) <= 8) {
+      if (Math.round(map.current!.getZoom()) <= 7) {
         map.current!.getLayer("airports").hide();
         map.current!.getLayer("track-info").hide();
       } else {
@@ -893,9 +918,9 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
         );
 
         (text.setContent as any)(
-          `${bearing}${getCardinal(bearing)} / ${
+          `${bearing.toString().padStart(3, "0")}${getCardinal(bearing)} / ${
             Math.floor(
-              computeDistanceBetween(start, end) * 0.00053995680345572,
+              getPreciseDistance(start, end) * 0.00053995680345572,
             )
           }NM`,
         );
@@ -907,7 +932,11 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
       text.hide();
       line.hide();
     }
-  }, [drawBraaStart, cursorPos]);
+  }, [
+    drawBraaStart,
+    cursorPos,
+    typeof drawBraaStart === "number" && entities.get(drawBraaStart),
+  ]);
 
   return (
     <div
@@ -940,6 +969,12 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
             entity={selectedEntity}
           />
         )}
+      {map.current && (
+        <Console
+          setSelectedEntityId={setSelectedEntityId}
+          map={map.current}
+        />
+      )}
       {map.current &&
         (
           <MapRadarTracks

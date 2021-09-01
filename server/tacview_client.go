@@ -93,7 +93,11 @@ func (c *TacViewClient) Run(state *state) error {
 	go acmiReader.ProcessTimeFrames(1, data)
 
 	for {
-		tf := <-data
+		tf, ok := <-data
+		if !ok {
+			return nil
+		}
+
 		state.Lock()
 		state.update(tf)
 		state.Unlock()

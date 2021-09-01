@@ -36,13 +36,13 @@ func (h *httpServer) publishLoop() {
 		updated := make([]*StateObject, 0)
 		deleted := make([]uint64, 0)
 		for _, object := range h.state.objects {
-			if object.UpdatedAt > lastUpdate || lastUpdate == 0 {
-				if object.Deleted {
-					delete(h.state.objects, object.Id)
-					deleted = append(deleted, object.Id)
-				} else {
-					updated = append(updated, object)
-				}
+			if object.Deleted {
+				delete(h.state.objects, object.Id)
+				deleted = append(deleted, object.Id)
+				continue
+			}
+			if object.UpdatedAt > lastUpdate {
+				updated = append(updated, object)
 			}
 		}
 		lastUpdate = h.state.ts
@@ -128,6 +128,9 @@ func (h *httpServer) events(w http.ResponseWriter, r *http.Request) {
 	init := make([]*StateObject, 0)
 	h.state.RLock()
 	for _, object := range h.state.objects {
+		if object.Deleted {
+			continue
+		}
 		init = append(init, object)
 	}
 	h.state.RUnlock()

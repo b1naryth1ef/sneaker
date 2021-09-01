@@ -30,18 +30,17 @@ function doLongPoll() {
       return {
         ...state,
         entities: state.entities.withMutations((entities) => {
-          if (eventData.e === "CREATE") {
+          if (eventData.e === "CREATE" && eventData.o) {
             for (const obj of eventData.o) {
               entities = entities.set(obj.id, new Entity(obj));
             }
 
             updateTracks(eventData.o);
-          } else if (eventData.e === "DELETE") {
+          } else if (eventData.e === "DELETE" && eventData.id) {
+            deleteTracks(eventData.id);
             for (const objId of eventData.id) {
               entities = entities.remove(objId);
             }
-
-            deleteTracks(eventData.id);
           }
         }),
       };
@@ -55,4 +54,14 @@ function doLongPoll() {
       entities: Immutable.Map<number, Entity>(),
     });
   };
+}
+
+export function forceDeleteEntity(entityId: number) {
+  deleteTracks([entityId]);
+  serverStore.setState((state) => {
+    return {
+      ...state,
+      entities: state.entities.remove(entityId),
+    };
+  });
 }

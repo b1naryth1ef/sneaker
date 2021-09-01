@@ -1,8 +1,6 @@
 import { getPreciseDistance } from "geolib";
 import Immutable from "immutable";
-import { computeDistanceBetween } from "spherical-geometry-js";
 import create from "zustand";
-import WarningBeep from "../sounds/warning-beep.mp3";
 import { RawEntityData } from "../types/entity";
 import { serverStore } from "./ServerStore";
 
@@ -12,6 +10,7 @@ export type TrackOptions = {
   warningRadius?: number;
   threatRadius?: number;
   hideInfo?: boolean;
+  watching?: boolean;
 };
 
 export type EntityTrackPing = {
@@ -94,19 +93,23 @@ export function updateTracks(data: Array<RawEntityData>) {
       }),
     };
   });
-
-  checkAlertTrespass();
 }
 
 export function deleteTracks(data: Array<number>) {
+  const entities = serverStore.getState().entities;
+  console.log(
+    "[TrackStore] deleting tracks",
+    data.map((it) => entities.get(it)).filter((it) =>
+      it !== undefined && it.pilot
+    ).map((
+      it,
+    ) => it!.pilot),
+  );
   trackStore.setState((state) => {
     return {
       ...state,
-      tracks: state.tracks.withMutations((obj) => {
-        for (const entityId of data) {
-          obj.delete(entityId);
-        }
-      }),
+      tracks: state.tracks.deleteAll(data),
+      trackOptions: state.trackOptions.deleteAll(data),
     };
   });
 }
@@ -118,127 +121,6 @@ export function setTrackOptions(entityId: number, opts: TrackOptions) {
       trackOptions: state.trackOptions.set(entityId, {
         ...state.trackOptions.get(entityId) || {},
         ...opts,
-      }),
-    };
-  });
-}
-
-function checkAlertTrespass() {
-  const entities = serverStore.getState().entities;
-
-  return trackStore.setState((state) => {
-    return {
-      ...state,
-      alertTriggers: state.alertTriggers.withMutations((obj) => {
-        const alertPoints: Map<[number, string], number> = new Map();
-        for (const [entityId, track] of state.tracks.entrySeq()) {
-          const entity = entities.get(entityId);
-          if (
-            !entity || !entity.types.includes("Air") ||
-            entity.coalition === "Allies"
-          ) {
-            continue;
-          }
-
-          const opts = state.trackOptions.get(entityId);
-          if (!opts) {
-            continue;
-          }
-
-          if (opts.warningRadius) {
-            alertPoints.set([entityId, "warning"], opts.warningRadius);
-          }
-
-          if (opts.threatRadius) {
-            alertPoints.set([entityId, "threat"], opts.threatRadius);
-          }
-        }
-
-        for (const triggerKey of obj.keys()) {
-          const [alertEntityId, alertType, entityId] = triggerKey.split("-");
-          if (entityId === alertEntityId) {
-            continue;
-          }
-
-          const trackOpts = state.trackOptions.get(parseInt(alertEntityId));
-          if (!trackOpts) {
-            obj.remove(triggerKey);
-            continue;
-          }
-
-          let radius;
-          if (alertType === "warning") {
-            radius = trackOpts.warningRadius;
-          } else if (alertType === "threat") {
-            radius = trackOpts.threatRadius;
-          }
-
-          if (!radius) {
-            obj.remove(triggerKey);
-            continue;
-          }
-
-          const alertEntity = entities.get(parseInt(alertEntityId));
-          const entity = entities.get(parseInt(entityId));
-          if (
-            !entity || !alertEntity || entity.coalition !== "Allies"
-          ) {
-            continue;
-          }
-
-          const d0 = computeDistanceBetween([
-            alertEntity.latitude,
-            alertEntity.longitude,
-          ], [
-            entity.latitude,
-            entity.longitude,
-          ]) *
-            0.000621371;
-
-          if (
-            d0 > radius
-          ) {
-            obj.remove(triggerKey);
-          }
-        }
-
-        for (
-          const [[alertEntityId, alertType], radius] of alertPoints
-            .entries()
-        ) {
-          for (const [entityId, track] of state.tracks.entrySeq()) {
-            if (entityId === alertEntityId) {
-              continue;
-            }
-            const entity = entities.get(entityId);
-            const alertEntity = entities.get(alertEntityId);
-            if (!entity || !alertEntity || entity.coalition !== "Allies") {
-              continue;
-            }
-
-            const d0 = Math.floor(
-              computeDistanceBetween([
-                entity.latitude,
-                entity.longitude,
-              ], [
-                alertEntity.latitude,
-                alertEntity.longitude,
-              ]) *
-                0.000621371,
-            );
-
-            if (
-              d0 <= radius &&
-              !obj.has(`${alertEntityId}-${alertType}-${entityId}`)
-            ) {
-              if (alertType === "threat") {
-                const audio = new Audio(WarningBeep);
-                audio.play();
-              }
-              obj = obj.add(`${alertEntityId}-${alertType}-${entityId}`);
-            }
-          }
-        }
       }),
     };
   });
