@@ -23,26 +23,24 @@ export const serverStore = create<ServerStoreData>(() => {
 
 function doLongPoll() {
   // TODO: retry / restart on error
-
-  const eventSource = new EventSource("http://localhost:7788");
+  const eventSource = new EventSource("http://eos.hydr0.com:7789/events");
   eventSource.onmessage = (event) => {
     const eventData = JSON.parse(event.data) as Event;
     serverStore.setState((state) => {
       return {
         ...state,
         entities: state.entities.withMutations((entities) => {
-          if (eventData.e === "CREATE") {
+          if (eventData.e === "CREATE" && eventData.o) {
             for (const obj of eventData.o) {
               entities = entities.set(obj.id, new Entity(obj));
             }
 
             updateTracks(eventData.o);
-          } else if (eventData.e === "DELETE") {
+          } else if (eventData.e === "DELETE" && eventData.id) {
+            deleteTracks(eventData.id);
             for (const objId of eventData.id) {
               entities = entities.remove(objId);
             }
-
-            deleteTracks(eventData.id);
           }
         }),
       };
@@ -56,4 +54,14 @@ function doLongPoll() {
       entities: Immutable.Map<number, Entity>(),
     });
   };
+}
+
+export function forceDeleteEntity(entityId: number) {
+  deleteTracks([entityId]);
+  serverStore.setState((state) => {
+    return {
+      ...state,
+      entities: state.entities.remove(entityId),
+    };
+  });
 }

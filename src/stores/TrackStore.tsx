@@ -1,9 +1,17 @@
-import { getPreciseDistance } from "geolib";
 import Immutable from "immutable";
 import create from "zustand";
 import { RawEntityData } from "../types/entity";
+import { getFlyDistance } from "../util";
+import { serverStore } from "./ServerStore";
 
-const DEFAULT_NUM_PREVIOUS_PINGS = 8;
+const DEFAULT_NUM_PREVIOUS_PINGS = 16;
+
+export type TrackOptions = {
+  warningRadius?: number;
+  threatRadius?: number;
+  hideInfo?: boolean;
+  watching?: boolean;
+};
 
 export type EntityTrackPing = {
   time: number;
@@ -14,6 +22,8 @@ export type EntityTrackPing = {
 
 type TrackStoreData = {
   tracks: Immutable.Map<number, Array<EntityTrackPing>>;
+  trackOptions: Immutable.Map<number, TrackOptions>;
+  alertTriggers: Immutable.Set<string>;
   config: { numPreviousPings: number };
 };
 
@@ -24,10 +34,10 @@ export function estimatedSpeed(pings: Array<EntityTrackPing>): number {
   }
 
   const seconds = (pings[0].time - pings[pings.length - 1].time) / 1000;
-  return (getPreciseDistance(
+  return (getFlyDistance(
     pings[0].position,
     pings[pings.length - 1].position,
-  ) / seconds) * 1.94384;
+  ) / seconds) * 3600;
 }
 
 // Returns the estimated altitude rate (in fpm) of an entity based on its track
@@ -53,6 +63,8 @@ function entityTrackPing(entity: RawEntityData): EntityTrackPing {
 export const trackStore = create<TrackStoreData>(() => {
   return {
     tracks: Immutable.Map<number, Array<EntityTrackPing>>(),
+    trackOptions: Immutable.Map<number, TrackOptions>(),
+    alertTriggers: Immutable.Set<string>(),
     config: {
       numPreviousPings: DEFAULT_NUM_PREVIOUS_PINGS,
     },
@@ -65,7 +77,10 @@ export function updateTracks(data: Array<RawEntityData>) {
       ...state,
       tracks: state.tracks.withMutations((obj) => {
         for (const entity of data) {
-          if (!entity.types.includes("Air")) {
+          if (
+            !entity.types.includes("Air") ||
+            entity.types.includes("Parachutist")
+          ) {
             continue;
           }
 
@@ -81,13 +96,31 @@ export function updateTracks(data: Array<RawEntityData>) {
 }
 
 export function deleteTracks(data: Array<number>) {
+  const entities = serverStore.getState().entities;
+  console.log(
+    "[TrackStore] deleting tracks",
+    data.map((it) => entities.get(it)).filter((it) =>
+      it !== undefined && it.pilot
+    ).map((
+      it,
+    ) => it!.pilot),
+  );
   trackStore.setState((state) => {
     return {
       ...state,
-      tracks: state.tracks.withMutations((obj) => {
-        for (const entityId of data) {
-          obj.delete(entityId);
-        }
+      tracks: state.tracks.deleteAll(data),
+      trackOptions: state.trackOptions.deleteAll(data),
+    };
+  });
+}
+
+export function setTrackOptions(entityId: number, opts: TrackOptions) {
+  trackStore.setState((state) => {
+    return {
+      ...state,
+      trackOptions: state.trackOptions.set(entityId, {
+        ...state.trackOptions.get(entityId) || {},
+        ...opts,
       }),
     };
   });
