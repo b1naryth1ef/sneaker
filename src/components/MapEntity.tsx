@@ -17,10 +17,11 @@ import { colorMode } from "./MapIcon";
 export const iconCache: Record<string, string> = {};
 
 export function EntityInfo(
-  { map, entity, track }: {
+  { map, entity, track, setSelectedEntityId }: {
     map: maptalks.Map;
     entity: Entity;
     track: Array<EntityTrackPing>;
+    setSelectedEntityId: (v: number | null) => void;
   },
 ) {
   const trackOptions = trackStore((state) => state.trackOptions.get(entity.id));
@@ -59,8 +60,16 @@ export function EntityInfo(
     <div
       className="m-2 absolute flex flex-col bg-gray-300 border border-gray-500 shadow select-none rounded-sm max-w-4xl"
     >
-      <div className="p-2 bg-gray-400 text-sm">
+      <div className="p-2 bg-gray-400 text-sm flex flex-row">
         <b>{entity.group}</b>
+        <button
+          className="p-1 text-xs bg-red-300 border border-red-400 ml-auto"
+          onClick={() => {
+            setSelectedEntityId(null);
+          }}
+        >
+          Close
+        </button>
       </div>
       <div className="p-2 flex flex-row">
         <div className="flex flex-col pr-2">

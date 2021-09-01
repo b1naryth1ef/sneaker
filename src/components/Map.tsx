@@ -963,6 +963,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
       {selectedTrack && selectedEntity && map.current &&
         (
           <EntityInfo
+            setSelectedEntityId={setSelectedEntityId}
             map={map.current}
             track={selectedTrack}
             entity={selectedEntity}
