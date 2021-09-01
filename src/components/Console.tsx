@@ -83,7 +83,7 @@ function SearchTab(
 
   const matchedEntities = serverStore((state) =>
     state.entities.valueSeq().filter((it) =>
-      it.types.includes("Air") &&
+      (it.types.includes("Air") || it.types.includes("Sea")) &&
         it.name.toLowerCase().includes(search) ||
       it.pilot !== undefined && it.pilot.toLowerCase().includes(search)
     ).toArray()
@@ -94,7 +94,10 @@ function SearchTab(
   const targetEntities = matchedEntities.map((it) =>
     [it, tracks.get(it.id)] as [Entity, Array<EntityTrackPing> | undefined]
   )
-    .filter((it) => it[1] !== undefined && estimatedSpeed(it[1]) >= 25).map((
+    .filter((it) =>
+      it[0].types.includes("Sea") ||
+      it[1] !== undefined && estimatedSpeed(it[1]) >= 25
+    ).map((
       it,
     ) => it[0]);
 

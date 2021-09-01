@@ -951,7 +951,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
             Math.round(
               getFlyDistance(start, end),
             )
-          }NM`,
+          }`,
         );
 
         text.show();
@@ -970,7 +970,8 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
   const currentCursorBulls = useMemo(() => {
     if (!bullsEntity || !cursorPos) return;
     let bearing = Math.round(
-      getBearing(cursorPos, [bullsEntity.latitude, bullsEntity.longitude]),
+      getBearing([bullsEntity.latitude, bullsEntity.longitude], cursorPos) +
+        dcsMap.magDec,
     );
     return `${bearing.toString().padStart(3, "0")}${getCardinal(bearing)} / ${
       Math.round(
@@ -979,7 +980,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
           bullsEntity.longitude,
         ]),
       )
-    }NM`;
+    }`;
   }, [cursorPos, bullsEntity]);
 
   return (
