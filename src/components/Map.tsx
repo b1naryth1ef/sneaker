@@ -32,6 +32,17 @@ const syncVisibility = (geo: maptalks.Geometry, value: boolean) => {
   }
 };
 
+function pruneLayer(
+  layer: maptalks.VectorLayer,
+  keepFn: (geoId: number) => boolean,
+) {
+  for (const geo of layer.getGeometries()) {
+    if (!keepFn((geo as any)._id)) {
+      geo.remove();
+    }
+  }
+}
+
 function MapRadarTracks(
   { map, selectedEntityId, setSelectedEntityId }: {
     map: maptalks.Map;
@@ -51,43 +62,23 @@ function MapRadarTracks(
     const vvLayer = map.getLayer("track-vv") as maptalks.VectorLayer;
     const trailLayer = map.getLayer("track-trails") as maptalks.VectorLayer;
     const iconLayer = map.getLayer("track-icons") as maptalks.VectorLayer;
-    const infoLayer = map.getLayer("track-info") as maptalks.VectorLayer;
     const nameLayer = map.getLayer("track-name") as maptalks.VectorLayer;
+    const altLayer = map.getLayer("track-altitude") as maptalks.VectorLayer;
+    const speedLayer = map.getLayer("track-speed") as maptalks.VectorLayer;
+    const vertLayer = map.getLayer(
+      "track-verticalvelo",
+    ) as maptalks.VectorLayer;
     const alertLayer = map.getLayer(
       "track-alert-radius",
     ) as maptalks.VectorLayer;
-    for (const geo of vvLayer.getGeometries()) {
-      if (!tracks.has(geo.id as number)) {
-        geo.remove();
-      }
-    }
 
-    for (const geo of iconLayer.getGeometries()) {
-      if (!entities.has((geo as any)._id)) {
-        geo.remove();
-      }
-    }
-
-    for (const geo of trailLayer.getGeometries()) {
-      if (!entities.has((geo as any)._id)) {
-        geo.remove();
-      }
-    }
-
-    for (const geo of nameLayer.getGeometries()) {
-      if (!entities.has((geo as any)._id)) {
-        geo.remove();
-      }
-    }
-
-    for (const geo of infoLayer.getGeometries()) {
-      const geoA: any = geo;
-      if (!geoA._id) continue;
-      const [geoId, _] = (geoA._id as string).split("-");
-      if (!entities.has(parseInt(geoId))) {
-        geo.remove();
-      }
-    }
+    pruneLayer(vvLayer, (it) => tracks.has(it));
+    pruneLayer(iconLayer, (it) => entities.has(it));
+    pruneLayer(trailLayer, (it) => entities.has(it));
+    pruneLayer(nameLayer, (it) => entities.has(it));
+    pruneLayer(altLayer, (it) => entities.has(it));
+    pruneLayer(speedLayer, (it) => entities.has(it));
+    pruneLayer(vertLayer, (it) => entities.has(it));
 
     for (const geo of alertLayer.getGeometries()) {
       const geoA: any = geo;
@@ -229,12 +220,12 @@ function MapRadarTracks(
         syncVisibility(nameGeo, trackVisible);
       }
 
-      const infoAltitudeGeo = infoLayer.getGeometryById(
-        `${entityId}-altitude`,
+      const altGeo = altLayer.getGeometryById(
+        entityId,
       ) as maptalks.Label;
-      if (!infoAltitudeGeo) {
-        const infoAltitudeText = new maptalks.Label("", [0, 0], {
-          id: `${entityId}-altitude`,
+      if (!altGeo) {
+        const altLabel = new maptalks.Label("", [0, 0], {
+          id: entityId,
           draggable: false,
           visible: false,
           editable: false,
@@ -256,27 +247,27 @@ function MapRadarTracks(
             "textSize": 12,
           },
         });
-        infoLayer.addGeometry(infoAltitudeText);
+        altLayer.addGeometry(altLabel);
       } else {
-        (infoAltitudeGeo.setContent as any)(
+        (altGeo.setContent as any)(
           `${
             Math.floor(
               (entity.altitude * 3.28084) / 1000,
             )
           }`,
         );
-        infoAltitudeGeo.setCoordinates(
+        altGeo.setCoordinates(
           [entity.longitude, entity.latitude],
         );
-        syncVisibility(infoAltitudeGeo, trackVisible);
+        syncVisibility(altGeo, trackVisible);
       }
 
-      const infoSpeedGeo = infoLayer.getGeometryById(
-        `${entityId}-speed`,
+      const speedGeo = speedLayer.getGeometryById(
+        entityId,
       ) as maptalks.Label;
-      if (!infoSpeedGeo) {
-        const infoSpeedText = new maptalks.Label("", [0, 0], {
-          id: `${entityId}-speed`,
+      if (!speedGeo) {
+        const speedLabel = new maptalks.Label("", [0, 0], {
+          id: entityId,
           draggable: false,
           visible: false,
           editable: false,
@@ -298,24 +289,24 @@ function MapRadarTracks(
             "textSize": 12,
           },
         });
-        infoLayer.addGeometry(infoSpeedText);
+        speedLayer.addGeometry(speedLabel);
       } else {
-        (infoSpeedGeo.setContent as any)(
+        (speedGeo.setContent as any)(
           `${Math.round(estimatedSpeed(track))}`,
         );
-        infoSpeedGeo.setCoordinates(
+        speedGeo.setCoordinates(
           [entity.longitude, entity.latitude],
         );
 
-        syncVisibility(infoSpeedGeo, trackVisible);
+        syncVisibility(speedGeo, trackVisible);
       }
 
-      const infoAltRateGeo = infoLayer.getGeometryById(
-        `${entityId}-altrate`,
+      const vertGeo = vertLayer.getGeometryById(
+        entityId,
       ) as maptalks.Label;
-      if (!infoAltRateGeo) {
-        const infoAltRateText = new maptalks.Label("", [0, 0], {
-          id: `${entityId}-altrate`,
+      if (!vertGeo) {
+        const vertLabel = new maptalks.Label("", [0, 0], {
+          id: entityId,
           draggable: false,
           visible: false,
           editable: false,
@@ -337,15 +328,15 @@ function MapRadarTracks(
             "textSize": 12,
           },
         });
-        infoLayer.addGeometry(infoAltRateText);
+        vertLayer.addGeometry(vertLabel);
       } else {
-        (infoAltRateGeo.setContent as any)(
+        (vertGeo.setContent as any)(
           `${Math.round(estimatedAltitudeRate(track))}`,
         );
-        infoAltRateGeo.setCoordinates(
+        vertGeo.setCoordinates(
           [entity.longitude, entity.latitude],
         );
-        syncVisibility(infoAltRateGeo, trackVisible);
+        syncVisibility(vertGeo, trackVisible);
       }
 
       let threatCircle = alertLayer.getGeometryById(
@@ -700,25 +691,37 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
           forceRenderOnMoving: true,
           forceRenderOnRotating: true,
         }),
-        new maptalks.VectorLayer("track-name", [], {
-          hitDetect: false,
-          forceRenderOnZooming: true,
-          forceRenderOnMoving: true,
-          forceRenderOnRotating: true,
-        }),
-        new maptalks.VectorLayer("track-info", [], {
-          hitDetect: false,
-          forceRenderOnZooming: true,
-          forceRenderOnMoving: true,
-          forceRenderOnRotating: true,
-        }),
         new maptalks.VectorLayer("track-icons", [], {
           hitDetect: false,
           forceRenderOnZooming: true,
           forceRenderOnMoving: true,
           forceRenderOnRotating: true,
         }),
+        new maptalks.VectorLayer("track-name", [], {
+          hitDetect: false,
+          forceRenderOnZooming: true,
+          forceRenderOnMoving: true,
+          forceRenderOnRotating: true,
+        }),
         new maptalks.VectorLayer("track-alert-radius", [], {
+          hitDetect: false,
+          forceRenderOnZooming: true,
+          forceRenderOnMoving: true,
+          forceRenderOnRotating: true,
+        }),
+        new maptalks.VectorLayer("track-altitude", [], {
+          hitDetect: false,
+          forceRenderOnZooming: true,
+          forceRenderOnMoving: true,
+          forceRenderOnRotating: true,
+        }),
+        new maptalks.VectorLayer("track-speed", [], {
+          hitDetect: false,
+          forceRenderOnZooming: true,
+          forceRenderOnMoving: true,
+          forceRenderOnRotating: true,
+        }),
+        new maptalks.VectorLayer("track-verticalvelo", [], {
           hitDetect: false,
           forceRenderOnZooming: true,
           forceRenderOnMoving: true,
@@ -749,10 +752,10 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
     map.current.on("zoomend", (e) => {
       if (Math.round(map.current!.getZoom()) <= 7) {
         map.current!.getLayer("airports").hide();
-        map.current!.getLayer("track-info").hide();
+        map.current!.getLayer("track-name").hide();
       } else {
         map.current!.getLayer("airports").show();
-        map.current!.getLayer("track-info").show();
+        map.current!.getLayer("track-name").show();
       }
     });
 
@@ -846,14 +849,14 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
 
     mouseDownHandlerRef.current = (e) => {
       if (!map.current) return;
-      const infoLayer = map.current.getLayer("track-info");
+      const nameLayer = map.current.getLayer("track-name");
       const iconLayer = map.current.getLayer("track-icons");
 
       if (e.domEvent.button === 2) {
         if (isSnapPressed) {
           map.current.identify({
             "coordinate": e.coordinate,
-            "layers": [infoLayer, iconLayer],
+            "layers": [nameLayer, iconLayer],
           }, (geos: Array<maptalks.Geometry>) => {
             if (geos.length >= 1) {
               let id = geos[0].getId();
