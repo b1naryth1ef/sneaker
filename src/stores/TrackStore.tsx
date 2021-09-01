@@ -61,9 +61,21 @@ function entityTrackPing(entity: RawEntityData): EntityTrackPing {
 }
 
 export const trackStore = create<TrackStoreData>(() => {
+  let trackOptions = Immutable.Map<number, TrackOptions>();
+
+  const trackOptionsRaw = localStorage.getItem("track-options");
+  if (trackOptionsRaw) {
+    trackOptions = trackOptions.withMutations((obj) => {
+      for (const [key, value] of Object.entries(JSON.parse(trackOptionsRaw))) {
+        obj = obj.set(parseInt(key), value as TrackOptions);
+      }
+    });
+    console.log(trackOptions);
+  }
+
   return {
     tracks: Immutable.Map<number, Array<EntityTrackPing>>(),
-    trackOptions: Immutable.Map<number, TrackOptions>(),
+    trackOptions: trackOptions,
     alertTriggers: Immutable.Set<string>(),
     config: {
       numPreviousPings: DEFAULT_NUM_PREVIOUS_PINGS,
@@ -125,3 +137,11 @@ export function setTrackOptions(entityId: number, opts: TrackOptions) {
     };
   });
 }
+
+trackStore.subscribe((opts: TrackStoreData["trackOptions"]) => {
+  console.log("[TrackStore] saving options");
+  localStorage.setItem(
+    "track-options",
+    JSON.stringify(opts.toJSON()),
+  );
+}, (state) => state.trackOptions);
