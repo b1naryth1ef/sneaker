@@ -1,9 +1,10 @@
 import Immutable from "immutable";
 import create from "zustand";
 import WarningBeep from "../sounds/warning-beep.mp3";
+import { Entity } from "../types/entity";
 import { getFlyDistance } from "../util";
 import { serverStore } from "./ServerStore";
-import { estimatedSpeed, trackStore } from "./TrackStore";
+import { EntityTrackPing, estimatedSpeed, trackStore } from "./TrackStore";
 
 export type Alert = {
   type: string;
@@ -27,11 +28,97 @@ export const alertStore = create<AlertStoreData>(() => {
 
 (window as any).alertStore = alertStore;
 
+function isTrackInViolation(
+  entity: Entity,
+  triggerEntity: Entity,
+  track: Array<EntityTrackPing> | null,
+  radius: number,
+): boolean {
+  const trackVisible = track === null || estimatedSpeed(track) >= 25;
+  if (!trackVisible) {
+    return false;
+  }
+
+  const d0 = Math.floor(
+    getFlyDistance([
+      entity.latitude,
+      entity.longitude,
+    ], [
+      triggerEntity.latitude,
+      triggerEntity.longitude,
+    ]),
+  );
+
+  return d0 <= radius;
+}
+
 export function checkAlerts() {
   const entities = serverStore.getState().entities;
   const trackState = trackStore.getState();
+  // const profiles = profileStore.getState().profiles;
+  // const entityMetadata = entityMetadataStore.getState().entities;
 
-  for (const [entityId, opts] of trackState.trackOptions.entrySeq()) {
+  // for (let [entityId, metadata] of entityMetadata.entrySeq()) {
+  //   if (!metadata.labels) continue;
+
+  //   const entity = entities.get(entityId);
+  //   if (!entity) continue;
+
+  //   const defaultRadius = profiles.filter((it) =>
+  //     metadata.labels.union(it.labels).size > 0 && it.defaultThreatRadius ||
+  //     it.defaultWarningRadius
+  //   ).map((it) => [it.defaultThreatRadius, it.defaultWarningRadius]).reduce(
+  //     (a: any, b: any) => [
+  //       a[0] || b[0],
+  //       a[1] || b[1],
+  //     ],
+  //     [undefined, undefined],
+  //   );
+  //   if (!defaultRadius[0] && !defaultRadius[1]) continue;
+
+  //   const opts = trackState.trackOptions.get(entityId);
+  //   if ((!opts || !opts.threatRadius) && defaultRadius[0]) {
+  //     for (const [triggerEntityId, track] of trackState.tracks.entrySeq()) {
+  //       if (triggerEntityId === entity.id) {
+  //         continue;
+  //       }
+
+  //       const triggerEntity = entities.get(triggerEntityId);
+  //       if (!triggerEntity || triggerEntity.coalition === entity.coalition) {
+  //         continue;
+  //       }
+  //       if (
+  //         isTrackInViolation(entity, triggerEntity, track, defaultRadius[0])
+  //       ) {
+  //         upsertAlert(entityId, {
+  //           type: "threat",
+  //           targetEntityId: triggerEntityId,
+  //         });
+  //       }
+  //     }
+  //   }
+  //   if ((!opts || !opts.warningRadius) && defaultRadius[1]) {
+  //     for (const [triggerEntityId, track] of trackState.tracks.entrySeq()) {
+  //       if (triggerEntityId === entity.id) {
+  //         continue;
+  //       }
+  //       const triggerEntity = entities.get(triggerEntityId);
+  //       if (!triggerEntity || triggerEntity.coalition === entity.coalition) {
+  //         continue;
+  //       }
+  //       if (
+  //         isTrackInViolation(entity, triggerEntity, track, defaultRadius[1])
+  //       ) {
+  //         upsertAlert(entityId, {
+  //           type: "warning",
+  //           targetEntityId: triggerEntityId,
+  //         });
+  //       }
+  //     }
+  //   }
+  // }
+
+  for (let [entityId, opts] of trackState.trackOptions.entrySeq()) {
     const entity = entities.get(entityId);
     if (
       !entity || !entity.types.includes("Air")
@@ -53,29 +140,20 @@ export function checkAlerts() {
         continue;
       }
 
-      const trackVisible = estimatedSpeed(track) >= 25;
-      if (!trackVisible) {
-        continue;
-      }
-
-      const d0 = Math.floor(
-        getFlyDistance([
-          entity.latitude,
-          entity.longitude,
-        ], [
-          triggerEntity.latitude,
-          triggerEntity.longitude,
-        ]),
-      );
-
-      if (opts.warningRadius && d0 <= opts.warningRadius) {
+      if (
+        opts.warningRadius &&
+        isTrackInViolation(entity, triggerEntity, track, opts.warningRadius)
+      ) {
         upsertAlert(entityId, {
           type: "warning",
           targetEntityId: triggerEntityId,
         });
       }
 
-      if (opts.threatRadius && d0 <= opts.threatRadius) {
+      if (
+        opts.threatRadius &&
+        isTrackInViolation(entity, triggerEntity, track, opts.threatRadius)
+      ) {
         upsertAlert(entityId, {
           type: "threat",
           targetEntityId: triggerEntityId,
@@ -119,17 +197,7 @@ function clearAlerts() {
           if (
             triggerEntity
           ) {
-            const d0 = getFlyDistance([
-              triggerEntity.latitude,
-              triggerEntity.longitude,
-            ], [
-              ourEntity.latitude,
-              ourEntity.longitude,
-            ]);
-
-            if (
-              Math.floor(d0) <= radius
-            ) {
+            if (isTrackInViolation(ourEntity, triggerEntity, null, radius)) {
               continue;
             }
           }

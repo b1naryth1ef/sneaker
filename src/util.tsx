@@ -144,3 +144,15 @@ export function getFlyDistance(
   var d = R * c;
   return d * 0.539957;
 }
+
+export function formatCounter(
+  seconds: number,
+): string {
+  const hours = Math.floor(seconds / 3600),
+    minutes = Math.floor((seconds - (hours * 3600)) / 60),
+    outSeconds = seconds - (hours * 3600) - (minutes * 60);
+
+  return `${hours.toString().padStart(2, "0")}:${
+    minutes.toString().padStart(2, "0")
+  }:${outSeconds.toString().padStart(2, "0")}`;
+}

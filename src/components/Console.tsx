@@ -1,6 +1,8 @@
 import classNames from "classnames";
 import * as maptalks from "maptalks";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
+import { BiCog } from "react-icons/bi";
+import { entityMetadataStore } from "../stores/EntityMetadataStore";
 import { serverStore } from "../stores/ServerStore";
 import {
   EntityTrackPing,
@@ -81,12 +83,27 @@ function SearchTab(
 ) {
   const [search, setSearch] = useState("");
 
+  const entityMetadata = entityMetadataStore((state) => state.entities);
+  const matchFn = useMemo(() => {
+    // Label query
+    if (search.startsWith("@")) {
+      const tag = search.slice(1).toLowerCase();
+      if (!tag) return null;
+
+      return (it: Entity) => {
+        const meta = entityMetadata.get(it.id);
+        return meta && meta.labels.includes(tag);
+      };
+    } else {
+      return (it: Entity) =>
+        (it.types.includes("Air") || it.types.includes("Sea")) &&
+          it.name.toLowerCase().includes(search) ||
+        (it.pilot !== undefined && it.pilot.toLowerCase().includes(search));
+    }
+  }, [search, entityMetadata]);
+
   const matchedEntities = serverStore((state) =>
-    state.entities.valueSeq().filter((it) =>
-      (it.types.includes("Air") || it.types.includes("Sea")) &&
-        it.name.toLowerCase().includes(search) ||
-      it.pilot !== undefined && it.pilot.toLowerCase().includes(search)
-    ).toArray()
+    matchFn ? state.entities.valueSeq().filter(matchFn).toArray() : []
   );
   const tracks = new Map(trackStore(
     ((state) => matchedEntities.map((it) => [it.id, state.tracks.get(it.id)])),
@@ -139,8 +156,9 @@ function SearchTab(
 }
 
 export function Console(
-  { setSelectedEntityId, map }: {
+  { setSelectedEntityId, map, setSettingsOpen }: {
     setSelectedEntityId: (entityId: number | null) => void;
+    setSettingsOpen: (value: boolean) => void;
     map: maptalks.Map;
   },
 ) {
@@ -175,16 +193,22 @@ export function Console(
             Watches
           </button>
         </div>
-        {selectedTab !== null && (
-          <div>
+        <div className="ml-auto flex flex-row gap-1">
+          {selectedTab !== null && (
             <button
               className="border bg-red-100 border-red-300 p-1 rounded-sm shadow-sm"
               onClick={() => setSelectedTab(null)}
             >
               Close
             </button>
-          </div>
-        )}
+          )}
+          <button
+            className="border bg-blue-100 border-blue-300 p-1 rounded-sm shadow-sm flex flex-row items-center"
+            onClick={() => setSettingsOpen(true)}
+          >
+            <BiCog className="inline-block w-4 h-4" />
+          </button>
+        </div>
       </div>
       {selectedTab === "search" &&
         <SearchTab setSelectedEntityId={setSelectedEntityId} map={map} />}

@@ -2,7 +2,6 @@ import Immutable from "immutable";
 import create from "zustand";
 import { RawEntityData } from "../types/entity";
 import { getFlyDistance } from "../util";
-import { serverStore } from "./ServerStore";
 
 const DEFAULT_NUM_PREVIOUS_PINGS = 16;
 
@@ -20,7 +19,7 @@ export type EntityTrackPing = {
   heading: number;
 };
 
-type TrackStoreData = {
+export type TrackStoreData = {
   tracks: Immutable.Map<number, Array<EntityTrackPing>>;
   trackOptions: Immutable.Map<number, TrackOptions>;
   alertTriggers: Immutable.Set<string>;
@@ -109,7 +108,6 @@ export function updateTracks(data: Array<RawEntityData>) {
 }
 
 export function deleteTracks(data: Array<number>) {
-  const entities = serverStore.getState().entities;
   trackStore.setState((state) => {
     return {
       ...state,

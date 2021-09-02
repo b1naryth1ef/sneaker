@@ -1,8 +1,15 @@
 import classNames from "classnames";
 import * as maptalks from "maptalks";
 import ms from "milsymbol";
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { BiX } from "react-icons/bi";
+import { useKeyPress } from "../hooks/useKeyPress";
 import { Alert, alertStore } from "../stores/AlertStore";
+import {
+  popEntityLabel,
+  pushEntityLabel,
+  useEntityMetadata,
+} from "../stores/EntityMetadataStore";
 import { serverStore } from "../stores/ServerStore";
 import {
   EntityTrackPing,
@@ -27,6 +34,21 @@ export function EntityInfo(
   const trackOptions = trackStore((state) => state.trackOptions.get(entity.id));
   const alerts = alertStore((state) => state.alerts.get(entity.id));
   const entities = serverStore((state) => state.entities);
+  const metadata = useEntityMetadata(entity.id);
+  const [addLabelText, setAddLabelText] = useState("");
+  const inputRef = useRef(null);
+  const isEnterPressed = useKeyPress("Enter");
+
+  useEffect(() => {
+    if (!inputRef.current) return;
+    if (
+      isEnterPressed && addLabelText !== "" &&
+      (document.activeElement === inputRef.current)
+    ) {
+      pushEntityLabel(entity.id, addLabelText);
+      setAddLabelText("");
+    }
+  }, [isEnterPressed, inputRef, addLabelText]);
 
   let alertEntities = useMemo(() =>
     alerts?.map((it) => {
@@ -143,9 +165,37 @@ export function EntityInfo(
                   })}
               />
             </div>
+            <div className="flex flex-row flex-grow items-center">
+              <input
+                ref={inputRef}
+                className="w-full border-blue-200 border rounded-sm"
+                value={addLabelText}
+                onChange={(e) => setAddLabelText(e.target.value)}
+              />
+            </div>
           </div>
         </div>
       </div>
+      {metadata && (
+        <div className="flex flex-col p-2">
+          <div className="flex flex-row gap-2">
+            {metadata.labels.map((it) => (
+              <div
+                className="p-1 bg-blue-200 hover:bg-blue-300 border-blue-400 border rounded-sm flex flex-row items-center"
+                key={it}
+              >
+                <div>{it}</div>
+                <button
+                  onClick={() => popEntityLabel(entity.id, it)}
+                  className="text-red-500"
+                >
+                  <BiX className="inline-flex h-5 w-5 ml-1" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       {alertEntities && (
         <div className="flex flex-col gap-1 p-2">
           {alertEntities.map((

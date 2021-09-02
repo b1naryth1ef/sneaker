@@ -22,6 +22,8 @@ import { computeBRAA, getBearing, getCardinal, getFlyDistance } from "../util";
 import { Console } from "./Console";
 import { EntityInfo, iconCache, MapSimpleEntity } from "./MapEntity";
 import { colorMode } from "./MapIcon";
+import { MissionTimer } from "./MissionTimer";
+import { Settings } from "./Settings";
 
 const syncVisibility = (geo: maptalks.Geometry, value: boolean) => {
   const isVisible = geo.isVisible();
@@ -574,6 +576,8 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
     null,
   );
 
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
   const entities = serverStore((state) => state.entities);
 
   const selectedEntity = selectedEntityId && entities.get(selectedEntityId);
@@ -669,10 +673,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
       center: [dcsMap.center[1], dcsMap.center[0]],
       zoom: 8,
       seamlessZoom: true,
-      attribution: {
-        content:
-          '<a class="text-blue-300 opacity-50" href="https://github.com/b1naryth1ef/sneaker">GitHub</a>',
-      },
+      attribution: null,
       baseLayer: new maptalks.TileLayer("base", {
         urlTemplate:
           "https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_nolabels/{z}/{x}/{y}.png",
@@ -915,8 +916,9 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
       let end = cursorPos;
 
       let start: [number, number];
+      let entity;
       if (typeof drawBraaStart === "number") {
-        const entity = entities.get(drawBraaStart);
+        entity = entities.get(drawBraaStart);
         if (!entity) {
           setDrawBraaStart(null);
           return;
@@ -1006,6 +1008,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
         ref={mapContainer}
       >
       </div>
+      {settingsOpen && <Settings close={() => setSettingsOpen(false)} />}
       {currentCursorBulls &&
         (
           <div
@@ -1014,6 +1017,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
             {currentCursorBulls}
           </div>
         )}
+      <MissionTimer />
       {selectedTrack && selectedEntity && map.current &&
         (
           <EntityInfo
@@ -1026,6 +1030,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
       {map.current && (
         <Console
           setSelectedEntityId={setSelectedEntityId}
+          setSettingsOpen={setSettingsOpen}
           map={map.current}
         />
       )}

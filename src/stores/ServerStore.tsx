@@ -3,13 +3,21 @@ import create from "zustand";
 import { Entity, RawEntityData } from "../types/entity";
 import { deleteTracks, updateTracks } from "./TrackStore";
 
-type Event = {
-  e: "CREATE";
-  o: Array<RawEntityData>;
-} | { e: "DELETE"; id: Array<number> };
+type Event =
+  & {
+    t: number;
+  }
+  & (
+    | {
+      e: "CREATE_ENTITIES";
+      o: Array<RawEntityData>;
+    }
+    | { e: "DELETE_ENTITIES"; id: Array<number> }
+  );
 
 export type ServerStoreData = {
   entities: Immutable.Map<number, Entity>;
+  offset: number;
 };
 
 export const serverStore = create<ServerStoreData>(() => {
@@ -18,6 +26,7 @@ export const serverStore = create<ServerStoreData>(() => {
 
   return {
     entities: Immutable.Map<number, Entity>(),
+    offset: 0,
   };
 });
 
@@ -35,14 +44,15 @@ function doLongPoll() {
     serverStore.setState((state) => {
       return {
         ...state,
+        offset: eventData.t,
         entities: state.entities.withMutations((entities) => {
-          if (eventData.e === "CREATE" && eventData.o) {
+          if (eventData.e === "CREATE_ENTITIES" && eventData.o) {
             for (const obj of eventData.o) {
               entities = entities.set(obj.id, new Entity(obj));
             }
 
             updateTracks(eventData.o);
-          } else if (eventData.e === "DELETE" && eventData.id) {
+          } else if (eventData.e === "DELETE_ENTITIES" && eventData.id) {
             deleteTracks(eventData.id);
             for (const objId of eventData.id) {
               entities = entities.remove(objId);

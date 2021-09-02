@@ -25,6 +25,20 @@ type httpServer struct {
 	subs  map[int64]chan []byte
 }
 
+func (h *httpServer) publish(data map[string]interface{}) error {
+	encoded, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	h.Lock()
+	defer h.Unlock()
+	log.Printf("[http] publish %v (%v)", data["e"].(string), len(h.subs))
+	for _, sub := range h.subs {
+		sub <- encoded
+	}
+	return nil
+}
+
 func (h *httpServer) publishLoop() {
 	ticker := time.NewTicker(RADAR_REFRESH_RATE)
 
@@ -49,35 +63,27 @@ func (h *httpServer) publishLoop() {
 		h.state.RUnlock()
 
 		if len(updated) > 0 {
-			data, err := json.Marshal(map[string]interface{}{
-				"e": "CREATE",
+			err := h.publish(map[string]interface{}{
+				"e": "CREATE_ENTITIES",
 				"o": updated,
+				"t": lastUpdate,
 			})
 			if err != nil {
 				log.Printf("JSON failed: %v", err)
 				continue
 			}
-			h.Lock()
-			for _, sub := range h.subs {
-				sub <- data
-			}
-			h.Unlock()
 		}
 
 		if len(deleted) > 0 {
-			data, err := json.Marshal(map[string]interface{}{
-				"e":  "DELETE",
+			err := h.publish(map[string]interface{}{
+				"e":  "DELETE_ENTITIES",
 				"id": deleted,
+				"t":  lastUpdate,
 			})
 			if err != nil {
 				log.Printf("JSON failed: %v", err)
 				continue
 			}
-			h.Lock()
-			for _, sub := range h.subs {
-				sub <- data
-			}
-			h.Unlock()
 		}
 
 	}
@@ -101,18 +107,6 @@ func (h *httpServer) static(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *httpServer) events(w http.ResponseWriter, r *http.Request) {
-	subChan := make(chan []byte)
-	h.Lock()
-	h.id += 1
-	h.subs[h.id] = subChan
-	h.Unlock()
-
-	defer func() {
-		h.Lock()
-		delete(h.subs, h.id)
-		h.Unlock()
-	}()
-
 	f, ok := w.(http.Flusher)
 	if !ok {
 		http.Error(w, "Streaming unsupported!", http.StatusInternalServerError)
@@ -136,16 +130,29 @@ func (h *httpServer) events(w http.ResponseWriter, r *http.Request) {
 	h.state.RUnlock()
 
 	data, err := json.Marshal(map[string]interface{}{
-		"e": "CREATE",
+		"e": "CREATE_ENTITIES",
 		"o": init,
+		"t": 0,
 	})
 	if err != nil {
 		http.Error(w, "Failed to process internal data", http.StatusInternalServerError)
 		return
 	}
 
+	subChan := make(chan []byte, 1)
+	h.Lock()
+	h.id += 1
+	h.subs[h.id] = subChan
+	h.Unlock()
+	subChan <- data
+
+	notify := w.(middleware.WrapResponseWriter).Unwrap().(http.CloseNotifier).CloseNotify()
 	go func() {
-		subChan <- data
+		<-notify
+		h.Lock()
+		delete(h.subs, h.id)
+		h.Unlock()
+		close(subChan)
 	}()
 
 	for {
@@ -157,7 +164,10 @@ func (h *httpServer) events(w http.ResponseWriter, r *http.Request) {
 		outgoing := []byte("data: ")
 		outgoing = append(outgoing, msg...)
 		outgoing = append(outgoing, '\n', '\n')
-		w.Write(outgoing)
+		_, err := w.Write(outgoing)
+		if err != nil {
+			return
+		}
 
 		f.Flush()
 	}

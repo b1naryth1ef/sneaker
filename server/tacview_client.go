@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"strings"
 
@@ -92,6 +93,7 @@ func (c *TacViewClient) Run(state *state) error {
 	data := make(chan *tacview.TimeFrame)
 	go acmiReader.ProcessTimeFrames(1, data)
 
+	log.Printf("[tacview] started client stream")
 	for {
 		tf, ok := <-data
 		if !ok {
