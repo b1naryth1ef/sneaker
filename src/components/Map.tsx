@@ -119,7 +119,7 @@ function MapRadarTracks(
           {
             id: entityId,
             draggable: false,
-            visible: true,
+            visible: false,
             editable: false,
             symbol: {
               markerFile: iconCache[entity.sidc],
@@ -160,7 +160,7 @@ function MapRadarTracks(
         const nameLabel = new maptalks.Label(name, [0, 0], {
           id: entityId,
           draggable: false,
-          visible: true,
+          visible: false,
           editable: false,
           boxStyle: {
             "padding": [2, 2],
