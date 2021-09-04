@@ -1,13 +1,21 @@
 import Immutable from "immutable";
 import create from "zustand";
+import {
+  SneakerInitialStateEvent,
+  SneakerRadarSnapshotEvent,
+} from "../SneakerClient";
 import { RawEntityData } from "../types/entity";
 import { getFlyDistance } from "../util";
+import { entityMetadataStore } from "./EntityMetadataStore";
+import { getProfilesForLabels } from "./ProfileStore";
 
 const DEFAULT_NUM_PREVIOUS_PINGS = 16;
 
 export type TrackOptions = {
   warningRadius?: number;
   threatRadius?: number;
+  profileWarningRadius?: number;
+  profileThreatRadius?: number;
   hideInfo?: boolean;
   watching?: boolean;
 };
@@ -19,12 +27,21 @@ export type EntityTrackPing = {
   heading: number;
 };
 
+export type TrackProfileData = {
+  warningRadius?: number;
+  threatRadius?: number;
+};
+
 export type TrackStoreData = {
   tracks: Immutable.Map<number, Array<EntityTrackPing>>;
   trackOptions: Immutable.Map<number, TrackOptions>;
   alertTriggers: Immutable.Set<string>;
   config: { numPreviousPings: number };
 };
+
+export function isTrackVisible(track: Array<EntityTrackPing>): boolean {
+  return track.length >= 3 && estimatedSpeed(track) >= 25;
+}
 
 // Returns the estimated speed (in knots) of an entity based on its track
 export function estimatedSpeed(pings: Array<EntityTrackPing>): number {
@@ -60,20 +77,9 @@ function entityTrackPing(entity: RawEntityData): EntityTrackPing {
 }
 
 export const trackStore = create<TrackStoreData>(() => {
-  let trackOptions = Immutable.Map<number, TrackOptions>();
-
-  const trackOptionsRaw = localStorage.getItem("track-options");
-  if (trackOptionsRaw) {
-    trackOptions = trackOptions.withMutations((obj) => {
-      for (const [key, value] of Object.entries(JSON.parse(trackOptionsRaw))) {
-        obj = obj.set(parseInt(key), value as TrackOptions);
-      }
-    });
-  }
-
   return {
     tracks: Immutable.Map<number, Array<EntityTrackPing>>(),
-    trackOptions: trackOptions,
+    trackOptions: Immutable.Map<number, TrackOptions>(),
     alertTriggers: Immutable.Set<string>(),
     config: {
       numPreviousPings: DEFAULT_NUM_PREVIOUS_PINGS,
@@ -83,18 +89,39 @@ export const trackStore = create<TrackStoreData>(() => {
 
 (window as any).trackStore = trackStore;
 
-export function updateTracks(data: Array<RawEntityData>) {
+function isEntityTrackable(entity: RawEntityData) {
+  return (
+    entity.types.includes("Air") &&
+    !entity.types.includes("Parachutist")
+  );
+}
+
+export function createTracks(event: SneakerInitialStateEvent) {
+  trackStore.setState((state) => {
+    return {
+      ...state,
+      tracks: Immutable.Map<number, Array<EntityTrackPing>>(
+        event.d.objects?.filter((obj) => isEntityTrackable(obj)).map((
+          obj,
+        ) => [obj.id, [entityTrackPing(obj)]]) || [],
+      ),
+    };
+  });
+}
+
+export function updateTracks(event: SneakerRadarSnapshotEvent) {
   trackStore.setState((state) => {
     return {
       ...state,
       tracks: state.tracks.withMutations((obj) => {
-        for (const entity of data) {
-          if (
-            !entity.types.includes("Air") ||
-            entity.types.includes("Parachutist")
-          ) {
-            continue;
-          }
+        for (const entity of event.d.created) {
+          if (!isEntityTrackable(entity)) continue;
+          obj.set(entity.id, [
+            entityTrackPing(entity),
+          ]);
+        }
+        for (const entity of event.d.updated) {
+          if (!isEntityTrackable(entity)) continue;
 
           const existingPings = obj.get(entity.id) || [];
           obj.set(entity.id, [
@@ -102,17 +129,10 @@ export function updateTracks(data: Array<RawEntityData>) {
             ...existingPings.slice(0, state.config.numPreviousPings),
           ]);
         }
-      }),
-    };
-  });
-}
 
-export function deleteTracks(data: Array<number>) {
-  trackStore.setState((state) => {
-    return {
-      ...state,
-      tracks: state.tracks.deleteAll(data),
-      trackOptions: state.trackOptions.deleteAll(data),
+        obj.deleteAll(event.d.deleted);
+      }),
+      trackOptions: state.trackOptions.deleteAll(event.d.deleted),
     };
   });
 }
@@ -129,9 +149,29 @@ export function setTrackOptions(entityId: number, opts: TrackOptions) {
   });
 }
 
-trackStore.subscribe((opts: TrackStoreData["trackOptions"]) => {
-  localStorage.setItem(
-    "track-options",
-    JSON.stringify(opts.toJSON()),
-  );
-}, (state) => state.trackOptions);
+setTimeout(() => {
+  const state = entityMetadataStore.getState();
+  trackStore.setState((trackState) => {
+    return {
+      ...trackState,
+      trackOptions: trackState.trackOptions.withMutations((obj) => {
+        for (const [entityId, metadata] of state.entities) {
+          const profile = getProfilesForLabels(metadata.labels).map((
+            it,
+          ) => [it.defaultThreatRadius, it.defaultWarningRadius]).reduce(
+            (a, b) => [a[0] || b[0], a[1] || b[1]],
+            [undefined, undefined],
+          );
+          if (profile[0] || profile[1]) {
+            const current = obj.get(entityId);
+            obj = obj.set(entityId, {
+              ...current,
+              profileThreatRadius: profile[0],
+              profileWarningRadius: profile[1],
+            });
+          }
+        }
+      }),
+    };
+  });
+}, 1000);

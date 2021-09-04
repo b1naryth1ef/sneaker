@@ -55,68 +55,6 @@ function isTrackInViolation(
 export function checkAlerts() {
   const entities = serverStore.getState().entities;
   const trackState = trackStore.getState();
-  // const profiles = profileStore.getState().profiles;
-  // const entityMetadata = entityMetadataStore.getState().entities;
-
-  // for (let [entityId, metadata] of entityMetadata.entrySeq()) {
-  //   if (!metadata.labels) continue;
-
-  //   const entity = entities.get(entityId);
-  //   if (!entity) continue;
-
-  //   const defaultRadius = profiles.filter((it) =>
-  //     metadata.labels.union(it.labels).size > 0 && it.defaultThreatRadius ||
-  //     it.defaultWarningRadius
-  //   ).map((it) => [it.defaultThreatRadius, it.defaultWarningRadius]).reduce(
-  //     (a: any, b: any) => [
-  //       a[0] || b[0],
-  //       a[1] || b[1],
-  //     ],
-  //     [undefined, undefined],
-  //   );
-  //   if (!defaultRadius[0] && !defaultRadius[1]) continue;
-
-  //   const opts = trackState.trackOptions.get(entityId);
-  //   if ((!opts || !opts.threatRadius) && defaultRadius[0]) {
-  //     for (const [triggerEntityId, track] of trackState.tracks.entrySeq()) {
-  //       if (triggerEntityId === entity.id) {
-  //         continue;
-  //       }
-
-  //       const triggerEntity = entities.get(triggerEntityId);
-  //       if (!triggerEntity || triggerEntity.coalition === entity.coalition) {
-  //         continue;
-  //       }
-  //       if (
-  //         isTrackInViolation(entity, triggerEntity, track, defaultRadius[0])
-  //       ) {
-  //         upsertAlert(entityId, {
-  //           type: "threat",
-  //           targetEntityId: triggerEntityId,
-  //         });
-  //       }
-  //     }
-  //   }
-  //   if ((!opts || !opts.warningRadius) && defaultRadius[1]) {
-  //     for (const [triggerEntityId, track] of trackState.tracks.entrySeq()) {
-  //       if (triggerEntityId === entity.id) {
-  //         continue;
-  //       }
-  //       const triggerEntity = entities.get(triggerEntityId);
-  //       if (!triggerEntity || triggerEntity.coalition === entity.coalition) {
-  //         continue;
-  //       }
-  //       if (
-  //         isTrackInViolation(entity, triggerEntity, track, defaultRadius[1])
-  //       ) {
-  //         upsertAlert(entityId, {
-  //           type: "warning",
-  //           targetEntityId: triggerEntityId,
-  //         });
-  //       }
-  //     }
-  //   }
-  // }
 
   for (let [entityId, opts] of trackState.trackOptions.entrySeq()) {
     const entity = entities.get(entityId);
@@ -126,7 +64,15 @@ export function checkAlerts() {
       continue;
     }
 
-    if (!opts.warningRadius && !opts.threatRadius) {
+    const ourTrack = trackState.tracks.get(entityId);
+    if (!ourTrack || estimatedSpeed(ourTrack) < 25) {
+      continue;
+    }
+
+    if (
+      !opts.warningRadius && !opts.threatRadius && !opts.profileThreatRadius &&
+      !opts.profileThreatRadius
+    ) {
       continue;
     }
 
@@ -140,9 +86,10 @@ export function checkAlerts() {
         continue;
       }
 
+      const warningRadius = opts.warningRadius || opts.profileWarningRadius;
       if (
-        opts.warningRadius &&
-        isTrackInViolation(entity, triggerEntity, track, opts.warningRadius)
+        warningRadius &&
+        isTrackInViolation(entity, triggerEntity, track, warningRadius)
       ) {
         upsertAlert(entityId, {
           type: "warning",
@@ -150,9 +97,10 @@ export function checkAlerts() {
         });
       }
 
+      const threatRadius = opts.threatRadius || opts.profileThreatRadius;
       if (
-        opts.threatRadius &&
-        isTrackInViolation(entity, triggerEntity, track, opts.threatRadius)
+        threatRadius &&
+        isTrackInViolation(entity, triggerEntity, track, threatRadius)
       ) {
         upsertAlert(entityId, {
           type: "threat",
@@ -166,15 +114,23 @@ export function checkAlerts() {
 function clearAlerts() {
   alertStore.setState((state) => {
     let result = state.alerts;
-    let resultTriggeredEntities = state.triggeredEntities;
+    let triggeredEntities = state.triggeredEntities;
     const trackState = trackStore.getState();
     const entities = serverStore.getState().entities;
 
     for (let [entityId, alerts] of state.alerts) {
       const ourEntity = entities.get(entityId);
       const existingTrack = trackState.tracks.get(entityId);
-      if (!existingTrack || !ourEntity) {
+      if (!existingTrack || !ourEntity || estimatedSpeed(existingTrack) < 25) {
         result = result.remove(entityId);
+
+        for (const alert of alerts) {
+          triggeredEntities = decrementTriggeredEntity(
+            triggeredEntities,
+            alert.targetEntityId,
+          );
+        }
+
         continue;
       }
 
@@ -186,10 +142,15 @@ function clearAlerts() {
       const trackOpts = trackState.trackOptions.get(entityId);
       for (const [index, alert] of alerts.toKeyedSeq()) {
         let radius: number | undefined = undefined;
-        if (alert.type === "warning" && trackOpts?.warningRadius) {
-          radius = trackOpts.warningRadius;
-        } else if (alert.type === "threat" && trackOpts?.threatRadius) {
-          radius = trackOpts.threatRadius;
+
+        const warningRadius = trackOpts &&
+          (trackOpts.warningRadius || trackOpts.profileWarningRadius);
+        const threatRadius = trackOpts &&
+          (trackOpts.threatRadius || trackOpts.profileThreatRadius);
+        if (alert.type === "warning" && warningRadius) {
+          radius = warningRadius;
+        } else if (alert.type === "threat" && threatRadius) {
+          radius = threatRadius;
         }
 
         if (radius !== undefined) {
@@ -204,8 +165,8 @@ function clearAlerts() {
         }
 
         alerts = alerts.remove(index);
-        resultTriggeredEntities = decrementTriggeredEntity(
-          resultTriggeredEntities,
+        triggeredEntities = decrementTriggeredEntity(
+          triggeredEntities,
           alert.targetEntityId,
         );
       }
@@ -216,7 +177,7 @@ function clearAlerts() {
     return {
       ...state,
       alerts: result,
-      triggeredEntities: resultTriggeredEntities,
+      triggeredEntities: triggeredEntities,
     };
   });
 }
@@ -229,8 +190,21 @@ export function deleteAlert(
   alertStore.setState((state) => {
     let existingAlerts = state.alerts.get(entityId);
     if (!existingAlerts) {
-      return state;
+      return;
     }
+
+    let found = false;
+    for (const [index, alert] of existingAlerts.entries()) {
+      if (alert.type !== type || alert.targetEntityId !== triggerEntityId) {
+        continue;
+      }
+
+      found = true;
+      existingAlerts = existingAlerts.remove(index);
+      break;
+    }
+
+    if (!found) return;
 
     return {
       ...state,
@@ -240,9 +214,7 @@ export function deleteAlert(
       ),
       alerts: state.alerts.set(
         entityId,
-        existingAlerts.filter((it) =>
-          it.type !== type && it.targetEntityId !== triggerEntityId
-        ),
+        existingAlerts,
       ),
     };
   });
@@ -265,7 +237,10 @@ function decrementTriggeredEntity(
 ): Immutable.Map<number, number> {
   const existing = triggeredEntities.get(entityId);
   if (!existing) {
-    console.error("decrementTriggeredEntity for non-stored triggered entity");
+    console.error(
+      "decrementTriggeredEntity for non-stored triggered entity",
+      entityId,
+    );
     return triggeredEntities;
   } else if (existing == 1) {
     return triggeredEntities.remove(entityId);

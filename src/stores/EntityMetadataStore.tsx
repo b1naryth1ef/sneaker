@@ -1,5 +1,7 @@
 import Immutable from "immutable";
 import create from "zustand";
+import { getProfilesForLabels } from "./ProfileStore";
+import { setTrackOptions } from "./TrackStore";
 
 export type EntityMetadata = {
   labels: Immutable.Set<string>;
@@ -9,22 +11,7 @@ type EntityMetadataStoreData = {
   entities: Immutable.Map<number, EntityMetadata>;
 };
 export const entityMetadataStore = create<EntityMetadataStoreData>(() => {
-  let entities = Immutable.Map<number, EntityMetadata>();
-
-  const entityMetadataRaw = localStorage.getItem("entity-metadata");
-  if (entityMetadataRaw) {
-    entities = entities.withMutations((obj) => {
-      for (
-        const [key, value] of Object.entries(JSON.parse(entityMetadataRaw))
-      ) {
-        let uValue = value as EntityMetadata;
-        uValue.labels = Immutable.Set<string>(uValue.labels);
-        obj = obj.set(parseInt(key), uValue);
-      }
-    });
-  }
-
-  return { entities };
+  return { entities: Immutable.Map<number, EntityMetadata>() };
 });
 
 export function useEntityMetadata(
@@ -36,40 +23,33 @@ export function useEntityMetadata(
 export function pushEntityLabel(entityId: number, label: string) {
   return entityMetadataStore.setState((state) => {
     const existing = state.entities.get(entityId);
+    const labels = existing
+      ? existing.labels.add(label)
+      : Immutable.Set.of(label);
 
-    // const opts = trackStore.getState().trackOptions.get(entityId) || {};
-    // const profiles = profileStore.getState().profiles.filter((it) =>
-    //   it.labels.includes(label)
-    // ).map((it) => [it.defaultThreatRadius, it.defaultWarningRadius]).reduce((
-    //   a: any,
-    //   b: any,
-    // ) => [
-    //   a[0] || b[0],
-    //   a[1] || b[1],
-    // ], [undefined, undefined]);
+    const profiles = getProfilesForLabels(labels).map((
+      it,
+    ) => [it.defaultThreatRadius, it.defaultWarningRadius]).reduce(
+      (a, b) => [a[0] || b[0], a[1] || b[1]],
+      [undefined, undefined],
+    );
 
-    // let update: TrackOptions = {};
-    // if (!opts.threatRadius && profiles[0]) {
-    //   update.threatRadius = profiles[0];
-    // }
-    // if (!opts.warningRadius && profiles[1]) {
-    //   update.warningRadius = profiles[1];
-    // }
-    // if (update.warningRadius || update.threatRadius) {
-    //   setTrackOptions(entityId, update);
-    // }
+    setTrackOptions(entityId, {
+      profileThreatRadius: profiles[0],
+      profileWarningRadius: profiles[1],
+    });
 
     if (!existing) {
       return {
         entities: state.entities.set(entityId, {
-          labels: Immutable.Set.of(label),
+          labels: labels,
         }),
       };
     } else if (!existing.labels.includes(label)) {
       return {
         entities: state.entities.set(entityId, {
           ...existing,
-          labels: existing.labels.add(label),
+          labels: labels,
         }),
       };
     }
@@ -82,22 +62,25 @@ export function popEntityLabel(entityId: number, label: string) {
     if (!existing) {
       return state;
     } else {
+      const labels = existing.labels.remove(label);
+      const profiles = getProfilesForLabels(labels).map((
+        it,
+      ) => [it.defaultThreatRadius, it.defaultWarningRadius]).reduce(
+        (a, b) => [a[0] || b[0], a[1] || b[1]],
+        [undefined, undefined],
+      );
+
+      setTrackOptions(entityId, {
+        profileThreatRadius: profiles[0],
+        profileWarningRadius: profiles[1],
+      });
+
       return {
         entities: state.entities.set(entityId, {
           ...existing,
-          labels: existing.labels.filter((it) => it !== label),
+          labels: labels,
         }),
       };
     }
   });
 }
-
-entityMetadataStore.subscribe(
-  (entities: EntityMetadataStoreData["entities"]) => {
-    localStorage.setItem(
-      "entity-metadata",
-      JSON.stringify(entities.toJSON()),
-    );
-  },
-  (state) => state.entities,
-);

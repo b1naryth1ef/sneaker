@@ -1,6 +1,7 @@
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const path = require("path");
+
 module.exports = {
   mode: "production",
   entry: "./src/index.tsx",
@@ -10,7 +11,11 @@ module.exports = {
   output: {
     filename: "[name].[contenthash].js",
     path: path.resolve(__dirname, "dist"),
-    publicPath: "/",
+    publicPath: "./",
+  },
+  output: {
+    filename: "main.js",
+    path: path.resolve(__dirname, "dist"),
   },
   resolve: {
     extensions: [".tsx", ".ts", ".js"],
@@ -28,19 +33,7 @@ module.exports = {
     rules: [
       {
         test: /\.tsx?$/,
-        loader: "esbuild-loader",
-        options: {
-          loader: "tsx", // Or 'ts' if you don't need tsx
-          target: "es2015",
-        },
-      },
-      {
-        test: /\.js$/,
-        loader: "esbuild-loader",
-        options: {
-          loader: "jsx", // Remove this if you're not using JSX
-          target: "es2015", // Syntax to compile to (see options below for possible values)
-        },
+        loader: "ts-loader",
       },
       {
         test: /\.css$/i,

@@ -18,8 +18,10 @@ type StateObject struct {
 	Longitude  float64           `json:"longitude"`
 	Altitude   float64           `json:"altitude"`
 	Heading    float64           `json:"heading"`
-	Deleted    bool              `json:"-"`
-	UpdatedAt  int64             `json:"-"`
+
+	Deleted   bool  `json:"-"`
+	UpdatedAt int64 `json:"-"`
+	CreatedAt int64 `json:"-"`
 }
 
 func NewStateObject(ts int64, sourceObj *tacview.Object, coordBase [2]float64) (*StateObject, error) {
@@ -28,6 +30,7 @@ func NewStateObject(ts int64, sourceObj *tacview.Object, coordBase [2]float64) (
 		Types:      []string{},
 		Properties: make(map[string]string),
 		Deleted:    false,
+		CreatedAt:  ts,
 	}
 
 	err := obj.update(ts, sourceObj, coordBase)
@@ -98,9 +101,11 @@ func (obj *StateObject) update(ts int64, sourceObj *tacview.Object, coordBase [2
 	return nil
 }
 
-// Internal GCI server state
-type state struct {
+type sessionState struct {
 	sync.RWMutex
+
+	// Session ID (the tacview recording time)
+	sessionId string
 
 	// Base to use for all incoming coordinates
 	coordBase [2]float64
@@ -108,18 +113,20 @@ type state struct {
 	// Tracked objects
 	objects map[uint64]*StateObject
 
-	ts int64
+	offset int64
+	active bool
 }
 
 // Called when our connection is interrupted
-func (s *state) reset() {
+func (s *sessionState) reset() {
 	s.Lock()
 	defer s.Unlock()
 	s.objects = make(map[uint64]*StateObject)
+	s.active = false
 }
 
 // Called when the tacview stream starts
-func (s *state) initialize(header *tacview.Header) error {
+func (s *sessionState) initialize(header *tacview.Header) error {
 	s.reset()
 
 	s.Lock()
@@ -127,6 +134,11 @@ func (s *state) initialize(header *tacview.Header) error {
 	globalObj := header.InitialTimeFrame.Get(0)
 	if globalObj == nil {
 		return errors.New("TacView initial time frame is missing global object")
+	}
+
+	sessionId := globalObj.Get("RecordingTime")
+	if sessionId != nil {
+		s.sessionId = sessionId.Value
 	}
 
 	refLat := globalObj.Get("ReferenceLatitude")
@@ -147,12 +159,13 @@ func (s *state) initialize(header *tacview.Header) error {
 		s.coordBase = [2]float64{0.0, 0.0}
 	}
 
+	s.active = true
 	s.update(&header.InitialTimeFrame)
 	return nil
 }
 
-func (s *state) update(tf *tacview.TimeFrame) {
-	s.ts = int64(tf.Offset)
+func (s *sessionState) update(tf *tacview.TimeFrame) {
+	s.offset = int64(tf.Offset)
 	for _, object := range tf.Objects {
 		if _, exists := s.objects[object.Id]; exists {
 			s.objects[object.Id].update(int64(tf.Offset), object, s.coordBase)

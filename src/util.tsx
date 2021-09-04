@@ -156,3 +156,9 @@ export function formatCounter(
     minutes.toString().padStart(2, "0")
   }:${outSeconds.toString().padStart(2, "0")}`;
 }
+
+export function route(path: string): string {
+  return process.env.NODE_ENV === "production"
+    ? `/api${path}`
+    : `http://localhost:7789/api${path}`;
+}

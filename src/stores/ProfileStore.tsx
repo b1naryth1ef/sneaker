@@ -1,6 +1,8 @@
 import Immutable from "immutable";
 import { throttle } from "lodash";
 import create from "zustand";
+import { entityMetadataStore } from "./EntityMetadataStore";
+import { trackStore } from "./TrackStore";
 
 export type Profile = {
   name: string;
@@ -22,6 +24,17 @@ export const profileStore = create<ProfileStoreData>(() => {
   return { profiles };
 });
 
+export function getProfilesForLabels(
+  labels: Immutable.Set<string>,
+  profiles?: Immutable.Map<string, Profile>,
+): Array<Profile> {
+  return (profiles || profileStore.getState().profiles).valueSeq().filter((
+    it,
+  ) => labels.intersect(it.labels).size > 0).sort((a, b) =>
+    a.name > b.name ? -1 : 1
+  ).toArray();
+}
+
 export function addProfile(name: string) {
   return profileStore.setState((state) => {
     if (state.profiles.has(name)) return;
@@ -29,15 +42,71 @@ export function addProfile(name: string) {
   });
 }
 
+export function deleteProfile(name: string) {
+  return profileStore.setState((state) => {
+    if (!state.profiles.has(name)) return;
+    const profiles = state.profiles.remove(name);
+
+    trackStore.setState((state) => {
+      let trackOptions = state.trackOptions;
+      for (
+        const [entityId, metadata] of entityMetadataStore.getState().entities
+      ) {
+        const profile = getProfilesForLabels(metadata.labels, profiles).map((
+          it,
+        ) => [it.defaultThreatRadius, it.defaultWarningRadius]).reduce(
+          (a, b) => [a[0] || b[0], a[1] || b[1]],
+          [undefined, undefined],
+        );
+
+        const opts = trackOptions.get(entityId) || {};
+        trackOptions = trackOptions.set(entityId, {
+          ...opts,
+          profileThreatRadius: profile[0],
+          profileWarningRadius: profile[1],
+        });
+      }
+      return { ...state, trackOptions };
+    });
+
+    return { profiles };
+  });
+}
+
 export function updateProfile(profile: { name: string } & Partial<Profile>) {
   return profileStore.setState((state) => {
     const existing = state.profiles.get(profile.name);
     if (!existing) return;
+
+    const profiles = state.profiles.set(profile.name, {
+      ...existing,
+      ...profile,
+    });
+
+    trackStore.setState((state) => {
+      let trackOptions = state.trackOptions;
+      for (
+        const [entityId, metadata] of entityMetadataStore.getState().entities
+      ) {
+        const profile = getProfilesForLabels(metadata.labels, profiles).map((
+          it,
+        ) => [it.defaultThreatRadius, it.defaultWarningRadius]).reduce(
+          (a, b) => [a[0] || b[0], a[1] || b[1]],
+          [undefined, undefined],
+        );
+
+        const opts = trackOptions.get(entityId) || {};
+        trackOptions = trackOptions.set(entityId, {
+          ...opts,
+          profileThreatRadius: profile[0],
+          profileWarningRadius: profile[1],
+        });
+      }
+      return { ...state, trackOptions };
+    });
+
     return {
-      profiles: state.profiles.set(profile.name, {
-        ...existing,
-        ...profile,
-      }),
+      profiles,
     };
   });
 }

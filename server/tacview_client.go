@@ -4,104 +4,82 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"log"
 	"net"
-	"strings"
 
 	"github.com/b1naryth1ef/jambon/tacview"
 )
 
 type TacViewClient struct {
-	config *Config
-	reader tacview.Reader
+	host string
+	port int
 }
 
-func NewTacViewClient(config *Config) *TacViewClient {
-	return &TacViewClient{
-		config: config,
+func NewTacViewClient(host string, port int) *TacViewClient {
+	if port == 0 {
+		port = 42674
 	}
+
+	return &TacViewClient{host: host, port: port}
 }
 
-func (c *TacViewClient) Run(state *state) error {
-	connString := c.config.TacViewServer
-	if !strings.ContainsRune(connString, ':') {
-		connString = connString + ":42674"
-	}
-
-	conn, err := net.Dial("tcp", connString)
+func (c *TacViewClient) Start() (*tacview.Header, chan *tacview.TimeFrame, error) {
+	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", c.host, c.port))
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
-	defer conn.Close()
 
 	reader := bufio.NewReader(conn)
 
 	headerProtocol, err := reader.ReadString('\n')
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 	if headerProtocol != "XtraLib.Stream.0\n" {
-		return fmt.Errorf("bad header protocol: %v", headerProtocol)
+		return nil, nil, fmt.Errorf("bad header protocol: %v", headerProtocol)
 	}
 
 	headerVersion, err := reader.ReadString('\n')
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 	if headerVersion != "Tacview.RealTimeTelemetry.0\n" {
-		return fmt.Errorf("bad header version %v", headerVersion)
+		return nil, nil, fmt.Errorf("bad header version %v", headerVersion)
 	}
 
 	// Read hostaname
 	_, err = reader.ReadString('\n')
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
 	eoh, err := reader.ReadByte()
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
 	if eoh != '\x00' {
-		return errors.New("bad or missing end of header")
+		return nil, nil, errors.New("bad or missing end of header")
 	}
 
 	_, err = conn.Write([]byte("XtraLib.Stream.0\n"))
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 	_, err = conn.Write([]byte("Tacview.RealTimeTelemetry.0\n"))
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 	_, err = conn.Write([]byte("Client sneakerserver\n\x00\n"))
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
 	acmiReader, err := tacview.NewReader(reader)
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
-	err = state.initialize(&acmiReader.Header)
-	if err != nil {
-		return err
-	}
-
-	data := make(chan *tacview.TimeFrame)
+	data := make(chan *tacview.TimeFrame, 1)
 	go acmiReader.ProcessTimeFrames(1, data)
-
-	log.Printf("[tacview] started client stream")
-	for {
-		tf, ok := <-data
-		if !ok {
-			return nil
-		}
-
-		state.Lock()
-		state.update(tf)
-		state.Unlock()
-	}
+	return &acmiReader.Header, data, nil
 }

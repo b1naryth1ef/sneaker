@@ -1,4 +1,6 @@
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
+github.com/alioygur/gores v1.2.2 h1:y5mzo3R5cNWz1LBTIwAEU6DmB8grIC7iJwfc91kmBVU=
+github.com/alioygur/gores v1.2.2/go.mod h1:z9GuicgNf03HUIQ5aPbiQGshig430sMeaFFfqfRacl8=
 github.com/b1naryth1ef/jambon v0.0.3 h1:moUSb7L7DPGQyAEHMSOWXOlYIsk+b/Yzxp+qCQOaE5A=
 github.com/b1naryth1ef/jambon v0.0.3/go.mod h1:jVzH5viOXvJXHc1DgMKauvOfR96UY7Zu49jIdUM6GX8=
 github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d h1:U+s90UTSYgptZMwQh2aRr3LuazLJIa+Pg3Kc1ylSYVY=

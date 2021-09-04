@@ -16,6 +16,7 @@ import { serverStore } from "../stores/ServerStore";
 import {
   estimatedAltitudeRate,
   estimatedSpeed,
+  isTrackVisible,
   trackStore,
 } from "../stores/TrackStore";
 import { computeBRAA, getBearing, getCardinal, getFlyDistance } from "../util";
@@ -92,7 +93,7 @@ function MapRadarTracks(
     }
 
     for (const [entityId, track] of radarTracks) {
-      const trackVisible = estimatedSpeed(track) >= 25;
+      const trackVisible = isTrackVisible(track);
       const entity = entities.get(entityId);
       if (!entity) {
         continue;
@@ -358,12 +359,15 @@ function MapRadarTracks(
         });
         alertLayer.addGeometry(threatCircle);
       } else {
-        if (trackOptions?.threatRadius) {
+        const threatRadius = trackOptions &&
+          (trackOptions.threatRadius || trackOptions.profileThreatRadius);
+        if (threatRadius) {
           threatCircle.setCoordinates(
             [entity.longitude, entity.latitude],
           );
           threatCircle.setRadius(
-            trackOptions.threatRadius * 1852,
+            threatRadius *
+              1852,
           );
           trackVisible ? threatCircle.show() : threatCircle.hide();
         } else {
@@ -388,16 +392,18 @@ function MapRadarTracks(
         });
         alertLayer.addGeometry(warningCircle);
       } else {
+        const warningRadius = trackOptions &&
+          (trackOptions.warningRadius || trackOptions.profileWarningRadius);
         syncVisibility(
           warningCircle,
-          trackOptions?.warningRadius && trackVisible || false,
+          warningRadius && trackVisible || false,
         );
-        if (trackOptions?.warningRadius) {
+        if (warningRadius) {
           warningCircle.setCoordinates(
             [entity.longitude, entity.latitude],
           );
           warningCircle.setRadius(
-            trackOptions.warningRadius * 1852,
+            warningRadius * 1852,
           );
         }
       }
@@ -433,7 +439,7 @@ function MapRadarTracks(
         maptalks.Marker
       >;
 
-      if (!trackVisible) {
+      if (estimatedSpeed(track) < 25) {
         for (const trackGeo of trackPointGeos) {
           if (trackGeo.isVisible()) {
             trackGeo.hide();
@@ -447,19 +453,21 @@ function MapRadarTracks(
         ) {
           const trackPoint = track[index];
           const trackPointGeo = trackPointGeos[index - 1];
-          syncVisibility(trackPointGeo, trackVisible);
+          syncVisibility(trackPointGeo, true);
           trackPointGeo.setCoordinates([
             trackPoint.position[1],
             trackPoint.position[0],
           ]);
+
+          let color = "white";
+          if (trackVisible) {
+            color = entity.coalition !== "Allies" ? "#17c2f6" : "#ff8080";
+          }
+
           trackPointGeo.setSymbol(
             {
               "markerType": "square",
-              "markerFill": !trackVisible || track.length < 5
-                ? "white"
-                : entity.coalition !== "Allies"
-                ? "#17c2f6"
-                : "#ff8080",
+              "markerFill": color,
               "markerLineColor": "black",
               "markerLineOpacity": 0.1,
               "markerLineWidth": 1,
@@ -474,8 +482,7 @@ function MapRadarTracks(
       }
 
       const speed = track && estimatedSpeed(track);
-      const dirArrowEnd = speed && speed >= 25 && track &&
-        track.length >= 5 &&
+      const dirArrowEnd = speed && track && isTrackVisible(track) &&
         computeBRAA(
           track[0].position[0],
           track[0].position[1],
@@ -662,14 +669,12 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
     });
 
     map.current = new maptalks.Map(mapContainer.current, {
-      layerCanvasLimitOnInteracting: -1,
       hitDetect: false,
       panAnimation: false,
       dragRotate: false,
       dragPitch: false,
       touchZoom: false,
       doubleClickZoom: false,
-      fpsOnInteracting: 0,
       center: [dcsMap.center[1], dcsMap.center[0]],
       zoom: 8,
       seamlessZoom: true,
@@ -678,9 +683,17 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
         urlTemplate:
           "https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_nolabels/{z}/{x}/{y}.png",
         subdomains: ["a", "b", "c"],
+        maxCacheSize: 2048,
+        hitDetect: false,
       }),
       layers: [
         new maptalks.VectorLayer("airports", [], {
+          hitDetect: false,
+        }),
+        new maptalks.VectorLayer("farp-name", [], {
+          hitDetect: false,
+        }),
+        new maptalks.VectorLayer("farp-icon", [], {
           hitDetect: false,
         }),
         new maptalks.VectorLayer("track-trails", [], {
@@ -700,9 +713,6 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
         }),
         new maptalks.VectorLayer("track-name", [], {
           hitDetect: false,
-          forceRenderOnZooming: true,
-          forceRenderOnMoving: true,
-          forceRenderOnRotating: true,
         }),
         new maptalks.VectorLayer("track-alert-radius", [], {
           hitDetect: false,
@@ -712,21 +722,12 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
         }),
         new maptalks.VectorLayer("track-altitude", [], {
           hitDetect: false,
-          forceRenderOnZooming: true,
-          forceRenderOnMoving: true,
-          forceRenderOnRotating: true,
         }),
         new maptalks.VectorLayer("track-speed", [], {
           hitDetect: false,
-          forceRenderOnZooming: true,
-          forceRenderOnMoving: true,
-          forceRenderOnRotating: true,
         }),
         new maptalks.VectorLayer("track-verticalvelo", [], {
           hitDetect: false,
-          forceRenderOnZooming: true,
-          forceRenderOnMoving: true,
-          forceRenderOnRotating: true,
         }),
         new maptalks.VectorLayer("braa", [
           braaLine,
@@ -985,6 +986,106 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
     }`;
   }, [cursorPos, bullsEntity]);
 
+  const farps = useMemo(
+    () =>
+      entities.filter((it) =>
+        it.types.includes("Aerodrome") && it.coalition !== "Allies"
+      ),
+    [entities],
+  );
+  useEffect(() => {
+    if (!map.current) return;
+    const farpNameLayer = map.current.getLayer(
+      "farp-name",
+    ) as maptalks.VectorLayer;
+    const farpIconLayer = map.current.getLayer(
+      "farp-icon",
+    ) as maptalks.VectorLayer;
+
+    for (const farpGeo of farpNameLayer.getGeometries()) {
+      if (!farps.has(farpGeo.id as number)) {
+        farpGeo.remove();
+      }
+    }
+
+    for (const farpGeo of farpIconLayer.getGeometries()) {
+      if (!farps.has(farpGeo.id as number)) {
+        farpGeo.remove();
+      }
+    }
+
+    const icon = new ms.Symbol("SFG-IBA----", {
+      size: 14,
+      frame: true,
+      fillOpacity: 0.5,
+      fill: true,
+      colorMode: colorMode,
+    }).toDataURL();
+
+    for (const [_, farp] of farps) {
+      let farpNameGeo = farpNameLayer.getGeometryById(
+        farp.id,
+      ) as maptalks.Label;
+      if (!farpNameGeo) {
+        const layer = map.current.getLayer("airports") as maptalks.VectorLayer;
+
+        farpNameGeo = new maptalks.Label(
+          `${farp.name}`,
+          [farp.longitude, farp.latitude],
+          {
+            draggable: false,
+            visible: true,
+            editable: false,
+            boxStyle: {
+              "padding": [2, 2],
+              "horizontalAlignment": "left",
+              "symbol": {
+                "markerType": "square",
+                "markerFill": "black",
+                "markerFillOpacity": 0,
+                "markerLineWidth": 0,
+                textHorizontalAlignment: "center",
+                textDy: -25,
+              },
+            },
+            "textSymbol": {
+              "textFaceName": '"microsoft yahei"',
+              "textFill": "white",
+              "textOpacity": 0.5,
+              "textSize": 10,
+            },
+          },
+        );
+        layer.addGeometry(farpNameGeo);
+      } else {
+        farpNameGeo.setCoordinates([
+          farp.longitude,
+          farp.latitude,
+        ]);
+      }
+
+      let farpIconGeo = farpIconLayer.getGeometryById(
+        farp.id,
+      ) as maptalks.Marker;
+      if (!farpIconGeo) {
+        farpIconGeo = new maptalks.Marker([
+          farp.longitude,
+          farp.latitude,
+        ], {
+          symbol: {
+            markerFile: icon,
+          },
+        });
+        farpIconLayer.addGeometry(farpIconGeo);
+      } else {
+        farpNameGeo.setCoordinates([
+          farp.longitude,
+          farp.latitude,
+        ]);
+      }
+    }
+  }, [farps]);
+
   return (
     <div
       style={{
@@ -1051,7 +1152,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
             strokeWidth={4}
           />
         )}
-      {map.current && ships && ships.map((ship) => (
+      {map.current && ships.valueSeq().map((ship) => (
         <MapSimpleEntity
           key={ship.id}
           map={map.current!}
