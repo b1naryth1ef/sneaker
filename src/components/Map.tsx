@@ -1014,7 +1014,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
       }
     }
 
-    const icon = new ms.Symbol("SFG-IBA----", {
+    const icon = new ms.Symbol("10032000001120000000", {
       size: 14,
       frame: true,
       fillOpacity: 0.5,
