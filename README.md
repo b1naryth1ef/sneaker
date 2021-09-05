@@ -6,6 +6,8 @@ Sneaker is a **WIP** web-based radar and GCI simulation software for use with [D
 - Searching, tagging, and watching flights allows you to reduce workload and allow a controller to work across many flights and packages.
 - Mission clock and hack timers for command and coordination.
 
+An example of Sneaker can be viewed [here](https://hoggit.brrt.me/).
+
 ## Server
 
 Sneaker features a backend server which connects to a TacView real-time server and process the stream of simulation data. Events are pushed via SSE to frontend clients at a configurable radar refresh rate.
