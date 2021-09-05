@@ -1,6 +1,5 @@
 import Immutable from "immutable";
 import create from "zustand";
-import { serverStore } from "./ServerStore";
 
 type HackStoreData = {
   hacks: Immutable.Set<number>;
@@ -9,9 +8,8 @@ export const hackStore = create<HackStoreData>(() => {
   return { hacks: Immutable.Set<number>() };
 });
 
-export function pushHack(start?: number): number {
-  const startAt = start || serverStore.getState().offset;
-
+export function pushHack(): number {
+  const startAt = (new Date()).getTime();
   hackStore.setState((state) => {
     return { hacks: state.hacks.add(startAt) };
   });

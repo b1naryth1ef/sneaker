@@ -6,26 +6,39 @@ import { formatCounter } from "../util";
 export function MissionTimer(): JSX.Element {
   const [currentTime, setCurrentTime] = useState("");
   const [hackTimes, setHackTimes] = useState<Array<[number, string]>>([]);
+  const hacks = hackStore((state) => state.hacks);
+
+  const update = () => {
+    const serverState = serverStore.getState();
+    const globalObject = serverState.entities.get(0);
+    if (!globalObject) return;
+
+    const referenceTime = Date.parse(
+      globalObject.properties["ReferenceTime"] as string,
+    );
+    const actualTime = Date.parse(
+      globalObject.properties["RecordingTime"] as string,
+    );
+    const currentTime = (new Date()).getTime();
+
+    const elapsedTime = currentTime - actualTime;
+
+    setCurrentTime(
+      new Date(referenceTime + elapsedTime).toUTCString(),
+    );
+
+    // Don't bind to hacks here because we're being called externally in a timer
+    setHackTimes(
+      hackStore.getState().hacks.toArray().map((
+        it,
+      ) => [it, formatCounter(Math.round((currentTime - it) / 1000))]),
+    );
+  };
+
+  useEffect(update, [hacks]);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      const serverState = serverStore.getState();
-      const globalObject = serverState.entities.get(0);
-      if (!globalObject) return;
-
-      const referenceTime = Date.parse(
-        globalObject.properties["ReferenceTime"] as string,
-      );
-      setCurrentTime(
-        new Date(referenceTime + (serverState.offset * 1000)).toUTCString(),
-      );
-
-      setHackTimes(
-        hackStore.getState().hacks.toArray().map((
-          it,
-        ) => [it, formatCounter(Math.round((serverState.offset - it)))]),
-      );
-    }, 900);
+    const timer = setInterval(update, 900);
     return () => clearInterval(timer);
   }, []);
 
