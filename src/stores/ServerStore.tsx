@@ -1,7 +1,7 @@
 import Immutable from "immutable";
 import create from "zustand";
 import { SneakerClient } from "../SneakerClient";
-import { Entity, RawEntityData } from "../types/entity";
+import { Entity } from "../types/entity";
 import { route } from "../util";
 import { createTracks, updateTracks } from "./TrackStore";
 
@@ -13,18 +13,6 @@ export type Server = {
 // worker.onmessage = (event) => {
 //   console.log(event);
 // };
-
-type Event =
-  & {
-    t: number;
-  }
-  & (
-    | {
-      e: "CREATE_ENTITIES";
-      o: Array<RawEntityData>;
-    }
-    | { e: "DELETE_ENTITIES"; id: Array<number> }
-  );
 
 export type ServerStoreData = {
   server: Server | null;

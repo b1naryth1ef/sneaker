@@ -13,6 +13,7 @@ import { DCSMap } from "../dcs/maps/DCSMap";
 import { useKeyPress } from "../hooks/useKeyPress";
 import { alertStore } from "../stores/AlertStore";
 import { serverStore } from "../stores/ServerStore";
+import { settingsStore } from "../stores/SettingsStore";
 import {
   estimatedAltitudeRate,
   estimatedSpeed,
@@ -447,12 +448,12 @@ function MapRadarTracks(
         }
       } else {
         for (
-          let index = 1;
+          let index = 0;
           index < track.length && index < numShownPings;
           index++
         ) {
           const trackPoint = track[index];
-          const trackPointGeo = trackPointGeos[index - 1];
+          const trackPointGeo = trackPointGeos[index];
           syncVisibility(trackPointGeo, true);
           trackPointGeo.setCoordinates([
             trackPoint.position[1],
@@ -603,6 +604,8 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
   const isSnapPressed = useKeyPress("s");
   const isDecluttered = useKeyPress("d");
 
+  const settings = settingsStore();
+
   useEffect(() => {
     if (!mapContainer.current || map.current !== null) {
       return;
@@ -751,16 +754,6 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
       setZoom(map.current!.getZoom());
     });
 
-    map.current.on("zoomend", (e) => {
-      if (Math.round(map.current!.getZoom()) <= 7) {
-        map.current!.getLayer("airports").hide();
-        map.current!.getLayer("track-name").hide();
-      } else {
-        map.current!.getLayer("airports").show();
-        map.current!.getLayer("track-name").show();
-      }
-    });
-
     map.current.on("mousemove", (e) => {
       setCursorPos([e.coordinate.y, e.coordinate.x]);
     });
@@ -783,7 +776,17 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
       map.current!.getLayer("track-name").show();
       map.current!.getLayer("track-trails").show();
     }
-  }, [map, isDecluttered]);
+    if (settings.map.showTrackIcons === false) {
+      map.current!.getLayer("track-icons").hide();
+    } else {
+      map.current!.getLayer("track-icons").show();
+    }
+    if (settings.map.showTrackLabels === false) {
+      map.current!.getLayer("track-name").hide();
+    } else {
+      map.current!.getLayer("track-name").show();
+    }
+  }, [map, isDecluttered, settings]);
 
   // Configure airports
   useEffect(() => {

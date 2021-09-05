@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { BiX } from "react-icons/bi";
 import { Link } from "react-router-dom";
 import { DebugSettings } from "./DebugSettings";
+import { MapSettings } from "./MapSettings";
 import { ProfileSettings } from "./ProfileSettings";
 
 type SettingsTabs = "home" | "map" | "profiles" | "debug";
@@ -90,6 +91,7 @@ export function Settings({ close }: { close: () => void }): JSX.Element {
         </div>
         <div className="pl-2 w-full">
           {tab === "home" && <SettingsHome />}
+          {tab === "map" && <MapSettings />}
           {tab === "profiles" && <ProfileSettings />}
           {tab === "debug" && <DebugSettings />}
         </div>
