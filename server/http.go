@@ -6,20 +6,12 @@ import (
 	"log"
 	"net/http"
 	"sync"
-	"time"
 
 	"github.com/alioygur/gores"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 )
-
-const RADAR_REFRESH_RATE = time.Second * 5
-
-type Config struct {
-	Bind    string
-	Servers []DCSServer
-}
 
 type httpServer struct {
 	sync.Mutex
@@ -37,14 +29,25 @@ func newHttpServer(config *Config) *httpServer {
 
 // Returns a list of available servers
 func (h *httpServer) getServerList(w http.ResponseWriter, r *http.Request) {
-	gores.JSON(w, 200, h.config.Servers)
+	result := make([]*tacViewServerMetadata, len(h.config.Servers))
+	for idx, server := range h.config.Servers {
+		result[idx] = &tacViewServerMetadata{
+			Name: server.Name,
+		}
+	}
+
+	gores.JSON(w, 200, result)
+}
+
+type tacViewServerMetadata struct {
+	Name string `json:"name"`
 }
 
 // Return information about a specific server
 func (h *httpServer) getServer(w http.ResponseWriter, r *http.Request) {
 	serverName := chi.URLParam(r, "serverName")
 
-	var server *DCSServer
+	var server *TacViewServerConfig
 	for _, checkServer := range h.config.Servers {
 		if checkServer.Name == serverName {
 			server = &checkServer
@@ -56,7 +59,9 @@ func (h *httpServer) getServer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	gores.JSON(w, 200, server)
+	gores.JSON(w, 200, &tacViewServerMetadata{
+		Name: server.Name,
+	})
 }
 
 var errNoServerFound = errors.New("no server by that name was found")
@@ -70,7 +75,7 @@ func (h *httpServer) getOrCreateSession(serverName string) (*serverSession, erro
 		return existingSession, nil
 	}
 
-	var server *DCSServer
+	var server *TacViewServerConfig
 	for _, checkServer := range h.config.Servers {
 		if checkServer.Name == serverName {
 			server = &checkServer

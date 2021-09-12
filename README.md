@@ -12,6 +12,16 @@ An example of Sneaker can be viewed [here](https://hoggit.brrt.me/).
 
 Sneaker features a backend server which connects to a TacView real-time server and process the stream of simulation data. Events are pushed via SSE to frontend clients at a configurable radar refresh rate.
 
+### Example Configuration
+
+```json
+{
+    "servers": [
+        {"name": "test", "hostname": "localhost", "password": "example", "port": 12345, "radar_refresh_rate": 1}
+    ]
+}
+```
+
 ## Web UI
 
 The Sneaker web UI presents an emulated radar scope over top a [Open Street Map](https://openstreetmap.org) rendered via [maptalks](https://maptalks.org). The web UI is updated at a configurable simulated refresh rate (by default 5 seconds).

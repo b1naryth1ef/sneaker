@@ -23,19 +23,23 @@ type sessionStateData struct {
 type serverSession struct {
 	sync.Mutex
 
-	server *DCSServer
+	server *TacViewServerConfig
 
 	subscriberIdx int
 	subscribers   map[int]chan<- []byte
 	state         sessionState
 }
 
-func newServerSession(server *DCSServer) (*serverSession, error) {
+func newServerSession(server *TacViewServerConfig) (*serverSession, error) {
 	return &serverSession{server: server, subscribers: make(map[int]chan<- []byte)}, nil
 }
 
 func (s *serverSession) updateLoop() {
-	ticker := time.NewTicker(time.Second * time.Duration(s.server.RadarRefreshRate))
+	refreshRate := time.Duration(5)
+	if s.server.RadarRefreshRate != 0 {
+		refreshRate = time.Duration(s.server.RadarRefreshRate)
+	}
+	ticker := time.NewTicker(time.Second * refreshRate)
 
 	var currentOffset int64
 	for {
