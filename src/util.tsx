@@ -1,3 +1,5 @@
+import { DCSMap } from "./dcs/maps/DCSMap";
+
 const toRad = (n: number) => {
   return n * Math.PI / 180;
 };
@@ -74,7 +76,7 @@ function degrees(n: number) {
   return n * (180 / Math.PI);
 }
 
-export function getBearing(
+function getBearing(
   [startLat, startLong]: [number, number],
   [endLat, endLong]: [number, number],
 ) {
@@ -161,4 +163,18 @@ export function route(path: string): string {
   return process.env.NODE_ENV === "production"
     ? `/api${path}`
     : `http://localhost:7789/api${path}`;
+}
+
+export function getBearingMap(
+  start: [number, number],
+  end: [number, number],
+  map: DCSMap,
+) {
+  const bearing = Math.round(getBearing(start, end)) + map.magDec;
+  if (bearing > 360) {
+    return bearing - 360;
+  } else if (bearing < 0) {
+    return bearing + 360;
+  }
+  return bearing;
 }

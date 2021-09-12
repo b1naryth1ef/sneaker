@@ -20,7 +20,12 @@ import {
   isTrackVisible,
   trackStore,
 } from "../stores/TrackStore";
-import { computeBRAA, getBearing, getCardinal, getFlyDistance } from "../util";
+import {
+  computeBRAA,
+  getBearingMap,
+  getCardinal,
+  getFlyDistance,
+} from "../util";
 import { Console } from "./Console";
 import { EntityInfo, iconCache, MapSimpleEntity } from "./MapEntity";
 import { colorMode } from "./MapIcon";
@@ -681,6 +686,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
       center: [dcsMap.center[1], dcsMap.center[0]],
       zoom: 8,
       seamlessZoom: true,
+      fpsOnInteracting: 60,
       attribution: null,
       baseLayer: new maptalks.TileLayer("base", {
         urlTemplate:
@@ -934,13 +940,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
       }
 
       if (typeof start !== "number" && typeof end !== "number") {
-        let bearing = Math.round(getBearing(start, end)) +
-          dcsMap.magDec;
-        if (bearing > 360) {
-          bearing = bearing - 360;
-        } else if (bearing < 0) {
-          bearing = bearing + 360;
-        }
+        const bearing = getBearingMap(start, end, dcsMap);
         line.setCoordinates([
           [start[1], start[0]],
           [end[1], end[0]],
@@ -975,9 +975,10 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
 
   const currentCursorBulls = useMemo(() => {
     if (!bullsEntity || !cursorPos) return;
-    let bearing = Math.round(
-      getBearing([bullsEntity.latitude, bullsEntity.longitude], cursorPos) +
-        dcsMap.magDec,
+    const bearing = getBearingMap(
+      [bullsEntity.latitude, bullsEntity.longitude],
+      cursorPos,
+      dcsMap,
     );
     return `${bearing.toString().padStart(3, "0")}${getCardinal(bearing)} / ${
       Math.round(
@@ -1127,6 +1128,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
           <EntityInfo
             setSelectedEntityId={setSelectedEntityId}
             map={map.current}
+            dcsMap={dcsMap}
             track={selectedTrack}
             entity={selectedEntity}
           />

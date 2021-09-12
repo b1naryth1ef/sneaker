@@ -3,29 +3,31 @@ import * as maptalks from "maptalks";
 import ms from "milsymbol";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { BiX } from "react-icons/bi";
+import { DCSMap } from "../dcs/maps/DCSMap";
 import { useKeyPress } from "../hooks/useKeyPress";
 import { Alert, alertStore } from "../stores/AlertStore";
 import {
   popEntityLabel,
   pushEntityLabel,
-  useEntityMetadata,
+  useEntityMetadata
 } from "../stores/EntityMetadataStore";
 import { serverStore } from "../stores/ServerStore";
 import {
   EntityTrackPing,
   estimatedSpeed,
   setTrackOptions,
-  trackStore,
+  trackStore
 } from "../stores/TrackStore";
 import { Entity } from "../types/entity";
-import { getBearing, getCardinal, getFlyDistance } from "../util";
+import { getBearingMap, getCardinal, getFlyDistance } from "../util";
 import { colorMode } from "./MapIcon";
 
 export const iconCache: Record<string, string> = {};
 
 export function EntityInfo(
-  { map, entity, track, setSelectedEntityId }: {
+  { map, dcsMap, entity, track, setSelectedEntityId }: {
     map: maptalks.Map;
+    dcsMap: DCSMap;
     entity: Entity;
     track: Array<EntityTrackPing>;
     setSelectedEntityId: (v: number | null) => void;
@@ -201,12 +203,10 @@ export function EntityInfo(
           {alertEntities.map((
             [alert, threatEntity, distance],
           ) => {
-            const bearing = Math.round(
-              getBearing([entity.latitude, entity.longitude], [
-                threatEntity.latitude,
-                threatEntity.longitude,
-              ]),
-            );
+            const bearing = getBearingMap([entity.latitude, entity.longitude], [
+              threatEntity.latitude,
+              threatEntity.longitude,
+            ], dcsMap);
 
             return (
               <button
