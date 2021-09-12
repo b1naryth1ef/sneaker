@@ -811,6 +811,9 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
         `${airport.name}`,
         [airport.position[1], airport.position[0]],
         {
+          ...({
+            position: airport.position,
+          } as any),
           draggable: false,
           visible: true,
           editable: false,
@@ -862,19 +865,34 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
       if (!map.current) return;
       const nameLayer = map.current.getLayer("track-name");
       const iconLayer = map.current.getLayer("track-icons");
+      const airportsLayer = map.current.getLayer("airports");
+      const farpNameLayer = map.current.getLayer("farp-name");
+      const farpIconLayer = map.current.getLayer("farp-icon");
 
       if (e.domEvent.button === 2) {
         if (isSnapPressed) {
           map.current.identify({
             "coordinate": e.coordinate,
-            "layers": [nameLayer, iconLayer],
+            "layers": [
+              nameLayer,
+              iconLayer,
+              airportsLayer,
+              farpNameLayer,
+              farpIconLayer,
+            ],
           }, (geos: Array<maptalks.Geometry>) => {
             if (geos.length >= 1) {
-              let id = geos[0].getId();
-              if (typeof id === "string") {
-                id = parseInt(id);
+              const rawId = geos[0].getId();
+              if (geos[0].options.entityId !== undefined) {
+                setDrawBraaStart(geos[0].options.entityId);
+              } else if (geos[0].options.position !== undefined) {
+                setDrawBraaStart(geos[0].options.position);
+              } else if (typeof rawId === "string") {
+                setDrawBraaStart(parseInt(rawId));
+              } else {
+                const coord = geos[0].getCenter();
+                setDrawBraaStart([coord.y, coord.x]);
               }
-              setDrawBraaStart(id);
             }
           });
         } else {
@@ -1031,12 +1049,13 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
         farp.id,
       ) as maptalks.Label;
       if (!farpNameGeo) {
-        const layer = map.current.getLayer("airports") as maptalks.VectorLayer;
-
         farpNameGeo = new maptalks.Label(
           `${farp.name}`,
           [farp.longitude, farp.latitude],
           {
+            ...({
+              entityId: farp.id,
+            } as any),
             draggable: false,
             visible: true,
             editable: false,
@@ -1060,7 +1079,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
             },
           },
         );
-        layer.addGeometry(farpNameGeo);
+        farpNameLayer.addGeometry(farpNameGeo);
       } else {
         farpNameGeo.setCoordinates([
           farp.longitude,
@@ -1076,6 +1095,9 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
           farp.longitude,
           farp.latitude,
         ], {
+          ...({
+            entityId: farp.id,
+          } as any),
           symbol: {
             markerFile: icon,
           },
