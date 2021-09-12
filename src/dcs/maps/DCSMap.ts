@@ -1,3 +1,5 @@
+import { RawAirbaseData } from "../../types/airbase";
+
 export type DCSMap = {
   name: string;
   center: [number, number];
@@ -6,7 +8,6 @@ export type DCSMap = {
 };
 
 export type Airport = {
-  code?: string;
   name: string;
   // latitude, longitude, elevation (ft)
   position: [number, number, number];
@@ -18,9 +19,21 @@ export type Runway = {
   ils?: number;
 };
 
-export const Georgia: DCSMap = {
-  name: "Georgia",
-  center: [44.54, 39.46],
-  magDec: 6,
-  airports: [],
-};
+export function convertRawAirBaseData(
+  airBaseData: Record<string, unknown>,
+): Array<Airport> {
+  return (Object.values(airBaseData) as Array<RawAirbaseData>)
+    .map(
+      (it) => {
+        return {
+          name: it.callsign,
+          position: it.point,
+          runways: it.runways.map((rw) => {
+            return {
+              heading: Math.round(rw.course),
+            };
+          }),
+        };
+      },
+    );
+}

@@ -4,7 +4,9 @@ import { BiLoader } from "react-icons/bi";
 import { Link, Redirect, Route, Switch } from "react-router-dom";
 import useFetch, { CachePolicies } from "use-http";
 import { Map } from "./components/Map";
-import { DCSMap, Georgia } from "./dcs/maps/DCSMap";
+import { Caucasus } from "./dcs/maps/Caucasus";
+import { DCSMap } from "./dcs/maps/DCSMap";
+import { PersianGulf } from "./dcs/maps/PersianGulf";
 import { Syria } from "./dcs/maps/Syria";
 import { Server, serverStore } from "./stores/ServerStore";
 import { route } from "./util";
@@ -113,7 +115,9 @@ function ServerContainer({ serverName }: { serverName: string }) {
   if ((refLat > 28 && refLat < 32) && (refLng > 29 && refLng < 33)) {
     dcsMap = Syria;
   } else if ((refLat > 37 && refLat < 41) && (refLng > 33 && refLng < 38)) {
-    dcsMap = Georgia;
+    dcsMap = Caucasus;
+  } else if ((refLat > 18 && refLat < 24) && (refLng > 48 && refLng < 54)) {
+    dcsMap = PersianGulf;
   } else {
     console.log(refLat, refLng);
     return (

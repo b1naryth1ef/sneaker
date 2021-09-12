@@ -69,6 +69,7 @@
     "eslint": "^7.30.0",
     "eslint-plugin-react": "^7.24.0",
     "html-webpack-plugin": "^5.3.2",
+    "json5-loader": "^4.0.1",
     "mini-css-extract-plugin": "^2.1.0",
     "postcss": "^8.3.6",
     "postcss-cli": "^8.3.1",

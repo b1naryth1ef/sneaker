@@ -808,7 +808,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
 
     for (const airport of dcsMap.airports) {
       const airportLabel = new maptalks.Label(
-        `${airport.name} (${airport.code})`,
+        `${airport.name}`,
         [airport.position[1], airport.position[0]],
         {
           draggable: false,
