@@ -2,11 +2,12 @@ import classNames from "classnames";
 import React, { useState } from "react";
 import { BiX } from "react-icons/bi";
 import { Link } from "react-router-dom";
+import { AboutSettings } from "./AboutSettings";
 import { DebugSettings } from "./DebugSettings";
 import { MapSettings } from "./MapSettings";
 import { ProfileSettings } from "./ProfileSettings";
 
-type SettingsTabs = "home" | "map" | "profiles" | "debug";
+type SettingsTabs = "home" | "map" | "profiles" | "debug" | "about";
 
 function SettingsHome() {
   return (
@@ -88,12 +89,14 @@ export function Settings({ close }: { close: () => void }): JSX.Element {
             active={tab === "profiles"}
           />
           <SettingsTab setTab={setTab} name="debug" active={tab === "debug"} />
+          <SettingsTab setTab={setTab} name="about" active={tab === "about"} />
         </div>
         <div className="pl-2 w-full">
           {tab === "home" && <SettingsHome />}
           {tab === "map" && <MapSettings />}
           {tab === "profiles" && <ProfileSettings />}
           {tab === "debug" && <DebugSettings />}
+          {tab === "about" && <AboutSettings />}
         </div>
       </div>
     </div>
