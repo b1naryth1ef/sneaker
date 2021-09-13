@@ -594,8 +594,10 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
   const entities = serverStore((state) => state.entities);
 
   const selectedEntity = selectedEntityId && entities.get(selectedEntityId);
+
+  // TODO: server should set coalition
   const bullsEntity = entities.find((it) =>
-    it.types.includes("Bullseye") && it.coalition !== "Allies"
+    it.types.includes("Bullseye") && it.coalition === "Enemies"
   );
   const ships = useMemo(
     () => entities.filter((it) => it.types.includes("Sea")),
