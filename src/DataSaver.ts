@@ -76,7 +76,7 @@ export function restoreData(serverName: string, sessionId: string): boolean {
       ),
     });
 
-    if (payloadRaw.geometry) {
+    if (payloadRaw.geometry && payloadRaw.geometry.length > 0) {
       const maxId = Math.max(...payloadRaw.geometry.map((it) => it.id)) + 1;
       geometryStore.setState({
         geometry: Immutable.Map<number, Geometry>(
