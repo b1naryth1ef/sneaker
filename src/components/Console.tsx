@@ -10,6 +10,7 @@ import {
   trackStore,
 } from "../stores/TrackStore";
 import { Entity } from "../types/entity";
+import DrawConsoleTab from "./DrawConsoleTab";
 
 function WatchTab(
   { map, setSelectedEntityId }: {
@@ -162,7 +163,9 @@ export function Console(
     map: maptalks.Map;
   },
 ) {
-  const [selectedTab, setSelectedTab] = useState<null | "search" | "watch">(
+  const [selectedTab, setSelectedTab] = useState<
+    null | "search" | "watch" | "draw"
+  >(
     null,
   );
 
@@ -193,15 +196,28 @@ export function Console(
             Watches
           </button>
         </div>
+        <div>
+          <button
+            onClick={() => setSelectedTab("draw")}
+            className={classNames(
+              "border bg-blue-100 border-blue-300 p-1 rounded-sm shadow-sm",
+              { "bg-blue-200": selectedTab === "draw" },
+            )}
+          >
+            Draw
+          </button>
+        </div>
         <div className="ml-auto flex flex-row gap-1">
-          {selectedTab !== null && (
+          {
+            /* {selectedTab !== null && (
             <button
               className="border bg-red-100 border-red-300 p-1 rounded-sm shadow-sm"
               onClick={() => setSelectedTab(null)}
             >
               Close
             </button>
-          )}
+          )} */
+          }
           <button
             className="border bg-blue-100 border-blue-300 p-1 rounded-sm shadow-sm flex flex-row items-center"
             onClick={() => setSettingsOpen(true)}
@@ -214,6 +230,8 @@ export function Console(
         <SearchTab setSelectedEntityId={setSelectedEntityId} map={map} />}
       {selectedTab === "watch" &&
         <WatchTab setSelectedEntityId={setSelectedEntityId} map={map} />}
+      {selectedTab === "draw" &&
+        <DrawConsoleTab map={map} />}
     </div>
   );
 }

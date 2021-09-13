@@ -11,7 +11,9 @@ import { renderToString } from "react-dom/server";
 import { planes } from "../dcs/aircraft";
 import { DCSMap } from "../dcs/maps/DCSMap";
 import { useKeyPress } from "../hooks/useKeyPress";
+import useRenderGeometry from "../hooks/useRenderGeometry";
 import { alertStore } from "../stores/AlertStore";
+import { addMarkPoint } from "../stores/GeometryStore";
 import { serverStore } from "../stores/ServerStore";
 import { settingsStore } from "../stores/SettingsStore";
 import {
@@ -28,6 +30,7 @@ import {
 } from "../util";
 import { Console } from "./Console";
 import { EntityInfo, iconCache, MapSimpleEntity } from "./MapEntity";
+import MapGeometryInfo from "./MapGeometryInfo";
 import { colorMode } from "./MapIcon";
 import { MissionTimer } from "./MissionTimer";
 import { Settings } from "./Settings";
@@ -707,6 +710,9 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
         new maptalks.VectorLayer("farp-icon", [], {
           hitDetect: false,
         }),
+        new maptalks.VectorLayer("custom-geometry", [], {
+          hitDetect: false,
+        }),
         new maptalks.VectorLayer("track-trails", [], {
           hitDetect: false,
         }),
@@ -756,6 +762,13 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
     map.current.addControl(entityInfoPanel.current);
 
     map.current.on("contextmenu", (e) => {
+    });
+
+    map.current.on("dblclick", (e) => {
+      addMarkPoint([
+        e.coordinate.y,
+        e.coordinate.x,
+      ]);
     });
 
     map.current.on("zooming", (e) => {
@@ -813,9 +826,6 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
         `${airport.name}`,
         [airport.position[1], airport.position[0]],
         {
-          ...({
-            position: airport.position,
-          } as any),
           draggable: false,
           visible: true,
           editable: false,
@@ -866,6 +876,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
     mouseDownHandlerRef.current = (e) => {
       if (!map.current) return;
       const nameLayer = map.current.getLayer("track-name");
+      const customGeoLayer = map.current.getLayer("custom-geometry");
       const iconLayer = map.current.getLayer("track-icons");
       const airportsLayer = map.current.getLayer("airports");
       const farpNameLayer = map.current.getLayer("farp-name");
@@ -881,14 +892,13 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
               airportsLayer,
               farpNameLayer,
               farpIconLayer,
+              customGeoLayer,
             ],
           }, (geos: Array<maptalks.Geometry>) => {
             if (geos.length >= 1) {
               const rawId = geos[0].getId();
               if (geos[0].options.entityId !== undefined) {
                 setDrawBraaStart(geos[0].options.entityId);
-              } else if (geos[0].options.position !== undefined) {
-                setDrawBraaStart(geos[0].options.position);
               } else if (typeof rawId === "string") {
                 setDrawBraaStart(parseInt(rawId));
               } else {
@@ -1114,6 +1124,8 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
     }
   }, [farps]);
 
+  useRenderGeometry(map.current);
+
   return (
     <div
       style={{
@@ -1157,6 +1169,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
             entity={selectedEntity}
           />
         )}
+      {map.current && <MapGeometryInfo map={map.current} />}
       {map.current && (
         <Console
           setSelectedEntityId={setSelectedEntityId}

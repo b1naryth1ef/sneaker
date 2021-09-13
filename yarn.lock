@@ -2258,6 +2258,11 @@ cookie@0.4.0:
   resolved "https://registry.yarnpkg.com/cookie/-/cookie-0.4.0.tgz#beb437e7022b3b6d49019d088665303ebe9c14ba"
   integrity sha512-+Hp8fLp57wnUSt0tY0tHEXh4voZRDnoIrZPqlo3DPiI4y9lwg/jqx+1Om94/W6ZaPDOUbnjOt/99w66zk+l1Xg==
 
+coordinate-parser@^1.0.7:
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/coordinate-parser/-/coordinate-parser-1.0.7.tgz#9350485f03146af0f377dd51a0907a0ac684363e"
+  integrity sha512-pkcjigkAEjU5JsTYnuXLkRgR6T5fF/7GXR4p9vWJesy8fKwsheN8zC5d3sSvdMmWihHB4u48xWZ5mUCcgBIEpw==
+
 copy-descriptor@^0.1.0:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/copy-descriptor/-/copy-descriptor-0.1.1.tgz#676f6eb3c39997c2ee1ac3a924fd6124748f578d"
@@ -4487,6 +4492,11 @@ methods@~1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/methods/-/methods-1.1.2.tgz#5529a4d67654134edcc5266656835b0f851afcee"
   integrity sha1-VSmk1nZUE07cxSZmVoNbD4Ua/O4=
+
+mgrs@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/mgrs/-/mgrs-1.0.0.tgz#fb91588e78c90025672395cb40b25f7cd6ad1829"
+  integrity sha1-+5FYjnjJACVnI5XLQLJffNatGCk=
 
 micromatch@^3.1.10, micromatch@^3.1.4:
   version "3.1.10"
