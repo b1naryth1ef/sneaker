@@ -94,7 +94,7 @@ export const planes: Record<string, Plane> = {
   "KC135MPRS": new Plane("KC135MPRS", "MFKD"),
   "C-101EB": new Plane("C_101EB", "MFT-"),
   "C-101CC": new Plane("C_101CC"),
-  "J-11A": new Plane("J_11A"),
+  "J-11A": new Plane("J_11A", undefined, "Flanker"),
   "JF-17": new Plane("JF_17"),
   "KJ-2000": new Plane("KJ_2000", "MFRW"),
   "WingLoong-I": new Plane("WingLoong_I"),
