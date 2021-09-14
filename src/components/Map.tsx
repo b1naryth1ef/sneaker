@@ -141,6 +141,7 @@ function MapRadarTracks(
         );
         iconGeo.on("click", (e) => {
           setSelectedEntityId(entity.id);
+          return false;
         });
       } else {
         iconGeo.setCoordinates(
@@ -190,6 +191,7 @@ function MapRadarTracks(
         });
         nameLabel.on("click", (e) => {
           setSelectedEntityId(entity.id);
+          return false;
         });
         nameLayer.addGeometry(nameLabel);
       } else {

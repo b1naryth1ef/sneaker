@@ -44,7 +44,7 @@ function renderZone(layer: maptalks.VectorLayer, zone: Zone) {
         "lineColor": "#FBBF24",
         "lineWidth": 2,
         "polygonFill": "#D97706",
-        "polygonOpacity": 0.3,
+        "polygonOpacity": 0.1,
       },
     },
   );
@@ -81,7 +81,7 @@ function renderZone(layer: maptalks.VectorLayer, zone: Zone) {
     id: zone.id,
     draggable: false,
   });
-  col.on("click", (e) => {
+  col.on("dblclick", (e) => {
     setSelectedGeometry(zone.id);
   });
   col.on("editend", (e) => {
@@ -164,7 +164,7 @@ function renderMarkPoint(layer: maptalks.VectorLayer, markPoint: MarkPoint) {
     id: markPoint.id,
     draggable: false,
   });
-  col.on("click", (e) => {
+  col.on("dblclick", (e) => {
     setSelectedGeometry(markPoint.id);
   });
   col.on("dragend", (e) => {
