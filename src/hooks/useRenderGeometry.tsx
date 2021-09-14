@@ -9,9 +9,91 @@ import {
   MarkPoint,
   setSelectedGeometry,
   updateGeometry,
+  Zone,
 } from "../stores/GeometryStore";
 
 const markPointSIDC = "GHG-GPRN--";
+
+function renderZone(layer: maptalks.VectorLayer, zone: Zone) {
+  const collection = layer.getGeometryById(
+    zone.id,
+  ) as maptalks.GeometryCollection;
+  if (collection) {
+    const [polygon, text] = collection.getGeometries() as [
+      maptalks.Polygon,
+      maptalks.Label,
+    ];
+
+    polygon.setCoordinates(zone.points.map((it) => [it[1], it[0]]));
+    text.setCoordinates([
+      zone.points[0][1],
+      zone.points[0][0],
+    ]);
+    (text.setContent as any)(zone.name || `Zone #${zone.id}`);
+
+    return;
+  }
+
+  const polygon = new maptalks.Polygon(
+    zone.points.map((it) => [it[1], it[0]]),
+    {
+      draggable: false,
+      visible: true,
+      editable: true,
+      symbol: {
+        "lineColor": "#FBBF24",
+        "lineWidth": 2,
+        "polygonFill": "#D97706",
+        "polygonOpacity": 0.3,
+      },
+    },
+  );
+
+  const text = new maptalks.Label(zone.name || `Zone #${zone.id}`, [
+    zone.points[0][1],
+    zone.points[0][0],
+  ], {
+    draggable: false,
+    visible: true,
+    editable: false,
+    boxStyle: {
+      "padding": [2, 2],
+      "horizontalAlignment": "left",
+      "verticalAlignment": "middle",
+      "symbol": {
+        "markerType": "square",
+        "markerFill": "#4B5563",
+        "markerFillOpacity": 0.5,
+        "markerLineOpacity": 0,
+        textHorizontalAlignment: "right",
+        textVerticalAlignment: "middle",
+        textDx: 10,
+      },
+    },
+    "textSymbol": {
+      "textFaceName": '"microsoft yahei"',
+      "textFill": "#FBBF24",
+      "textSize": 12,
+    },
+  });
+
+  const col = new maptalks.GeometryCollection([polygon, text], {
+    id: zone.id,
+    draggable: false,
+  });
+  col.on("click", (e) => {
+    setSelectedGeometry(zone.id);
+  });
+  col.on("editend", (e) => {
+    const coords = polygon.getCoordinates()[0];
+    updateGeometry({
+      ...zone,
+      points: coords.map((it) => [it.y, it.x]),
+    });
+  });
+
+  layer.addGeometry(col);
+}
 
 function renderMarkPoint(layer: maptalks.VectorLayer, markPoint: MarkPoint) {
   const collection = layer.getGeometryById(
@@ -110,6 +192,8 @@ function renderGeometry(
   for (const geo of geometry.valueSeq()) {
     if (geo.type === "markpoint") {
       renderMarkPoint(layer, geo);
+    } else if (geo.type === "zone") {
+      renderZone(layer, geo);
     }
   }
 }
@@ -136,39 +220,6 @@ export default function useRenderGeometry(
       (state) => state.geometry,
     );
   }, [map]);
-
-  // TODO: use for editing mode
-  // useEffect(() => {
-  //   return geometryStore.subscribe(
-  //     (selectedGeometry: number | null, previous: number | null) => {
-  //       if (map === null || selectedGeometry === null) return;
-  //       const layer = (map.getLayer("custom-geometry") as maptalks.VectorLayer);
-  //       if (previous !== null) {
-  //         const prevItem = layer.getGeometryById(
-  //           previous,
-  //         ) as maptalks.GeometryCollection;
-  //         // prevItem.getGeometries()[0].setOptions({
-  //         //   ...prevItem.getGeometries()[0].options,
-  //         //   draggable: false,
-  //         // });
-  //         prevItem.setOptions({ ...prevItem.options, draggable: false });
-  //         // TODO: copy in geometry
-  //       }
-
-  //       const nextItem = layer.getGeometryById(
-  //         selectedGeometry,
-  //       ) as maptalks.GeometryCollection;
-  //       nextItem.setOptions({ ...nextItem.options, draggable: true });
-  //       // nextItem.startEdit();
-  //       // console.log("draggable!", nextItem.getGeometries()[0]);
-  //       // nextItem.getGeometries()[0].setOptions({
-  //       //   ...nextItem.getGeometries()[0].options,
-  //       //   draggable: true,
-  //       // });
-  //     },
-  //     (state) => state.selectedGeometry,
-  //   );
-  // });
 
   useEffect(() => {
     if (map !== null) {

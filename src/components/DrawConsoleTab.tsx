@@ -4,6 +4,7 @@ import React from "react";
 import { BiShapeCircle, BiShapeSquare } from "react-icons/bi";
 import {
   addMarkPoint,
+  addZone,
   geometryStore,
   setSelectedGeometry,
 } from "../stores/GeometryStore";
@@ -32,6 +33,14 @@ export default function DrawConsoleTab(
         </button>
         <button
           className="bg-green-100 hover:bg-green-200 border-green-400 p-1 border rounded-sm text-sm text-green-700 flex-row items-center w-full"
+          onClick={() => {
+            const center = map.getCenter();
+            addZone([
+              [center.y + 0.1, center.x + 0.1],
+              [center.y - 0.1, center.x - 0.1],
+              [center.y + 0.1, center.x - 0.1],
+            ]);
+          }}
         >
           Zone
           <BiShapeSquare className="ml-2 inline-block" />

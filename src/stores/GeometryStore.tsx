@@ -48,6 +48,20 @@ export function setSelectedGeometry(id: number | null) {
   geometryStore.setState({ selectedGeometry: id });
 }
 
+export function addZone(points: Array<[number, number]>) {
+  geometryStore.setState((state) => {
+    return {
+      ...state,
+      id: state.id + 1,
+      geometry: state.geometry.set(state.id, {
+        id: state.id,
+        type: "zone",
+        points,
+      }),
+    };
+  });
+}
+
 export function addMarkPoint(position: [number, number]) {
   geometryStore.setState((state) => {
     return {
