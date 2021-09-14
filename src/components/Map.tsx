@@ -13,7 +13,6 @@ import { DCSMap } from "../dcs/maps/DCSMap";
 import { useKeyPress } from "../hooks/useKeyPress";
 import useRenderGeometry from "../hooks/useRenderGeometry";
 import { alertStore } from "../stores/AlertStore";
-import { addMarkPoint } from "../stores/GeometryStore";
 import { serverStore } from "../stores/ServerStore";
 import { settingsStore } from "../stores/SettingsStore";
 import {
@@ -764,13 +763,6 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
     map.current.on("contextmenu", (e) => {
     });
 
-    map.current.on("dblclick", (e) => {
-      addMarkPoint([
-        e.coordinate.y,
-        e.coordinate.x,
-      ]);
-    });
-
     map.current.on("zooming", (e) => {
       setZoom(map.current!.getZoom());
     });
@@ -1159,17 +1151,21 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
           </div>
         )}
       <MissionTimer />
-      {selectedTrack && selectedEntity && map.current &&
-        (
-          <EntityInfo
-            setSelectedEntityId={setSelectedEntityId}
-            map={map.current}
-            dcsMap={dcsMap}
-            track={selectedTrack}
-            entity={selectedEntity}
-          />
-        )}
-      {map.current && <MapGeometryInfo map={map.current} />}
+      <div
+        className="m-2 absolute left-0 top-0 flex flex-col gap-2"
+      >
+        {selectedTrack && selectedEntity && map.current &&
+          (
+            <EntityInfo
+              setSelectedEntityId={setSelectedEntityId}
+              map={map.current}
+              dcsMap={dcsMap}
+              track={selectedTrack}
+              entity={selectedEntity}
+            />
+          )}
+        {map.current && <MapGeometryInfo map={map.current} />}
+      </div>
       {map.current && (
         <Console
           setSelectedEntityId={setSelectedEntityId}

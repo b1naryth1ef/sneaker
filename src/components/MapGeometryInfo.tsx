@@ -106,16 +106,16 @@ function GeometryDetails({ geo, edit }: { geo: Geometry; edit: boolean }) {
                   />
                 </div>
               )}
-              <button
-                className="p-1 text-xs bg-red-200 border border-red-500 mt-2"
-                onClick={() => {
-                  deleteGeometry(geo.id);
-                }}
-              >
-                Delete
-              </button>
             </>
           )}
+        <button
+          className="p-1 text-xs bg-red-200 border border-red-500 mt-2"
+          onClick={() => {
+            deleteGeometry(geo.id);
+          }}
+        >
+          Delete
+        </button>
       </>
     );
   }
@@ -150,7 +150,7 @@ export default function MapGeometryInfo(
 
   return (
     <div
-      className="m-2 absolute flex flex-col bg-gray-300 border border-gray-500 shadow select-none rounded-sm w-1/5"
+      className="flex flex-col bg-gray-300 border border-gray-500 shadow select-none rounded-sm"
     >
       <div className="p-2 bg-gray-400 text-sm flex flex-row">
         <b className="flex flex-grow">
@@ -179,8 +179,8 @@ export default function MapGeometryInfo(
         )}
         <button
           className="p-1 text-xs bg-red-300 border border-red-400 ml-2"
-          disabled={editing}
           onClick={() => {
+            setEditing(false);
             setSelectedGeometry(null);
           }}
         >

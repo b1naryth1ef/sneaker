@@ -9,14 +9,14 @@ import { Alert, alertStore } from "../stores/AlertStore";
 import {
   popEntityLabel,
   pushEntityLabel,
-  useEntityMetadata
+  useEntityMetadata,
 } from "../stores/EntityMetadataStore";
 import { serverStore } from "../stores/ServerStore";
 import {
   EntityTrackPing,
   estimatedSpeed,
   setTrackOptions,
-  trackStore
+  trackStore,
 } from "../stores/TrackStore";
 import { Entity } from "../types/entity";
 import { getBearingMap, getCardinal, getFlyDistance } from "../util";
@@ -82,7 +82,7 @@ export function EntityInfo(
 
   return (
     <div
-      className="m-2 absolute flex flex-col bg-gray-300 border border-gray-500 shadow select-none rounded-sm max-w-4xl"
+      className="flex flex-col bg-gray-300 border border-gray-500 shadow select-none rounded-sm"
     >
       <div className="p-2 bg-gray-400 text-sm flex flex-row">
         <b>{entity.group}</b>
