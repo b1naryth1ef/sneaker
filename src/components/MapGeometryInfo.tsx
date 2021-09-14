@@ -8,7 +8,7 @@ import {
   Geometry,
   geometryStore,
   setSelectedGeometry,
-  updateGeometry,
+  updateGeometrySafe,
 } from "../stores/GeometryStore";
 import DetailedCoords from "./DetailedCoords";
 
@@ -47,7 +47,7 @@ function GeometryDetails({ geo, edit }: { geo: Geometry; edit: boolean }) {
               className="flex-grow p-0.5 text-right"
               value={geo.name}
               onChange={(e) => {
-                updateGeometry({ ...geo, name: e.target.value });
+                updateGeometrySafe(geo.id, { name: e.target.value });
               }}
             />
           )
@@ -88,8 +88,7 @@ function GeometryDetails({ geo, edit }: { geo: Geometry; edit: boolean }) {
                     if (e.key === "Enter") {
                       try {
                         const coord = new Coord(newCoord);
-                        updateGeometry({
-                          ...geo,
+                        updateGeometrySafe(geo.id, {
                           position: [
                             coord.getLatitude(),
                             coord.getLongitude(),
@@ -100,13 +99,15 @@ function GeometryDetails({ geo, edit }: { geo: Geometry; edit: boolean }) {
                           const coord = mgrs.toPoint(
                             newCoord.replace(" ", ""),
                           );
-                          updateGeometry({
-                            ...geo,
-                            position: [
-                              coord[1],
-                              coord[0],
-                            ],
-                          });
+                          updateGeometrySafe(
+                            geo.id,
+                            {
+                              position: [
+                                coord[1],
+                                coord[0],
+                              ],
+                            },
+                          );
                         } catch (e) {
                           console.error(e);
                         }

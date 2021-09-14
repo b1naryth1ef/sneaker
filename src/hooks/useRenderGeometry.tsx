@@ -8,7 +8,7 @@ import {
   geometryStore,
   MarkPoint,
   setSelectedGeometry,
-  updateGeometry,
+  updateGeometrySafe,
   Zone,
 } from "../stores/GeometryStore";
 
@@ -86,8 +86,7 @@ function renderZone(layer: maptalks.VectorLayer, zone: Zone) {
   });
   col.on("editend", (e) => {
     const coords = polygon.getCoordinates()[0];
-    updateGeometry({
-      ...zone,
+    updateGeometrySafe(zone.id, {
       points: coords.map((it) => [it.y, it.x]),
     });
   });
@@ -169,8 +168,7 @@ function renderMarkPoint(layer: maptalks.VectorLayer, markPoint: MarkPoint) {
   });
   col.on("dragend", (e) => {
     const pos = col.getFirstCoordinate();
-    updateGeometry({
-      ...markPoint,
+    updateGeometrySafe(markPoint.id, {
       position: [pos.y, pos.x],
     });
   });

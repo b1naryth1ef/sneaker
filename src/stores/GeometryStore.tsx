@@ -44,6 +44,17 @@ export function updateGeometry(value: Geometry) {
   });
 }
 
+export function updateGeometrySafe(id: number, value: Partial<Geometry>) {
+  geometryStore.setState((state) => {
+    const existing = state.geometry.get(id);
+    if (!existing) return;
+    return {
+      ...state,
+      geometry: state.geometry.set(id, { ...existing, ...value } as Geometry),
+    };
+  });
+}
+
 export function setSelectedGeometry(id: number | null) {
   geometryStore.setState({ selectedGeometry: id });
 }
