@@ -3,18 +3,18 @@ import * as maptalks from "maptalks";
 import React, { useMemo, useState } from "react";
 import { BiCog } from "react-icons/bi";
 import { entityMetadataStore } from "../stores/EntityMetadataStore";
-import { serverStore } from "../stores/ServerStore";
+import { serverStore, setSelectedEntityId } from "../stores/ServerStore";
 import {
   EntityTrackPing,
   estimatedSpeed,
   trackStore,
 } from "../stores/TrackStore";
 import { Entity } from "../types/entity";
+import DrawConsoleTab from "./DrawConsoleTab";
 
 function WatchTab(
-  { map, setSelectedEntityId }: {
+  { map }: {
     map: maptalks.Map;
-    setSelectedEntityId: (entityId: number | null) => void;
   },
 ) {
   const trackState = trackStore((state) => state);
@@ -76,8 +76,7 @@ function WatchTab(
 }
 
 function SearchTab(
-  { setSelectedEntityId, map }: {
-    setSelectedEntityId: (entityId: number | null) => void;
+  { map }: {
     map: maptalks.Map;
   },
 ) {
@@ -156,13 +155,14 @@ function SearchTab(
 }
 
 export function Console(
-  { setSelectedEntityId, map, setSettingsOpen }: {
-    setSelectedEntityId: (entityId: number | null) => void;
+  { map, setSettingsOpen }: {
     setSettingsOpen: (value: boolean) => void;
     map: maptalks.Map;
   },
 ) {
-  const [selectedTab, setSelectedTab] = useState<null | "search" | "watch">(
+  const [selectedTab, setSelectedTab] = useState<
+    null | "search" | "watch" | "draw"
+  >(
     null,
   );
 
@@ -193,15 +193,28 @@ export function Console(
             Watches
           </button>
         </div>
+        <div>
+          <button
+            onClick={() => setSelectedTab("draw")}
+            className={classNames(
+              "border bg-blue-100 border-blue-300 p-1 rounded-sm shadow-sm",
+              { "bg-blue-200": selectedTab === "draw" },
+            )}
+          >
+            Draw
+          </button>
+        </div>
         <div className="ml-auto flex flex-row gap-1">
-          {selectedTab !== null && (
+          {
+            /* {selectedTab !== null && (
             <button
               className="border bg-red-100 border-red-300 p-1 rounded-sm shadow-sm"
               onClick={() => setSelectedTab(null)}
             >
               Close
             </button>
-          )}
+          )} */
+          }
           <button
             className="border bg-blue-100 border-blue-300 p-1 rounded-sm shadow-sm flex flex-row items-center"
             onClick={() => setSettingsOpen(true)}
@@ -211,9 +224,11 @@ export function Console(
         </div>
       </div>
       {selectedTab === "search" &&
-        <SearchTab setSelectedEntityId={setSelectedEntityId} map={map} />}
+        <SearchTab map={map} />}
       {selectedTab === "watch" &&
-        <WatchTab setSelectedEntityId={setSelectedEntityId} map={map} />}
+        <WatchTab map={map} />}
+      {selectedTab === "draw" &&
+        <DrawConsoleTab map={map} />}
     </div>
   );
 }

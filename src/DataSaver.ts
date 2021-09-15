@@ -3,6 +3,7 @@ import {
   EntityMetadata,
   entityMetadataStore,
 } from "./stores/EntityMetadataStore";
+import { Geometry, geometryStore } from "./stores/GeometryStore";
 import { hackStore } from "./stores/HackStore";
 import { serverStore } from "./stores/ServerStore";
 import { TrackOptions, trackStore } from "./stores/TrackStore";
@@ -13,6 +14,7 @@ export type SavedDataV1 = {
   hacks: Array<number>;
   entityMetadata: Array<[number, { labels: Array<string> }]>;
   trackOptions: Array<[number, TrackOptions]>;
+  geometry: Array<Geometry>;
 };
 
 export type SavedData = SavedDataV1;
@@ -33,6 +35,7 @@ export function saveData() {
     entityMetadata: entityMetadataStore.getState().entities.entrySeq()
       .toJS() as any,
     trackOptions: trackStore.getState().trackOptions.entrySeq().toJS() as any,
+    geometry: geometryStore.getState().geometry.valueSeq().toJS() as any,
   };
 
   localStorage.setItem(
@@ -72,6 +75,16 @@ export function restoreData(serverName: string, sessionId: string): boolean {
         payloadRaw.trackOptions!,
       ),
     });
+
+    if (payloadRaw.geometry && payloadRaw.geometry.length > 0) {
+      const maxId = Math.max(...payloadRaw.geometry.map((it) => it.id)) + 1;
+      geometryStore.setState({
+        geometry: Immutable.Map<number, Geometry>(
+          payloadRaw.geometry.map((it) => [it.id, it]),
+        ),
+        id: maxId,
+      });
+    }
     console.log(`[DataSaver] restored data for session ${sessionId}`);
     return true;
   } else {

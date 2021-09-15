@@ -18,10 +18,10 @@ type StateObject struct {
 	Longitude  float64           `json:"longitude"`
 	Altitude   float64           `json:"altitude"`
 	Heading    float64           `json:"heading"`
+	UpdatedAt  int64             `json:"updated_at"`
+	CreatedAt  int64             `json:"created_at"`
 
-	Deleted   bool  `json:"-"`
-	UpdatedAt int64 `json:"-"`
-	CreatedAt int64 `json:"-"`
+	Deleted bool `json:"-"`
 }
 
 func NewStateObject(ts int64, sourceObj *tacview.Object, coordBase [2]float64) (*StateObject, error) {

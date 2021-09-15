@@ -178,3 +178,41 @@ export function getBearingMap(
   }
   return bearing;
 }
+
+function toDegreesMinutesAndSeconds(coordinate: number, size: number) {
+  var absolute = Math.abs(coordinate);
+  var degrees = Math.floor(absolute);
+  var minutesNotTruncated = (absolute - degrees) * 60;
+  var minutes = Math.floor(minutesNotTruncated);
+  var seconds = Math.floor((minutesNotTruncated - minutes) * 60);
+
+  return degrees.toString().padStart(size, "0") + "°" +
+    minutes.toString().padStart(2, "0") + "'" +
+    seconds.toString().padStart(2, "0") + '"';
+}
+
+function toDegreesDecimalMinutes(coordinate: number, size: number) {
+  var absolute = Math.abs(coordinate);
+  var degrees = Math.floor(absolute);
+  var minutes = (absolute - degrees) * 60;
+
+  return degrees.toString().padStart(size, "0") + "°" + minutes.toFixed(5);
+}
+
+export function formatDMS([lat, lng]: [number, number]) {
+  var latitude = toDegreesMinutesAndSeconds(lat, 2);
+  var latitudeCardinal = lat >= 0 ? "N" : "S";
+
+  var longitude = toDegreesMinutesAndSeconds(lng, 3);
+  var longitudeCardinal = lng >= 0 ? "E" : "W";
+
+  return `${latitudeCardinal}${latitude} ${longitudeCardinal}${longitude}`;
+}
+
+export function formatDDM([lat, lng]: [number, number]) {
+  const latitude = toDegreesDecimalMinutes(lat, 2);
+  const latitudeCardinal = lat >= 0 ? "N" : "S";
+  const longitude = toDegreesDecimalMinutes(lng, 3);
+  const longitudeCardinal = lng >= 0 ? "E" : "W";
+  return `${latitudeCardinal}${latitude} ${longitudeCardinal}${longitude}`;
+}

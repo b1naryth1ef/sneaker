@@ -9,28 +9,28 @@ import { Alert, alertStore } from "../stores/AlertStore";
 import {
   popEntityLabel,
   pushEntityLabel,
-  useEntityMetadata
+  useEntityMetadata,
 } from "../stores/EntityMetadataStore";
-import { serverStore } from "../stores/ServerStore";
+import { serverStore, setSelectedEntityId } from "../stores/ServerStore";
 import {
   EntityTrackPing,
   estimatedSpeed,
   setTrackOptions,
-  trackStore
+  trackStore,
 } from "../stores/TrackStore";
 import { Entity } from "../types/entity";
 import { getBearingMap, getCardinal, getFlyDistance } from "../util";
+import DetailedCoords from "./DetailedCoords";
 import { colorMode } from "./MapIcon";
 
 export const iconCache: Record<string, string> = {};
 
 export function EntityInfo(
-  { map, dcsMap, entity, track, setSelectedEntityId }: {
+  { map, dcsMap, entity, track }: {
     map: maptalks.Map;
     dcsMap: DCSMap;
     entity: Entity;
-    track: Array<EntityTrackPing>;
-    setSelectedEntityId: (v: number | null) => void;
+    track: Array<EntityTrackPing> | null;
   },
 ) {
   const trackOptions = trackStore((state) => state.trackOptions.get(entity.id));
@@ -82,9 +82,9 @@ export function EntityInfo(
 
   return (
     <div
-      className="m-2 absolute flex flex-col bg-gray-300 border border-gray-500 shadow select-none rounded-sm max-w-4xl"
+      className="flex flex-col bg-gray-300 border border-gray-500 shadow select-none rounded-sm"
     >
-      <div className="p-2 bg-gray-400 text-sm flex flex-row">
+      <div className="p-2 bg-gray-400 text-sm flex flex-row gap-2">
         <b>{entity.group}</b>
         <button
           className="p-1 text-xs bg-red-300 border border-red-400 ml-auto"
@@ -98,85 +98,95 @@ export function EntityInfo(
       <div className="p-2 flex flex-row">
         <div className="flex flex-col pr-2">
           <div>{entity.name}</div>
-          <div>{entity.pilot}</div>
-          <div>
-            Heading: {Math.round(entity.heading).toString().padStart(3, "0")}
-            {getCardinal(entity.heading)}
-          </div>
-          <div>Altitude: {Math.round(entity.altitude * 3.28084)}</div>
-          <div>GS: {Math.round(estimatedSpeed(track))}</div>
+          {track && (
+            <>
+              <div>{entity.pilot}</div>
+              <div>
+                Heading:{" "}
+                {Math.round(entity.heading).toString().padStart(3, "0")}
+                {getCardinal(entity.heading)}
+              </div>
+              <div>Altitude: {Math.round(entity.altitude * 3.28084)}</div>
+              <div>GS: {Math.round(estimatedSpeed(track))}</div>
+            </>
+          )}
           <div>ID: {entity.id}</div>
         </div>
-        <div
-          className="flex flex-col border-l border-black px-2 gap-1 flex-grow"
-        >
-          <button
-            className="p-1 text-xs bg-blue-300 border border-blue-400"
-            onClick={() => {
-              map.animateTo({
-                center: [entity.longitude, entity.latitude],
-                zoom: 10,
-              }, {
-                duration: 250,
-                easing: "out",
-              });
-            }}
+        {track && (
+          <div
+            className="flex flex-col border-l border-black px-2 gap-1 flex-grow"
           >
-            Snap
-          </button>
-          <div className="flex flex-col gap-1">
-            <div className="flex flex-row flex-grow">
-              <span className="text-yellow-600 pr-2 flex-grow">WR</span>
-              <input
-                className="w-16"
-                value={trackOptions?.warningRadius || ""}
-                onChange={(e) => {
-                  const val = parseInt(e.target.value);
-                  if (val !== NaN) {
+            <button
+              className="p-1 text-xs bg-blue-300 border border-blue-400"
+              onClick={() => {
+                map.animateTo({
+                  center: [entity.longitude, entity.latitude],
+                  zoom: 10,
+                }, {
+                  duration: 250,
+                  easing: "out",
+                });
+              }}
+            >
+              Snap
+            </button>
+            <div className="flex flex-col gap-1">
+              <div className="flex flex-row flex-grow">
+                <span className="text-yellow-600 pr-2 flex-grow">WR</span>
+                <input
+                  className="w-16"
+                  value={trackOptions?.warningRadius || ""}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value);
+                    if (val !== NaN) {
+                      setTrackOptions(entity.id, {
+                        warningRadius: val,
+                      });
+                    }
+                  }}
+                />
+              </div>
+              <div className="flex flex-row flex-grow">
+                <span className="text-red-600 pr-2 flex-grow">TR</span>
+                <input
+                  className="w-16"
+                  value={trackOptions?.threatRadius || ""}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value);
+                    if (val !== NaN) {
+                      setTrackOptions(entity.id, {
+                        threatRadius: val,
+                      });
+                    }
+                  }}
+                />
+              </div>
+              <div className="flex flex-row flex-grow items-center">
+                <span className="text-blue-600 pr-2 flex-grow">Watch</span>
+                <input
+                  type="checkbox"
+                  className="form-checkbox"
+                  checked={trackOptions?.watching || false}
+                  onChange={(e) =>
                     setTrackOptions(entity.id, {
-                      warningRadius: val,
-                    });
-                  }
-                }}
-              />
-            </div>
-            <div className="flex flex-row flex-grow">
-              <span className="text-red-600 pr-2 flex-grow">TR</span>
-              <input
-                className="w-16"
-                value={trackOptions?.threatRadius || ""}
-                onChange={(e) => {
-                  const val = parseInt(e.target.value);
-                  if (val !== NaN) {
-                    setTrackOptions(entity.id, {
-                      threatRadius: val,
-                    });
-                  }
-                }}
-              />
-            </div>
-            <div className="flex flex-row flex-grow items-center">
-              <span className="text-blue-600 pr-2 flex-grow">Watch</span>
-              <input
-                type="checkbox"
-                className="form-checkbox"
-                checked={trackOptions?.watching || false}
-                onChange={(e) =>
-                  setTrackOptions(entity.id, {
-                    watching: e.target.checked,
-                  })}
-              />
-            </div>
-            <div className="flex flex-row flex-grow items-center">
-              <input
-                ref={inputRef}
-                className="w-full border-blue-200 border rounded-sm"
-                value={addLabelText}
-                onChange={(e) => setAddLabelText(e.target.value)}
-              />
+                      watching: e.target.checked,
+                    })}
+                />
+              </div>
+              <div className="flex flex-row flex-grow items-center">
+                <input
+                  ref={inputRef}
+                  className="w-full border-blue-200 border rounded-sm"
+                  value={addLabelText}
+                  onChange={(e) => setAddLabelText(e.target.value)}
+                />
+              </div>
             </div>
           </div>
-        </div>
+        )}
+      </div>
+      <div className="p-2">
+        <DetailedCoords coords={[entity.latitude, entity.longitude]} />
       </div>
       {metadata && (
         <div className="flex flex-col p-2">

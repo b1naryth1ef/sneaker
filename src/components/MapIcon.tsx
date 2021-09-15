@@ -6,7 +6,7 @@ export const colorMode: ms.ColorMode = ms.ColorMode(
   "#ffffff",
   "#17c2f6",
   "#ff8080",
-  "#ffffff",
+  "#FDE68A",
   "#ffffff",
 );
 
