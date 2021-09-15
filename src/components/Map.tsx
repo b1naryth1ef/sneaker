@@ -264,8 +264,9 @@ function MapRadarTracks(
       } else {
         (altGeo.setContent as any)(
           `${
-            Math.floor(
-              (entity.altitude * 3.28084) / 1000,
+            ((entity.altitude * 3.28084) / 1000).toFixed(1).toString().padStart(
+              3,
+              "0",
             )
           }`,
         );
@@ -292,7 +293,7 @@ function MapRadarTracks(
               "markerFillOpacity": 0,
               "markerLineOpacity": 0,
               textHorizontalAlignment: "right",
-              textDx: 40,
+              textDx: 45,
               textDy: 18,
             },
           },
