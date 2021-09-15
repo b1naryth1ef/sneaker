@@ -1,0 +1,1388 @@
+[
+  {
+    "code": "leopard-2A4-TRS",
+    "dcs_codes": ["leopard-2A4_trs"],
+    "mil_std_2525_d": 10001500001202000000,
+    "name": "Leopard 2A4 MBT (Turkey)",
+    "sidc": "S-G-EVATH-"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["leopard-2A4"],
+    "mil_std_2525_d": 10001500001202000000,
+    "name": "Leopard 2A4 MBT",
+    "sidc": "S-G-EVATH-"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Challenger2"],
+    "mil_std_2525_d": 10001500001202000000,
+    "name": "Challenger 2 MBT",
+    "sidc": "S-G-EVATH-"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Leopard-2A5"],
+    "mil_std_2525_d": 10001500001202000000,
+    "name": "Leopard 2A5 MBT",
+    "sidc": "S-G-EVATH-"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["M-1 Abrams"],
+    "mil_std_2525_d": 10001500001202000000,
+    "name": "M1A1 Abrams MBT",
+    "sidc": "S-G-EVATH-"
+  },
+  {
+    "code": "Leopard 2 MBT",
+    "dcs_codes": ["Leopard-2"],
+    "mil_std_2525_d": 10001500001202000000,
+    "name": "Leopard 2 MBT",
+    "sidc": "S-G-EVATH-"
+  },
+  {
+    "code": "Leclerc MBT",
+    "dcs_codes": ["Leclerc"],
+    "mil_std_2525_d": 10001500001202000000,
+    "name": "Leclerc MBT",
+    "sidc": "S-G-EVATH-"
+  },
+  {
+    "code": "T-90 MBT",
+    "dcs_codes": ["T-90"],
+    "mil_std_2525_d": 10001500001202000000,
+    "name": "T-90 MBT",
+    "sidc": "S-G-EVATH-"
+  },
+  {
+    "code": "Freya EWR (WW2 GER)",
+    "dcs_codes": ["FuMG-401"],
+    "mil_std_2525_d": 10001500002203000000,
+    "name": "Freya EWR (WW2 GER)"
+  },
+  {
+    "code": "T-80UD MBT",
+    "dcs_codes": ["T-80UD"],
+    "mil_std_2525_d": 10001500001202000000,
+    "name": "T-80UD MBT",
+    "sidc": "S-G-EVATH-"
+  },
+  {
+    "code": "ZTZ96B MBT",
+    "dcs_codes": ["ZTZ96B"],
+    "mil_std_2525_d": 10001500001202000000,
+    "name": "ZTZ96B MBT",
+    "sidc": "S-G-EVATH-"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["T-72B"],
+    "mil_std_2525_d": 10001500001202000000,
+    "name": "T-72B MBT",
+    "sidc": "S-G-EVATH-"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["T-72B3"],
+    "mil_std_2525_d": 10001500001202000000,
+    "name": "T-72B3 MBT",
+    "sidc": "S-G-EVATH-"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["M-60"],
+    "mil_std_2525_d": 10001500001202000000,
+    "name": null
+  },
+  {
+    "code": "Electric locomotive",
+    "dcs_codes": ["Electric locomotive"],
+    "mil_std_2525_d": 10001500001501000000,
+    "name": "Electric locomotive"
+  },
+  {
+    "code": "Gepard",
+    "dcs_codes": ["Gepard"],
+    "mil_std_2525_d": 10001000001301015000,
+    "name": "Gepard SPAAG"
+  },
+  {
+    "code": "FuSe-65",
+    "dcs_codes": ["FuSe-65"],
+    "mil_std_2525_d": 10001500002203000000,
+    "name": "Würzburg-Riese Radar (WW2 GER)"
+  },
+  {
+    "code": "Steam Locomotive",
+    "dcs_codes": ["Locomotive"],
+    "mil_std_2525_d": 10001500001501000000,
+    "name": "Steam Locomotive"
+  },
+  {
+    "code": "Leopard 1A3 MBT",
+    "dcs_codes": ["Leopard1A3"],
+    "mil_std_2525_d": 10001500001202000000,
+    "name": "Leopard 1A3 MBT",
+    "sidc": "S-G-EVATH-"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Chieftain_mk3"],
+    "mil_std_2525_d": 10001500001202000000,
+    "name": "Chieftan Mk3 MBT",
+    "sidc": "S-G-EVATH-"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Elefant_SdKfz_184"],
+    "mil_std_2525_d": 10001000001204010000,
+    "name": "Elefant/Ferdinand Tank Destroyer"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Tiger_II_H"],
+    "mil_std_2525_d": 10001500001202030000,
+    "name": "Tiger II H Heavy Tank",
+    "sidc": "S-G-EVATH-"
+  },
+  {
+    "code": "Merkava Mk4",
+    "dcs_codes": ["Merkava_Mk4"],
+    "mil_std_2525_d": 10001500001202000000,
+    "name": "Merkava Mk4 MBT",
+    "sidc": "S-G-EVATH-"
+  },
+  {
+    "code": "Tiger I",
+    "dcs_codes": ["Tiger_I"],
+    "mil_std_2525_d": 10001500001202030000,
+    "name": "Tiger I Heavy Tank",
+    "sidc": "S-G-EVATH-"
+  },
+  {
+    "code": "ZSU-57-2",
+    "dcs_codes": ["ZSU_57_2"],
+    "mil_std_2525_d": 10001000001301010000,
+    "name": "ZSU-57-2 SPAAG"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["T-55"],
+    "mil_std_2525_d": 10001500001202000000,
+    "name": "T-55 MBT",
+    "sidc": "S-G-EVATH-"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["JagdPz_IV"],
+    "mil_std_2525_d": 10001000001204010000,
+    "name": "Jagdpanzer IV Tank Destroyer"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Stug_IV"],
+    "mil_std_2525_d": 10001500001202020000,
+    "name": "Stug IV Assault Gun"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["M12_GMC"],
+    "mil_std_2525_d": 10001000001303010000,
+    "name": "M12 Gun Motor Carriage Mobile Artillery"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Jagdpanther_G1"],
+    "mil_std_2525_d": 10001000001204010000,
+    "name": "Jagdpanther Tank Destroyer"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["SturmPzIV"],
+    "mil_std_2525_d": 10001000001303010000,
+    "name": "Sturmpanzer IV Brummbar Mobile Artillery"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["M30_CC"],
+    "mil_std_2525_d": 10001000001303010000,
+    "name": "M30 Cargo Carrier"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Pz_V_Panther_G"],
+    "mil_std_2525_d": 10001500001202020000,
+    "name": "Panther G Medium Tank"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["M4A4_Sherman_FF"],
+    "mil_std_2525_d": 10001500001202020000,
+    "name": "M4A4 Sherman Firefly Medium Tank"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Churchill_VII"],
+    "mil_std_2525_d": 10001500001202030000,
+    "name": "Churchill VII Heavy Tank",
+    "sidc": "S-G-EVATH-"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Centaur_IV"],
+    "mil_std_2525_d": 10001500001202020000,
+    "name": "Centaur IV Medium Tank"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Cromwell_IV"],
+    "mil_std_2525_d": 10001500001202020000,
+    "name": "Cromwell IV Medium Tank"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["house2arm"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["M10_GMC"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Stug_III"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": "Sd.Kfz. 234",
+    "dcs_codes": ["Sd_Kfz_234_2_Puma"],
+    "mil_std_2525_d": 100001000001205000000,
+    "name": "Sd.Kfz. 234"
+  },
+  {
+    "code": "ZBD04A",
+    "dcs_codes": ["ZBD04A"],
+    "mil_std_2525_d": 10001000001205000000,
+    "name": "ZBD04A"
+  },
+  {
+    "code": "M6",
+    "dcs_codes": ["M6 Linebacker"],
+    "mil_std_2525_d": 10001000331301020000,
+    "name": "Linebacker"
+  },
+  {
+    "code": "M-2",
+    "dcs_codes": ["M-2 Bradley"],
+    "mil_std_2525_d": 10001000001205000000,
+    "name": "M-2 Bradley"
+  },
+  {
+    "code": "Roland Radar",
+    "dcs_codes": ["Roland Radar"],
+    "mil_std_2525_d": 10001500002203000000,
+    "name": "Roland Radar"
+  },
+  {
+    "code": "Roland ADS",
+    "dcs_codes": ["Roland ADS"],
+    "mil_std_2525_d": 10001000331301026000,
+    "name": "Roland ADS"
+  },
+  {
+    "code": "BMP-3",
+    "dcs_codes": ["BMP-3"],
+    "mil_std_2525_d": 10001000001205010000,
+    "name": "BMP-3 Infantry Fighting Vehicle"
+  },
+  {
+    "code": "S-300PS",
+    "dcs_codes": ["S-300PS 5P85C ln"],
+    "mil_std_2525_d": 10001500001111080000,
+    "name": "S-300 Surface to Air Missle"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["2S6 Tunguska"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["S-300PS 40B6MD sr"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["MCV-80"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["S-300PS 64H6E sr"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Tor 9A331"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Kub 1S91 str"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Kub 2P25 ln"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Osa 9A33 ln"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Marder"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["BMP-2"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["BMP-1"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["S-300PS 54K6 cp"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["S-300PS 40B6M tr"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["SA-11 Buk LN 9A310M1"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["ZSU-23-4 Shilka"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["SA-11 Buk SR 9S18M1"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["SA-11 Buk CC 9S470M1"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["S-300PS 5P85D ln"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["RLS_19J6"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["PLZ05"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Uragan_BM-27"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Coach cargo open"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["rapier_fsa_launcher"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["SAU 2-C9"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Strela-1 9P31"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Vulcan"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Tetrarch"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["generator_5i57"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["VAB_Mephisto"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["T155_Firtina"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["M4_Tractor"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Strela-10M3"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Coach a platform"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["hy_launcher"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Daimler_AC"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["SAU Gvozdika"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Coach a tank blue"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["LAV-25"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Coach a passenger"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["M-109"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Coach a tank yellow"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["M1134 Stryker ATGM"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["M1126 Stryker ICV"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["rapier_fsa_blindfire_radar"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["BTR_D"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["v1_launcher"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Scud_B"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["SAU Akatsia"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Silkworm_SR"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["M8_Greyhound"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["SAU Msta"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["rapier_fsa_optical_tracker_unit"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Coach cargo"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["AAV7"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["M1128 Stryker MGS"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Dog Ear radar"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["M1097 Avenger"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Hawk cwar"],
+    "mil_std_2525_d": null,
+    "name": null,
+    "sidc": "S-G-UCFTR-"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Patriot cp"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["5p73 s-125 ln"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Patriot AMG"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["55G6 EWR"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["ZU-23 Closed Insurgent"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["snr s-125 tr"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["1L13 EWR"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["S_75M_Volhov"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["TPZ"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["M48 Chaparral"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["M-113"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Smerch_HE"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Ural-375 ZU-23"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["MLRS"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["BRDM-2"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["HQ-7_STR_SP"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Hawk sr"],
+    "mil_std_2525_d": null,
+    "name": null,
+    "sidc": "I-G-SRTA--"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["BTR-82A"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["SNR_75V"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Hawk tr"],
+    "mil_std_2525_d": null,
+    "name": null,
+    "sidc": "I-G-SRTT--"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["HQ-7_LN_SP"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["NASAMS_Radar_MPQ64F1"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Ural-4320-31"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["p-19 s-125 sr"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["CCKW_353"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["NASAMS_Command_Post"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Patriot str"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["NASAMS_LN_C"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["NASAMS_LN_B"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Hawk pcp"],
+    "mil_std_2525_d": null,
+    "name": null,
+    "sidc": "S-G-UUSO--"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["ZU-23 Emplacement Closed"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Patriot ECS"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Hawk ln"],
+    "mil_std_2525_d": null,
+    "name": null,
+    "sidc": "S*G*EWMAS-"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["BTR-80"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Grad_FDDM"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Patriot ln"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Flakscheinwerfer_37"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["MTLB"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["BMD-1"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Land_Rover_101_FC"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["AA8"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Patriot EPP"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["SpGH_Dana"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Ural-375 ZU-23 Insurgent"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Land_Rover_109_S3"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Smerch"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Cobra"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["M1043 HMMWV Armament"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["S-60_Type59_Artillery"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Hummer"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["MLRS FDDM"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Tigr_233036"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["M1045 HMMWV TOW"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["ZU-23 Insurgent"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["ZU-23 Emplacement"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Stinger comm dsr"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["SA-18 Igla-S manpad"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Soldier stinger"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Stinger comm"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["SA-18 Igla-S comm"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["SA-18 Igla comm"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["SA-18 Igla manpad"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Predator TrojanSpirit"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["LiAZ Bus"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["M1_37mm"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["ZIL-4331"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Trolley bus"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["ZIL-131 KUNG"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Predator GCS"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["UAZ-469"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["IKARUS Bus"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Ural-375 PBU"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Ural ATsP-6"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["flak37"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["LAZ Bus"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Grad-URAL"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["ATZ-10"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["VAZ Car"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["HEMTT TFFT"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["GAZ-66"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["M 818"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["ZiL-131 APA-80"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["flak36"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["GAZ-3308"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["ATZ-5"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["flak41"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Ural-4320T"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["KAMAZ Truck"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["GAZ-3307"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["ATMZ-5"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Ural-375"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": "M978",
+    "dcs_codes": ["M978 HEMTT Tanker"],
+    "mil_std_2525_d": 10001000001620000000,
+    "name": "M978 HEMTT Tanker"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Maschinensatz_33"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["QF_37_AA"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": "APA5D",
+    "dcs_codes": ["Ural-4320 APA-5D"],
+    "mil_std_2525_d": 10001000001202000000,
+    "name": "Ural-4320 APA-5D ASU"
+  },
+  {
+    "code": "MAZ-6303",
+    "dcs_codes": ["MAZ-6303"],
+    "mil_std_2525_d": 10001000001617000000,
+    "name": "MAZ-6303 Truck"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Willys_MB"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": "SKP-11",
+    "dcs_codes": ["SKP-11"],
+    "mil_std_2525_d": 10001000001106000000,
+    "name": "SKP-11 Command Post Truck (RUS)"
+  },
+  {
+    "code": "M45Q",
+    "dcs_codes": ["M45_Quadmount"],
+    "mil_std_2525_d": 10001000001301010000,
+    "name": "M45 Quadmount (USA WW2)"
+  },
+  {
+    "code": "Flak30",
+    "dcs_codes": ["flak30"],
+    "mil_std_2525_d": 10001000001301010000,
+    "name": "Flak 30 (WW2 GER)"
+  },
+  {
+    "code": null,
+    "dcs_codes": ["KDO_Mod40"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["flak38"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["2B11 mortar"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Infantry AK"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["soldier_mauser98"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Soldier RPG"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Soldier M249"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Soldier AK"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Paratrooper AKS-74"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Soldier M4"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["soldier_wwii_br_01"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Paratrooper RPG-16"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["soldier_wwii_us"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Invi"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["SK_C_28_naval_gun"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["houseA_arm"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["outpost"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["outpost_road"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Bunker"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["fire_control"],
+    "mil_std_2525_d": null,
+    "name": null
+  },
+  {
+    "code": null,
+    "dcs_codes": ["Sandbox"],
+    "mil_std_2525_d": null,
+    "name": null
+  }
+]

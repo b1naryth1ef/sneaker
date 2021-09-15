@@ -8,6 +8,8 @@ export type RawEntityData = {
   latitude: number;
   altitude: number;
   heading: number;
+  updated_at: number;
+  created_at: number;
 };
 
 export class Entity {
@@ -18,6 +20,8 @@ export class Entity {
   latitude: number;
   altitude: number;
   heading: number;
+  updatedAt: number;
+  createdAt: number;
 
   constructor(data: RawEntityData) {
     this.id = data.id;
@@ -27,6 +31,8 @@ export class Entity {
     this.latitude = data.latitude;
     this.altitude = data.altitude;
     this.heading = data.heading;
+    this.updatedAt = data.updated_at;
+    this.createdAt = data.created_at;
   }
 
   get coalition(): string {
@@ -72,5 +78,25 @@ export class Entity {
     }
 
     return `S${ident}${battleDimension}-------`;
+  }
+}
+
+export function getCoalitionColor(coalition: string) {
+  if (coalition === "Allies") {
+    return "#ff8080";
+  } else if (coalition === "Enemies") {
+    return "#17c2f6";
+  } else {
+    return "#FBBF24";
+  }
+}
+
+export function getCoalitionIdentity(coalition: string) {
+  if (coalition === "Allies") {
+    return "H";
+  } else if (coalition === "Enemies") {
+    return "F";
+  } else {
+    return "U";
   }
 }

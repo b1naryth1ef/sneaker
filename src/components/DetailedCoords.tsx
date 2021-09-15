@@ -9,15 +9,15 @@ export default function DetailedCoords(
     <>
       <div className="flex flex-row w-full">
         <span className="pr-2 flex-grow">DMS</span>
-        <span className="select-text">{formatDMS(coords)}</span>
+        <span className="select-text font-mono">{formatDMS(coords)}</span>
       </div>
       <div className="flex flex-row w-full">
         <span className="pr-2 flex-grow">DDM</span>
-        <span className="select-text">{formatDDM(coords)}</span>
+        <span className="select-text font-mono">{formatDDM(coords)}</span>
       </div>
       <div className="flex flex-row w-full">
         <span className="pr-2 flex-grow">MGRS</span>
-        <span className="select-text">
+        <span className="select-text font-mono">
           {mgrs.forward([coords[1], coords[0]])}
         </span>
       </div>

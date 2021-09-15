@@ -32,7 +32,8 @@ func (h *httpServer) getServerList(w http.ResponseWriter, r *http.Request) {
 	result := make([]*tacViewServerMetadata, len(h.config.Servers))
 	for idx, server := range h.config.Servers {
 		result[idx] = &tacViewServerMetadata{
-			Name: server.Name,
+			Name:            server.Name,
+			GroundUnitModes: getGroundUnitModes(&server),
 		}
 	}
 
@@ -40,7 +41,19 @@ func (h *httpServer) getServerList(w http.ResponseWriter, r *http.Request) {
 }
 
 type tacViewServerMetadata struct {
-	Name string `json:"name"`
+	Name            string   `json:"name"`
+	GroundUnitModes []string `json:"ground_unit_modes"`
+}
+
+func getGroundUnitModes(config *TacViewServerConfig) []string {
+	result := []string{}
+	if config.EnableEnemyGroundUnits {
+		result = append(result, "enemy")
+	}
+	if config.EnableFriendlyGroundUnits {
+		result = append(result, "friendly")
+	}
+	return result
 }
 
 // Return information about a specific server
@@ -60,7 +73,8 @@ func (h *httpServer) getServer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	gores.JSON(w, 200, &tacViewServerMetadata{
-		Name: server.Name,
+		Name:            server.Name,
+		GroundUnitModes: getGroundUnitModes(server),
 	})
 }
 

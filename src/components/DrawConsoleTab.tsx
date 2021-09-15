@@ -50,6 +50,7 @@ export default function DrawConsoleTab(
         {geometry.valueSeq().map((it) => {
           return (
             <button
+              key={it.id}
               className={classNames(
                 "bg-indigo-100 hover:border-indigo-300 hover:bg-indigo-200 border-indigo-200 border rounded-sm p-1",
                 { "bg-indigo-200 border-indigo-300": it.id === selectedId },

@@ -1,9 +1,15 @@
 import create from "zustand";
 
+export enum GroundUnitMode {
+  FRIENDLY = "friendly",
+  ENEMY = "enemy",
+}
+
 export type SettingsStoreData = {
   map: {
     showTrackIcons?: boolean;
     showTrackLabels?: boolean;
+    groundUnitMode?: GroundUnitMode;
   };
 };
 
@@ -16,6 +22,7 @@ export const settingsStore = create<SettingsStoreData>(() => {
     map: {
       showTrackIcons: true,
       showTrackLabels: true,
+      groundUnitMode: GroundUnitMode.FRIENDLY,
     },
   };
 });

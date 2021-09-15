@@ -3,7 +3,7 @@ import * as maptalks from "maptalks";
 import React, { useMemo, useState } from "react";
 import { BiCog } from "react-icons/bi";
 import { entityMetadataStore } from "../stores/EntityMetadataStore";
-import { serverStore } from "../stores/ServerStore";
+import { serverStore, setSelectedEntityId } from "../stores/ServerStore";
 import {
   EntityTrackPing,
   estimatedSpeed,
@@ -13,9 +13,8 @@ import { Entity } from "../types/entity";
 import DrawConsoleTab from "./DrawConsoleTab";
 
 function WatchTab(
-  { map, setSelectedEntityId }: {
+  { map }: {
     map: maptalks.Map;
-    setSelectedEntityId: (entityId: number | null) => void;
   },
 ) {
   const trackState = trackStore((state) => state);
@@ -77,8 +76,7 @@ function WatchTab(
 }
 
 function SearchTab(
-  { setSelectedEntityId, map }: {
-    setSelectedEntityId: (entityId: number | null) => void;
+  { map }: {
     map: maptalks.Map;
   },
 ) {
@@ -157,8 +155,7 @@ function SearchTab(
 }
 
 export function Console(
-  { setSelectedEntityId, map, setSettingsOpen }: {
-    setSelectedEntityId: (entityId: number | null) => void;
+  { map, setSettingsOpen }: {
     setSettingsOpen: (value: boolean) => void;
     map: maptalks.Map;
   },
@@ -227,9 +224,9 @@ export function Console(
         </div>
       </div>
       {selectedTab === "search" &&
-        <SearchTab setSelectedEntityId={setSelectedEntityId} map={map} />}
+        <SearchTab map={map} />}
       {selectedTab === "watch" &&
-        <WatchTab setSelectedEntityId={setSelectedEntityId} map={map} />}
+        <WatchTab map={map} />}
       {selectedTab === "draw" &&
         <DrawConsoleTab map={map} />}
     </div>

@@ -3,10 +3,12 @@ import create from "zustand";
 import { SneakerClient } from "../SneakerClient";
 import { Entity } from "../types/entity";
 import { route } from "../util";
+import { GroundUnitMode } from "./SettingsStore";
 import { createTracks, updateTracks } from "./TrackStore";
 
 export type Server = {
   name: string;
+  ground_unit_modes: Array<GroundUnitMode>;
 };
 
 // const worker = new Worker(new URL("../worker.ts", import.meta.url));
@@ -19,6 +21,7 @@ export type ServerStoreData = {
   entities: Immutable.Map<number, Entity>;
   offset: number;
   sessionId: string | null;
+  selectedEntityId: number | null;
 };
 
 export const serverStore = create<ServerStoreData>(() => {
@@ -27,12 +30,17 @@ export const serverStore = create<ServerStoreData>(() => {
     entities: Immutable.Map<number, Entity>(),
     offset: 0,
     sessionId: null,
+    selectedEntityId: null,
   };
 });
 
 (window as any).serverStore = serverStore;
 
 let sneakerClient: SneakerClient | null = null;
+
+export function setSelectedEntityId(selectedEntityId: number | null) {
+  serverStore.setState({ selectedEntityId });
+}
 
 function runSneakerClient(server: Server | null) {
   sneakerClient?.close();

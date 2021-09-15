@@ -33,6 +33,7 @@ function maybeParseCoord(newCoord: string): null | [number, number] {
 
 function GeometryDetails({ geo, edit }: { geo: Geometry; edit: boolean }) {
   const [newCoord, setNewCoord] = useState<string>("");
+
   useEffect(() => {
     if (edit) setNewCoord("");
   }, [edit]);
@@ -53,17 +54,6 @@ function GeometryDetails({ geo, edit }: { geo: Geometry; edit: boolean }) {
           )
           : geo.name}
       </div>
-      {geo.type === "zone" && (
-        <div className="flex flex-col gap-0.5 mt-2">
-          {geo.points.map((it) => (
-            <div
-              className="p-0.5 bg-gray-200 border-gray-500 border rounded-sm"
-            >
-              <DetailedCoords coords={it} />
-            </div>
-          ))}
-        </div>
-      )}
       {geo.type === "markpoint" && <DetailedCoords coords={geo.position} />}
       {geo.type === "markpoint" && edit &&
         (

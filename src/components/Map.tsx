@@ -12,8 +12,9 @@ import { planes } from "../dcs/aircraft";
 import { DCSMap } from "../dcs/maps/DCSMap";
 import { useKeyPress } from "../hooks/useKeyPress";
 import useRenderGeometry from "../hooks/useRenderGeometry";
+import useRenderGroundUnit from "../hooks/useRenderGroundUnits";
 import { alertStore } from "../stores/AlertStore";
-import { serverStore } from "../stores/ServerStore";
+import { serverStore, setSelectedEntityId } from "../stores/ServerStore";
 import { settingsStore } from "../stores/SettingsStore";
 import {
   estimatedAltitudeRate,
@@ -55,10 +56,9 @@ function pruneLayer(
 }
 
 function MapRadarTracks(
-  { map, selectedEntityId, setSelectedEntityId }: {
+  { map, selectedEntityId }: {
     map: maptalks.Map;
     selectedEntityId: number | null;
-    setSelectedEntityId: (v: number | null) => void;
   },
 ) {
   const radarTracks = trackStore((state) => state.tracks.entrySeq().toArray());
@@ -584,7 +584,6 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
     useRef(null);
   const selectedCircle: MutableRefObject<maptalks.Circle | null> = useRef(null);
   const [zoom, setZoom] = useState<number>(8);
-  const [selectedEntityId, setSelectedEntityId] = useState<number | null>(null);
 
   const [drawBraaStart, setDrawBraaStart] = useState<
     number | [number, number] | null
@@ -595,9 +594,12 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
 
   const [settingsOpen, setSettingsOpen] = useState(false);
 
-  const entities = serverStore((state) => state.entities);
-
-  const selectedEntity = selectedEntityId && entities.get(selectedEntityId);
+  const [entities, selectedEntity] = serverStore((
+    state,
+  ) => [
+    state.entities,
+    state.selectedEntityId && state.entities.get(state.selectedEntityId),
+  ]);
 
   // TODO: server should set coalition
   const bullsEntity = entities.find((it) =>
@@ -610,7 +612,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
 
   const selectedTrack = trackStore((
     state,
-  ) => selectedEntityId && state.tracks.get(selectedEntityId));
+  ) => selectedEntity && state.tracks.get(selectedEntity.id));
 
   const isSnapPressed = useKeyPress("s");
   const isDecluttered = useKeyPress("d");
@@ -709,6 +711,9 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
           hitDetect: false,
         }),
         new maptalks.VectorLayer("farp-icon", [], {
+          hitDetect: false,
+        }),
+        new maptalks.VectorLayer("ground-units", [], {
           hitDetect: false,
         }),
         new maptalks.VectorLayer("custom-geometry", [], {
@@ -1119,6 +1124,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
   }, [farps]);
 
   useRenderGeometry(map.current);
+  useRenderGroundUnit(map.current);
 
   return (
     <div
@@ -1156,13 +1162,12 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
       <div
         className="m-2 absolute left-0 top-0 flex flex-col gap-2"
       >
-        {selectedTrack && selectedEntity && map.current &&
+        {selectedEntity && map.current &&
           (
             <EntityInfo
-              setSelectedEntityId={setSelectedEntityId}
               map={map.current}
               dcsMap={dcsMap}
-              track={selectedTrack}
+              track={selectedTrack || null}
               entity={selectedEntity}
             />
           )}
@@ -1170,7 +1175,6 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
       </div>
       {map.current && (
         <Console
-          setSelectedEntityId={setSelectedEntityId}
           setSettingsOpen={setSettingsOpen}
           map={map.current}
         />
@@ -1179,8 +1183,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
         (
           <MapRadarTracks
             map={map.current}
-            selectedEntityId={selectedEntityId}
-            setSelectedEntityId={setSelectedEntityId}
+            selectedEntityId={selectedEntity ? selectedEntity.id : null}
           />
         )}
       {map.current && bullsEntity &&
