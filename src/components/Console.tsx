@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import * as maptalks from "maptalks";
 import React, { useMemo, useState } from "react";
-import { BiCog } from "react-icons/bi";
+import { BiCog, BiNote } from "react-icons/bi";
 import { entityMetadataStore } from "../stores/EntityMetadataStore";
 import { serverStore, setSelectedEntityId } from "../stores/ServerStore";
 import {
@@ -155,8 +155,9 @@ function SearchTab(
 }
 
 export function Console(
-  { map, setSettingsOpen }: {
+  { map, setSettingsOpen, setScratchPadOpen }: {
     setSettingsOpen: (value: boolean) => void;
+    setScratchPadOpen: (value: boolean) => void;
     map: maptalks.Map;
   },
 ) {
@@ -204,7 +205,7 @@ export function Console(
             Draw
           </button>
         </div>
-        <div className="ml-auto flex flex-row gap-1">
+        <div className="ml-auto flex flex-row gap-2">
           {
             /* {selectedTab !== null && (
             <button
@@ -216,7 +217,13 @@ export function Console(
           )} */
           }
           <button
-            className="border bg-blue-100 border-blue-300 p-1 rounded-sm shadow-sm flex flex-row items-center"
+            className="border bg-yellow-300 border-yellow-600 p-1 rounded-sm shadow-sm flex flex-row items-center"
+            onClick={() => setScratchPadOpen(true)}
+          >
+            <BiNote className="inline-block w-4 h-4" />
+          </button>
+          <button
+            className="border bg-blue-300 border-blue-600 p-1 rounded-sm shadow-sm flex flex-row items-center"
             onClick={() => setSettingsOpen(true)}
           >
             <BiCog className="inline-block w-4 h-4" />

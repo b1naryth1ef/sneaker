@@ -33,6 +33,7 @@ import { EntityInfo, iconCache, MapSimpleEntity } from "./MapEntity";
 import MapGeometryInfo from "./MapGeometryInfo";
 import { colorMode } from "./MapIcon";
 import { MissionTimer } from "./MissionTimer";
+import ScratchPad from "./ScratchPad";
 import { Settings } from "./Settings";
 
 const syncVisibility = (geo: maptalks.Geometry, value: boolean) => {
@@ -594,6 +595,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
   );
 
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [scratchPadOpen, setScratchPadOpen] = useState(false);
 
   const [entities, selectedEntity] = serverStore((
     state,
@@ -1173,10 +1175,13 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
             />
           )}
         {map.current && <MapGeometryInfo map={map.current} />}
+        {scratchPadOpen &&
+          <ScratchPad close={() => setScratchPadOpen(false)} />}
       </div>
       {map.current && (
         <Console
           setSettingsOpen={setSettingsOpen}
+          setScratchPadOpen={setScratchPadOpen}
           map={map.current}
         />
       )}
