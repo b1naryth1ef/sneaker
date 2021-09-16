@@ -6,9 +6,12 @@ import { trackStore } from "./TrackStore";
 
 export type Profile = {
   name: string;
-  labels: Array<string>;
+  tags: Array<string>;
   defaultThreatRadius?: number;
   defaultWarningRadius?: number;
+
+  // The format of track labels
+  trackLabelFormat?: string;
 };
 
 type ProfileStoreData = {
@@ -24,13 +27,13 @@ export const profileStore = create<ProfileStoreData>(() => {
   return { profiles };
 });
 
-export function getProfilesForLabels(
-  labels: Immutable.Set<string>,
+export function getProfilesForTags(
+  tags: Immutable.Set<string>,
   profiles?: Immutable.Map<string, Profile>,
 ): Array<Profile> {
   return (profiles || profileStore.getState().profiles).valueSeq().filter((
     it,
-  ) => labels.intersect(it.labels).size > 0).sort((a, b) =>
+  ) => tags.intersect(it.tags).size > 0).sort((a, b) =>
     a.name > b.name ? -1 : 1
   ).toArray();
 }
@@ -38,7 +41,7 @@ export function getProfilesForLabels(
 export function addProfile(name: string) {
   return profileStore.setState((state) => {
     if (state.profiles.has(name)) return;
-    return { profiles: state.profiles.set(name, { name, labels: [] }) };
+    return { profiles: state.profiles.set(name, { name, tags: [] }) };
   });
 }
 
@@ -52,7 +55,7 @@ export function deleteProfile(name: string) {
       for (
         const [entityId, metadata] of entityMetadataStore.getState().entities
       ) {
-        const profile = getProfilesForLabels(metadata.labels, profiles).map((
+        const profile = getProfilesForTags(metadata.tags, profiles).map((
           it,
         ) => [it.defaultThreatRadius, it.defaultWarningRadius]).reduce(
           (a, b) => [a[0] || b[0], a[1] || b[1]],
@@ -88,7 +91,7 @@ export function updateProfile(profile: { name: string } & Partial<Profile>) {
       for (
         const [entityId, metadata] of entityMetadataStore.getState().entities
       ) {
-        const profile = getProfilesForLabels(metadata.labels, profiles).map((
+        const profile = getProfilesForTags(metadata.tags, profiles).map((
           it,
         ) => [it.defaultThreatRadius, it.defaultWarningRadius]).reduce(
           (a, b) => [a[0] || b[0], a[1] || b[1]],

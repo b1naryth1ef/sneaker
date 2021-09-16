@@ -12,7 +12,7 @@ export type SavedDataV1 = {
   version: 0;
   sessionId: string;
   hacks: Array<number>;
-  entityMetadata: Array<[number, { labels: Array<string> }]>;
+  entityMetadata: Array<[number, { tags: Array<string> }]>;
   trackOptions: Array<[number, TrackOptions]>;
   geometry: Array<Geometry>;
 };
@@ -65,7 +65,7 @@ export function restoreData(serverName: string, sessionId: string): boolean {
       entities: Immutable.Map<number, EntityMetadata>(
         payloadRaw.entityMetadata!.map(([entityId, data]) => {
           return [entityId, {
-            labels: Immutable.Set<string>(data.labels),
+            tags: Immutable.Set<string>(data.tags),
           }];
         }),
       ),

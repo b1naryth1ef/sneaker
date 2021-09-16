@@ -1,10 +1,10 @@
 import Immutable from "immutable";
 import create from "zustand";
-import { getProfilesForLabels } from "./ProfileStore";
+import { getProfilesForTags } from "./ProfileStore";
 import { setTrackOptions } from "./TrackStore";
 
 export type EntityMetadata = {
-  labels: Immutable.Set<string>;
+  tags: Immutable.Set<string>;
 };
 
 type EntityMetadataStoreData = {
@@ -20,14 +20,12 @@ export function useEntityMetadata(
   return entityMetadataStore((state) => state.entities.get(entityId));
 }
 
-export function pushEntityLabel(entityId: number, label: string) {
+export function pushEntityTag(entityId: number, tag: string) {
   return entityMetadataStore.setState((state) => {
     const existing = state.entities.get(entityId);
-    const labels = existing
-      ? existing.labels.add(label)
-      : Immutable.Set.of(label);
+    const tags = existing ? existing.tags.add(tag) : Immutable.Set.of(tag);
 
-    const profiles = getProfilesForLabels(labels).map((
+    const profiles = getProfilesForTags(tags).map((
       it,
     ) => [it.defaultThreatRadius, it.defaultWarningRadius]).reduce(
       (a, b) => [a[0] || b[0], a[1] || b[1]],
@@ -42,28 +40,28 @@ export function pushEntityLabel(entityId: number, label: string) {
     if (!existing) {
       return {
         entities: state.entities.set(entityId, {
-          labels: labels,
+          tags,
         }),
       };
-    } else if (!existing.labels.includes(label)) {
+    } else if (!existing.tags.includes(tag)) {
       return {
         entities: state.entities.set(entityId, {
           ...existing,
-          labels: labels,
+          tags,
         }),
       };
     }
   });
 }
 
-export function popEntityLabel(entityId: number, label: string) {
+export function popEntityTag(entityId: number, label: string) {
   return entityMetadataStore.setState((state) => {
     const existing = state.entities.get(entityId);
     if (!existing) {
       return state;
     } else {
-      const labels = existing.labels.remove(label);
-      const profiles = getProfilesForLabels(labels).map((
+      const tags = existing.tags.remove(label);
+      const profiles = getProfilesForTags(tags).map((
         it,
       ) => [it.defaultThreatRadius, it.defaultWarningRadius]).reduce(
         (a, b) => [a[0] || b[0], a[1] || b[1]],
@@ -78,7 +76,7 @@ export function popEntityLabel(entityId: number, label: string) {
       return {
         entities: state.entities.set(entityId, {
           ...existing,
-          labels: labels,
+          tags,
         }),
       };
     }

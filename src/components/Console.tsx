@@ -91,7 +91,7 @@ function SearchTab(
 
       return (it: Entity) => {
         const meta = entityMetadata.get(it.id);
-        return meta && meta.labels.includes(tag);
+        return meta && meta.tags.includes(tag);
       };
     } else {
       return (it: Entity) =>

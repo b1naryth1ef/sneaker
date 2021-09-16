@@ -7,7 +7,7 @@ import {
 import { RawEntityData } from "../types/entity";
 import { getFlyDistance } from "../util";
 import { entityMetadataStore } from "./EntityMetadataStore";
-import { getProfilesForLabels } from "./ProfileStore";
+import { getProfilesForTags } from "./ProfileStore";
 
 const DEFAULT_NUM_PREVIOUS_PINGS = 16;
 
@@ -156,7 +156,7 @@ setTimeout(() => {
       ...trackState,
       trackOptions: trackState.trackOptions.withMutations((obj) => {
         for (const [entityId, metadata] of state.entities) {
-          const profile = getProfilesForLabels(metadata.labels).map((
+          const profile = getProfilesForTags(metadata.tags).map((
             it,
           ) => [it.defaultThreatRadius, it.defaultWarningRadius]).reduce(
             (a, b) => [a[0] || b[0], a[1] || b[1]],
