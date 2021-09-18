@@ -33,6 +33,11 @@ function renderGroundUnit(layer: maptalks.VectorLayer, unit: Entity) {
     unit.id,
   ) as maptalks.GeometryCollection;
   if (collection) {
+    const [icon] = collection.getGeometries() as [maptalks.Marker];
+    icon.setCoordinates([
+      unit.longitude,
+      unit.latitude,
+    ]);
     return;
   }
 

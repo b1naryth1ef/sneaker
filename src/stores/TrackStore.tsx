@@ -2,7 +2,7 @@ import Immutable from "immutable";
 import create from "zustand";
 import {
   SneakerInitialStateEvent,
-  SneakerRadarSnapshotEvent,
+  SneakerRadarSnapshotEvent
 } from "../SneakerClient";
 import { RawEntityData } from "../types/entity";
 import { getFlyDistance } from "../util";
@@ -43,7 +43,7 @@ export function isTrackVisible(track: Array<EntityTrackPing>): boolean {
   return track.length >= 3 && estimatedSpeed(track) >= 25;
 }
 
-// Returns the estimated speed (in knots) of an entity based on its track
+// Returns the estimated speed (in kph) of an entity based on its track
 export function estimatedSpeed(pings: Array<EntityTrackPing>): number {
   if (pings.length < 2) {
     return -1;
@@ -56,7 +56,7 @@ export function estimatedSpeed(pings: Array<EntityTrackPing>): number {
   ) / seconds) * 3600;
 }
 
-// Returns the estimated altitude rate (in fpm) of an entity based on its track
+// Returns the estimated altitude rate (in mpm) of an entity based on its track
 export function estimatedAltitudeRate(track: Array<EntityTrackPing>): number {
   if (track.length < 2) {
     return -1;

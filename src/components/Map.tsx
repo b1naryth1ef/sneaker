@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useMemo,
   useRef,
-  useState,
+  useState
 } from "react";
 import { renderToString } from "react-dom/server";
 import { planes } from "../dcs/aircraft";
@@ -13,20 +13,20 @@ import { DCSMap } from "../dcs/maps/DCSMap";
 import { useKeyPress } from "../hooks/useKeyPress";
 import useRenderGeometry from "../hooks/useRenderGeometry";
 import useRenderGroundUnit from "../hooks/useRenderGroundUnits";
+import useRenderTracks from "../hooks/useRenderTracks";
 import { alertStore } from "../stores/AlertStore";
 import { serverStore, setSelectedEntityId } from "../stores/ServerStore";
 import { settingsStore } from "../stores/SettingsStore";
 import {
-  estimatedAltitudeRate,
   estimatedSpeed,
   isTrackVisible,
-  trackStore,
+  trackStore
 } from "../stores/TrackStore";
 import {
   computeBRAA,
   getBearingMap,
   getCardinal,
-  getFlyDistance,
+  getFlyDistance
 } from "../util";
 import { Console } from "./Console";
 import { EntityInfo, iconCache, MapSimpleEntity } from "./MapEntity";
@@ -36,7 +36,7 @@ import { MissionTimer } from "./MissionTimer";
 import ScratchPad from "./ScratchPad";
 import { Settings } from "./Settings";
 
-const syncVisibility = (geo: maptalks.Geometry, value: boolean) => {
+export const syncVisibility = (geo: maptalks.Geometry, value: boolean) => {
   const isVisible = geo.isVisible();
   if (!isVisible && value) {
     geo.show();
@@ -75,11 +75,6 @@ function MapRadarTracks(
     const trailLayer = map.getLayer("track-trails") as maptalks.VectorLayer;
     const iconLayer = map.getLayer("track-icons") as maptalks.VectorLayer;
     const nameLayer = map.getLayer("track-name") as maptalks.VectorLayer;
-    const altLayer = map.getLayer("track-altitude") as maptalks.VectorLayer;
-    const speedLayer = map.getLayer("track-speed") as maptalks.VectorLayer;
-    const vertLayer = map.getLayer(
-      "track-verticalvelo",
-    ) as maptalks.VectorLayer;
     const alertLayer = map.getLayer(
       "track-alert-radius",
     ) as maptalks.VectorLayer;
@@ -88,9 +83,6 @@ function MapRadarTracks(
     pruneLayer(iconLayer, (it) => entities.has(it));
     pruneLayer(trailLayer, (it) => entities.has(it));
     pruneLayer(nameLayer, (it) => entities.has(it));
-    pruneLayer(altLayer, (it) => entities.has(it));
-    pruneLayer(speedLayer, (it) => entities.has(it));
-    pruneLayer(vertLayer, (it) => entities.has(it));
 
     for (const geo of alertLayer.getGeometries()) {
       const geoA: any = geo;
@@ -234,125 +226,6 @@ function MapRadarTracks(
         syncVisibility(nameGeo, trackVisible);
       }
 
-      const altGeo = altLayer.getGeometryById(
-        entityId,
-      ) as maptalks.Label;
-      if (!altGeo) {
-        const altLabel = new maptalks.Label("", [0, 0], {
-          id: entityId,
-          draggable: false,
-          visible: false,
-          editable: false,
-          boxStyle: {
-            "padding": [2, 2],
-            "horizontalAlignment": "left",
-            "symbol": {
-              "markerType": "square",
-              "markerFillOpacity": 0,
-              "markerLineOpacity": 0,
-              textHorizontalAlignment: "right",
-              textDx: 20,
-              textDy: 18,
-            },
-          },
-          "textSymbol": {
-            "textFaceName": '"microsoft yahei"',
-            "textFill": "#FFC0CB",
-            "textSize": 12,
-          },
-        });
-        altLayer.addGeometry(altLabel);
-      } else {
-        (altGeo.setContent as any)(
-          `${
-            ((entity.altitude * 3.28084) / 1000).toFixed(1).toString().padStart(
-              3,
-              "0",
-            )
-          }`,
-        );
-        altGeo.setCoordinates(
-          [entity.longitude, entity.latitude],
-        );
-        syncVisibility(altGeo, trackVisible);
-      }
-
-      const speedGeo = speedLayer.getGeometryById(
-        entityId,
-      ) as maptalks.Label;
-      if (!speedGeo) {
-        const speedLabel = new maptalks.Label("", [0, 0], {
-          id: entityId,
-          draggable: false,
-          visible: false,
-          editable: false,
-          boxStyle: {
-            "padding": [2, 2],
-            "horizontalAlignment": "left",
-            "symbol": {
-              "markerType": "square",
-              "markerFillOpacity": 0,
-              "markerLineOpacity": 0,
-              textHorizontalAlignment: "right",
-              textDx: 45,
-              textDy: 18,
-            },
-          },
-          "textSymbol": {
-            "textFaceName": '"microsoft yahei"',
-            "textFill": "orange",
-            "textSize": 12,
-          },
-        });
-        speedLayer.addGeometry(speedLabel);
-      } else {
-        (speedGeo.setContent as any)(
-          `${Math.round(estimatedSpeed(track))}`,
-        );
-        speedGeo.setCoordinates(
-          [entity.longitude, entity.latitude],
-        );
-
-        syncVisibility(speedGeo, trackVisible);
-      }
-
-      const vertGeo = vertLayer.getGeometryById(
-        entityId,
-      ) as maptalks.Label;
-      if (!vertGeo) {
-        const vertLabel = new maptalks.Label("", [0, 0], {
-          id: entityId,
-          draggable: false,
-          visible: false,
-          editable: false,
-          boxStyle: {
-            "padding": [2, 2],
-            "horizontalAlignment": "left",
-            "symbol": {
-              "markerType": "square",
-              "markerFillOpacity": 0,
-              "markerLineOpacity": 0,
-              textHorizontalAlignment: "right",
-              textDx: 70,
-              textDy: 18,
-            },
-          },
-          "textSymbol": {
-            "textFaceName": '"microsoft yahei"',
-            "textFill": "#6EE7B7",
-            "textSize": 12,
-          },
-        });
-        vertLayer.addGeometry(vertLabel);
-      } else {
-        (vertGeo.setContent as any)(
-          `${Math.round(estimatedAltitudeRate(track))}`,
-        );
-        vertGeo.setCoordinates(
-          [entity.longitude, entity.latitude],
-        );
-        syncVisibility(vertGeo, trackVisible);
-      }
 
       let threatCircle = alertLayer.getGeometryById(
         `${entityId}-threat`,
@@ -746,14 +619,11 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
           forceRenderOnMoving: true,
           forceRenderOnRotating: true,
         }),
-        new maptalks.VectorLayer("track-altitude", [], {
+        new maptalks.VectorLayer("tracks", [], {
           hitDetect: false,
-        }),
-        new maptalks.VectorLayer("track-speed", [], {
-          hitDetect: false,
-        }),
-        new maptalks.VectorLayer("track-verticalvelo", [], {
-          hitDetect: false,
+          forceRenderOnZooming: true,
+          forceRenderOnMoving: true,
+          forceRenderOnRotating: true,
         }),
         new maptalks.VectorLayer("braa", [
           braaLine,
@@ -1126,6 +996,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
     }
   }, [farps]);
 
+  useRenderTracks(map.current);
   useRenderGeometry(map.current);
   useRenderGroundUnit(map.current);
 

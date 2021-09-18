@@ -1,8 +1,56 @@
 import Immutable from "immutable";
 import { throttle } from "lodash";
 import create from "zustand";
-import { entityMetadataStore } from "./EntityMetadataStore";
+import { Entity } from "../types/entity";
+import { EntityMetadata, entityMetadataStore } from "./EntityMetadataStore";
 import { trackStore } from "./TrackStore";
+
+export type TrackFieldAltitude = {
+  type: "altitude";
+  unit: "feet" | "meters";
+  minPlaces: number;
+  decimalPlaces: number;
+};
+
+export type TrackFieldGroundSpeed = {
+  type: "ground-speed";
+  unit: "knots" | "mach" | "kph";
+};
+
+export type TrackFieldVerticalSpeed = {
+  type: "vertical-speed";
+  unit: "fpm" | "kpm" | "visual";
+}
+
+export type TrackField = (TrackFieldAltitude | TrackFieldGroundSpeed | TrackFieldVerticalSpeed) & {
+  color?: string;
+};
+
+export type ProfileSelectorTag = {
+  type: "tag";
+  value: string;
+};
+
+export type ProfileSelectorType = {
+  type: "type";
+  value: string;
+};
+
+export type ProfileSelectorName = {
+  type: "name";
+  value: string;
+};
+
+export type ProfileSelectorCoalition = {
+  type: "coalition";
+  value: "Enemies" | "Allies";
+};
+
+export type ProfileSelector =
+  | ProfileSelectorTag
+  | ProfileSelectorType
+  | ProfileSelectorCoalition
+  | ProfileSelectorName;
 
 export type Profile = {
   name: string;
@@ -12,6 +60,10 @@ export type Profile = {
 
   // The format of track labels
   trackLabelFormat?: string;
+  trackFields?: Array<TrackField>;
+
+  // TODO: move from tags to selectors
+  selectors: Array<ProfileSelector>;
 };
 
 type ProfileStoreData = {
@@ -27,6 +79,15 @@ export const profileStore = create<ProfileStoreData>(() => {
   return { profiles };
 });
 
+export function getProfileForEntity(
+  entity: Entity,
+  metadata?: EntityMetadata,
+): Profile | null {
+  // TODO: for now this will just use getProfilesForTags, eventually we want to
+  //  utilize selectors.
+  return null;
+}
+
 export function getProfilesForTags(
   tags: Immutable.Set<string>,
   profiles?: Immutable.Map<string, Profile>,
@@ -41,7 +102,9 @@ export function getProfilesForTags(
 export function addProfile(name: string) {
   return profileStore.setState((state) => {
     if (state.profiles.has(name)) return;
-    return { profiles: state.profiles.set(name, { name, tags: [] }) };
+    return {
+      profiles: state.profiles.set(name, { name, tags: [], selectors: [] }),
+    };
   });
 }
 

@@ -63,7 +63,7 @@ export function Settings({ close }: { close: () => void }): JSX.Element {
     <div
       className={classNames(
         "flex flex-col overflow-x-hidden overflow-y-auto absolute",
-        "inset-0 z-50 bg-gray-100 mx-auto my-auto max-w-3xl",
+        "inset-0 z-50 bg-gray-200 mx-auto my-auto max-w-3xl",
         "border border-gray-200 rounded-sm shadow-md",
       )}
       style={{ maxHeight: "80%" }}

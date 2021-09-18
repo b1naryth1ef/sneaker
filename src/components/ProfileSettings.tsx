@@ -11,7 +11,7 @@ import ProfileTagList from "./ProfileTagList";
 function ProfileDetails({ profile }: { profile: Profile }) {
   return (
     <div
-      className="border-b border-gray-300 text-sm flex flex-col gap-1 py-1 my-2"
+      className="border bg-gray-100 border-gray-300 text-sm flex flex-col gap-1 p-2 rounded-sm"
     >
       <div className="flex flex-row mb-1">
         <div className="flex-grow text-xl">{profile.name}</div>
@@ -71,7 +71,9 @@ export function ProfileSettings(): JSX.Element {
 
   return (
     <div className="flex flex-col">
-      <div className="flex flex-row items-center pb-2 border-b border-gray-300">
+      <div
+        className="flex flex-row items-center pb-2 border-b border-gray-300 mb-4"
+      >
         <div className="flex-grow">
           <h3 className="text-xl">Profiles</h3>
         </div>
@@ -86,6 +88,7 @@ export function ProfileSettings(): JSX.Element {
             disabled={newProfileName === ""}
             onClick={() => {
               addProfile(newProfileName);
+              setNewProfileName("");
             }}
             className="flex-grow inline-block ml-auto p-1 bg-green-100 border-green-300 border rounded-sm shadow-sm text-xs"
           >
@@ -93,7 +96,7 @@ export function ProfileSettings(): JSX.Element {
           </button>
         </div>
       </div>
-      <div className="flex flex-grow flex-col">
+      <div className="flex flex-grow flex-col gap-2">
         {profiles.valueSeq().map((
           it,
         ) => <ProfileDetails profile={it} key={it.name} />)}
