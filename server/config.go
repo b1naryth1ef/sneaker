@@ -1,8 +1,9 @@
 package server
 
 type Config struct {
-	Bind    string                `json:"bind"`
-	Servers []TacViewServerConfig `json:"servers"`
+	Bind       string                `json:"bind"`
+	Servers    []TacViewServerConfig `json:"servers"`
+	AssetsPath *string               `json:"assets_path"`
 }
 
 type TacViewServerConfig struct {

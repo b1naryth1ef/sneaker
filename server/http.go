@@ -202,7 +202,7 @@ func Run(config *Config) error {
 		MaxAge:           300,
 	}))
 
-	r.Get("/*", serveEmbeddedStaticAssets)
+	r.Get("/*", server.serveEmbeddedStaticAssets)
 	r.Get("/api/servers", server.getServerList)
 	r.Get("/api/servers/{serverName}", server.getServer)
 	r.Get("/api/servers/{serverName}/events", server.streamServerEvents)
