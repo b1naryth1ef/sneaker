@@ -9,14 +9,14 @@ import { Alert, alertStore } from "../stores/AlertStore";
 import {
   popEntityTag,
   pushEntityTag,
-  useEntityMetadata,
+  useEntityMetadata
 } from "../stores/EntityMetadataStore";
 import { serverStore, setSelectedEntityId } from "../stores/ServerStore";
 import {
   EntityTrackPing,
   estimatedSpeed,
   setTrackOptions,
-  trackStore,
+  trackStore
 } from "../stores/TrackStore";
 import { Entity } from "../types/entity";
 import { getBearingMap, getCardinal, getFlyDistance } from "../util";
@@ -293,6 +293,7 @@ export function MapSimpleEntity(
           },
         },
       );
+      marker.on("click", () => setSelectedEntityId(entity.id))
       iconLayer.addGeometry(
         marker,
       );
