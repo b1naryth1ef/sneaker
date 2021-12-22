@@ -70,6 +70,7 @@ function MapRadarTracks({
   );
 
   useEffect(() => {
+    const settings = settingsStore.getState();
     const entities = serverStore.getState().entities;
     const tracks = trackStore.getState().tracks;
 
@@ -384,73 +385,78 @@ function MapRadarTracks({
         }
       }
 
-      const numShownPings = 9;
-
-      let trackPingGroup = trailLayer.getGeometryById(
-        entityId
-      ) as maptalks.GeometryCollection;
-      if (!trackPingGroup) {
-        const trackPings = [];
-        for (let i = 0; i < numShownPings; i++) {
-          trackPings.push(
-            new maptalks.Marker([0, 0], {
-              id: i,
-              visible: false,
-              editable: false,
-              shadowBlur: 0,
-              draggable: false,
-              dragShadow: false,
-              drawOnAxis: null,
-              symbol: {},
-            })
-          );
-        }
-        trackPingGroup = new maptalks.GeometryCollection(trackPings, {
-          id: entityId,
-        });
-        trailLayer.addGeometry(trackPingGroup);
-      }
-
-      const trackPointGeos =
-        trackPingGroup.getGeometries() as Array<maptalks.Marker>;
-
-      if (estimatedSpeed(track) < 25) {
-        for (const trackGeo of trackPointGeos) {
-          if (trackGeo.isVisible()) {
-            trackGeo.hide();
-          }
-        }
-      } else {
-        for (
-          let index = 0;
-          index < track.length && index < numShownPings;
-          index++
-        ) {
-          const trackPoint = track[index];
-          const trackPointGeo = trackPointGeos[index];
-          syncVisibility(trackPointGeo, true);
-          trackPointGeo.setCoordinates([
-            trackPoint.position[1],
-            trackPoint.position[0],
-          ]);
-
-          let color = "white";
-          if (trackVisible) {
-            color = entity.coalition !== "Allies" ? "#17c2f6" : "#ff8080";
-          }
-
-          trackPointGeo.setSymbol({
-            markerType: "square",
-            markerFill: color,
-            markerLineColor: "black",
-            markerLineOpacity: 0.1,
-            markerLineWidth: 1,
-            markerWidth: 5,
-            markerHeight: 5,
-            markerDx: 0,
-            markerDy: 0,
-            markerFillOpacity: (100 - index * 10) / 100,
+      const trailLength = settings.map.trackTrailLength;
+      if (trailLength !== undefined && trailLength > 0) {
+        let trackPingGroup = trailLayer.getGeometryById(
+          entityId
+        ) as maptalks.GeometryCollection;
+        if (!trackPingGroup) {
+          trackPingGroup = new maptalks.GeometryCollection([], {
+            id: entityId,
           });
+          trailLayer.addGeometry(trackPingGroup);
+        }
+
+        let trackPointGeos =
+          trackPingGroup.getGeometries() as Array<maptalks.Marker>;
+        if (trackPointGeos.length !== settings.map.trackTrailLength) {
+          trackPointGeos = [];
+
+          for (let i = 0; i < trailLength; i++) {
+            trackPointGeos.push(
+              new maptalks.Marker([0, 0], {
+                id: i,
+                visible: false,
+                editable: false,
+                shadowBlur: 0,
+                draggable: false,
+                dragShadow: false,
+                drawOnAxis: null,
+                symbol: {},
+              })
+            );
+          }
+          trackPingGroup.setGeometries(trackPointGeos);
+        }
+
+        if (estimatedSpeed(track) < 25) {
+          for (const trackGeo of trackPointGeos) {
+            if (trackGeo.isVisible()) {
+              trackGeo.hide();
+            }
+          }
+        } else {
+          for (
+            let index = 0;
+            index < track.length && index < trailLength;
+            index++
+          ) {
+            const trackPoint = track[index];
+            const trackPointGeo = trackPointGeos[index];
+            syncVisibility(trackPointGeo, true);
+            trackPointGeo.setCoordinates([
+              trackPoint.position[1],
+              trackPoint.position[0],
+            ]);
+
+            let color = "white";
+            if (trackVisible) {
+              color = entity.coalition !== "Allies" ? "#17c2f6" : "#ff8080";
+            }
+
+            trackPointGeo.setSymbol({
+              markerType: "square",
+              markerFill: color,
+              markerLineColor: "black",
+              markerLineOpacity: 0.1,
+              markerLineWidth: 1,
+              markerWidth: 5,
+              markerHeight: 5,
+              markerDx: 0,
+              markerDy: 0,
+              markerFillOpacity: (100 - index * 10) / 100,
+            });
+          }
         }
       }
 
@@ -580,7 +586,6 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
   );
 
   const isSnapPressed = useKeyPress("s");
-  const isDecluttered = useKeyPress("d");
 
   const settings = settingsStore();
 
@@ -749,13 +754,9 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
 
   useEffect(() => {
     if (!map.current) return;
-    if (isDecluttered) {
-      map.current!.getLayer("airports").hide();
-      map.current!.getLayer("track-name").hide();
+    if (settings.map.trackTrailLength === 0) {
       map.current!.getLayer("track-trails").hide();
     } else {
-      map.current!.getLayer("airports").show();
-      map.current!.getLayer("track-name").show();
       map.current!.getLayer("track-trails").show();
     }
     if (settings.map.showTrackIcons === false) {
@@ -768,7 +769,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
     } else {
       map.current!.getLayer("track-name").show();
     }
-  }, [map, isDecluttered, settings]);
+  }, [map, settings]);
 
   // Configure airports
   useEffect(() => {

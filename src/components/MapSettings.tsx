@@ -85,6 +85,30 @@ export function MapSettings(): JSX.Element {
         </label>
         <label className="flex flex-row items-center">
           <div className="flex flex-col">
+            <h3 className="font-bold select-none">
+              Previous Ping Display Count
+            </h3>
+            <p className="text-sm text-gray-700 select-none">
+              Number of previous radar-sweep pings to display in-trail for a
+              tracks.
+            </p>
+          </div>
+          <input
+            className="form-input mt-1 block w-full p-1"
+            value={mapSettings.trackTrailLength}
+            onChange={(e) =>
+              settingsStore.setState((state) => ({
+                ...state,
+                map: {
+                  ...state.map,
+                  trackTrailLength: parseInt(e.target.value),
+                },
+              }))
+            }
+          />
+        </label>
+        <label className="flex flex-row items-center">
+          <div className="flex flex-col">
             <h3 className="font-bold select-none">Ground Unit Display Mode</h3>
             <p className="text-sm text-gray-700 select-none">
               Select which ground units to display. Some options may not be

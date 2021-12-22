@@ -9,6 +9,7 @@ export type SettingsStoreData = {
   map: {
     showTrackIcons?: boolean;
     showTrackLabels?: boolean;
+    trackTrailLength?: number;
     groundUnitMode?: GroundUnitMode;
   };
 };
@@ -22,6 +23,7 @@ export const settingsStore = create<SettingsStoreData>(() => {
     map: {
       showTrackIcons: true,
       showTrackLabels: true,
+      trackTrailLength: 9,
       groundUnitMode: GroundUnitMode.FRIENDLY,
     },
   };
