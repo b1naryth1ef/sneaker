@@ -8,6 +8,7 @@ import React, {
   useState,
 } from "react";
 import { renderToString } from "react-dom/server";
+import { FONT_FAMILY } from "../Constants";
 import { planes } from "../dcs/aircraft";
 import { DCSMap } from "../dcs/maps/DCSMap";
 import { useKeyPress } from "../hooks/useKeyPress";
@@ -178,7 +179,7 @@ function MapRadarTracks({
             },
           },
           textSymbol: {
-            textFaceName: '"microsoft yahei"',
+            textFaceName: FONT_FAMILY,
             textFill: "white",
             textSize: 12,
           },
@@ -243,7 +244,7 @@ function MapRadarTracks({
             },
           },
           textSymbol: {
-            textFaceName: '"microsoft yahei"',
+            textFaceName: FONT_FAMILY,
             textFill: "#FFC0CB",
             textSize: 12,
           },
@@ -280,7 +281,7 @@ function MapRadarTracks({
             },
           },
           textSymbol: {
-            textFaceName: '"microsoft yahei"',
+            textFaceName: FONT_FAMILY,
             textFill: "orange",
             textSize: 12,
           },
@@ -313,7 +314,7 @@ function MapRadarTracks({
             },
           },
           textSymbol: {
-            textFaceName: '"microsoft yahei"',
+            textFaceName: FONT_FAMILY,
             textFill: "#6EE7B7",
             textSize: 12,
           },
@@ -623,7 +624,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
         },
       },
       textSymbol: {
-        textFaceName: '"microsoft yahei"',
+        textFaceName: FONT_FAMILY,
         textFill: "white",
         textSize: 18,
         textVerticalAlignment: "top",
@@ -802,7 +803,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
             },
           },
           textSymbol: {
-            textFaceName: '"microsoft yahei"',
+            textFaceName: FONT_FAMILY,
             textFill: "white",
             textOpacity: 0.5,
             textSize: 10,
@@ -1034,7 +1035,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
               },
             },
             textSymbol: {
-              textFaceName: '"microsoft yahei"',
+              textFaceName: FONT_FAMILY,
               textFill: "white",
               textOpacity: 0.5,
               textSize: 10,

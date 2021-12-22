@@ -3,12 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@types/lodash": "^4.14.178",
     "@types/maptalks": "^0.49.1",
     "classnames": "^2.3.1",
     "coordinate-parser": "^1.0.7",
-    "immutable": "^4.0.0-rc.14",
+    "immutable": "^4.0.0",
     "lodash": "^4.17.21",
-    "maptalks": "^0.49.5",
+    "maptalks": "^1.0.0-beta.7",
     "mgrs": "^1.0.0",
     "milsymbol": "^2.0.0",
     "react": "^17.0.2",
@@ -16,7 +17,7 @@
     "react-icons": "^4.2.0",
     "react-router-dom": "^5.2.0",
     "use-http": "^1.0.24",
-    "zustand": "^3.5.6"
+    "zustand": "^3.6.7"
   },
   "scripts": {
     "build": "yarn webpack build",
@@ -53,7 +54,6 @@
     "@chialab/esbuild-plugin-meta-url": "^0.11.29",
     "@fullhuman/postcss-purgecss": "^4.0.3",
     "@types/immutable": "^3.8.7",
-    "@types/lodash": "^4.14.172",
     "@types/marked": "^2.0.4",
     "@types/react": "^17.0.14",
     "@types/react-dom": "^17.0.9",
