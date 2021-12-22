@@ -20,7 +20,7 @@
   },
   "scripts": {
     "build": "yarn webpack build",
-    "start": "webpack serve --env=local --mode=development --port=3030 --history-api-fallback"
+    "start": "webpack serve --env=local --mode=development"
   },
   "eslintConfig": {
     "extends": [
@@ -88,6 +88,6 @@
     "typescript": "^4.3.5",
     "webpack": "^5.51.2",
     "webpack-cli": "^4.7.2",
-    "webpack-dev-server": "^3.11.2"
+    "webpack-dev-server": "^4.7.1"
   }
 }
