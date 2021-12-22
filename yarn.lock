@@ -4147,15 +4147,14 @@ make-dir@^3.0.2, make-dir@^3.1.0:
   dependencies:
     semver "^6.0.0"
 
-maptalks@^1.0.0-beta.7:
-  version "1.0.0-beta.7"
-  resolved "https://registry.yarnpkg.com/maptalks/-/maptalks-1.0.0-beta.7.tgz#d7239c0c7e71c2de1dbf38a7d7bae57e0ec9a9ce"
-  integrity sha512-sSoyuqUXIfcoIaUCKAoNzLV54BOPXQA3dUqERKYpkz3mHNHIABfEP54Ti6v9zRRYGXqNkBYZ6VRq4Y8IuR+HcQ==
+maptalks@^0.49.5:
+  version "0.49.5"
+  resolved "https://registry.yarnpkg.com/maptalks/-/maptalks-0.49.5.tgz#5701a701ca3ee2311c8fbadb4babe254af32436c"
+  integrity sha512-mggtZfsEBtg3PAEWX/6ArxdInRXvOYBD98V9mwRkp3t/Bva1xsNTbGpvcTcxcF2+KwL5QE8i6XvWBPv57m/c1Q==
   dependencies:
     "@maptalks/feature-filter" "^1.0.0"
     "@maptalks/function-type" "^1.2.3"
     frustum-intersects "^0.1.0"
-    rbush "^2.0.2"
     simplify-js "^1.2.1"
     zousan "^2.3.3"
 
@@ -5463,11 +5462,6 @@ quick-lru@^5.1.1:
   resolved "https://registry.yarnpkg.com/quick-lru/-/quick-lru-5.1.1.tgz#366493e6b3e42a3a6885e2e99d18f80fb7a8c932"
   integrity sha512-WuyALRjWPDGtt/wzJiadO5AXY+8hZ80hVpe6MyivgraREW751X3SbhRvG3eLKOYN+8VEvqLcf3wdnt44Z4S4SA==
 
-quickselect@^1.0.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/quickselect/-/quickselect-1.1.1.tgz#852e412ce418f237ad5b660d70cffac647ae94c2"
-  integrity sha512-qN0Gqdw4c4KGPsBOQafj6yj/PA6c/L63f6CaZ/DCF/xF4Esu3jVmKLUDYxghFx8Kb/O7y9tI7x2RjTSXwdK1iQ==
-
 randombytes@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/randombytes/-/randombytes-2.1.0.tgz#df6f84372f0270dc65cdf6291349ab7a473d4f2a"
@@ -5489,13 +5483,6 @@ raw-body@2.4.2:
     http-errors "1.8.1"
     iconv-lite "0.4.24"
     unpipe "1.0.0"
-
-rbush@^2.0.2:
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/rbush/-/rbush-2.0.2.tgz#bb6005c2731b7ba1d5a9a035772927d16a614605"
-  integrity sha512-XBOuALcTm+O/H8G90b6pzu6nX6v2zCKiFG4BJho8a+bY6AER6t8uQUZdi5bomQc0AprCWhEGa7ncAbbRap0bRA==
-  dependencies:
-    quickselect "^1.0.1"
 
 react-dom@^17.0.2:
   version "17.0.2"
