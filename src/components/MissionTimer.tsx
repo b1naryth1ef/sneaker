@@ -14,24 +14,23 @@ export function MissionTimer(): JSX.Element {
     if (!globalObject) return;
 
     const referenceTime = Date.parse(
-      globalObject.properties["ReferenceTime"] as string,
+      globalObject.properties["ReferenceTime"] as string
     );
     const actualTime = Date.parse(
-      globalObject.properties["RecordingTime"] as string,
+      globalObject.properties["RecordingTime"] as string
     );
-    const currentTime = (new Date()).getTime();
+    const currentTime = new Date().getTime();
 
     const elapsedTime = currentTime - actualTime;
 
-    setCurrentTime(
-      new Date(referenceTime + elapsedTime).toUTCString(),
-    );
+    setCurrentTime(new Date(referenceTime + elapsedTime).toUTCString());
 
     // Don't bind to hacks here because we're being called externally in a timer
     setHackTimes(
-      hackStore.getState().hacks.toArray().map((
-        it,
-      ) => [it, formatCounter(Math.round((currentTime - it) / 1000))]),
+      hackStore
+        .getState()
+        .hacks.toArray()
+        .map((it) => [it, formatCounter(Math.round((currentTime - it) / 1000))])
     );
   };
 
@@ -44,12 +43,8 @@ export function MissionTimer(): JSX.Element {
 
   return (
     <>
-      <div
-        className="absolute left-0 bottom-0 max-w-xl max-h-32 bg-gray-400 bg-opacity-20 p-1"
-      >
-        {hackTimes.map((
-          [id, fmt],
-        ) => (
+      <div className="absolute left-0 bottom-0 max-w-xl max-h-32 bg-gray-400 bg-opacity-20 p-1">
+        {hackTimes.map(([id, fmt]) => (
           <div className="text-red-300 text-base flex flex-row" key={id}>
             <div>{fmt}</div>
             <div className="ml-auto">
@@ -62,15 +57,14 @@ export function MissionTimer(): JSX.Element {
             </div>
           </div>
         ))}
-        {currentTime &&
-          (
-            <div
-              className="text-red-500 text-xl cursor-pointer"
-              onClick={() => pushHack()}
-            >
-              {currentTime}
-            </div>
-          )}
+        {currentTime && (
+          <div
+            className="text-red-500 text-xl cursor-pointer"
+            onClick={() => pushHack()}
+          >
+            {currentTime}
+          </div>
+        )}
       </div>
     </>
   );

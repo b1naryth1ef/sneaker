@@ -25,12 +25,12 @@ type UnitData = {
 
 export const groundIconCache: Record<string, string> = {};
 export const groundUnitData = Immutable.Map(
-  GroundUnitData.map((it) => [it.dcs_codes[0], it] as [string, UnitData]),
+  GroundUnitData.map((it) => [it.dcs_codes[0], it] as [string, UnitData])
 );
 
 function renderGroundUnit(layer: maptalks.VectorLayer, unit: Entity) {
   const collection = layer.getGeometryById(
-    unit.id,
+    unit.id
   ) as maptalks.GeometryCollection;
   if (collection) {
     return;
@@ -39,9 +39,9 @@ function renderGroundUnit(layer: maptalks.VectorLayer, unit: Entity) {
   const unitData = groundUnitData.get(unit.name);
   let sidc;
   if (unitData && unitData.sidc) {
-    sidc = `${unitData.sidc[0]}${getCoalitionIdentity(unit.coalition)}${
-      unitData.sidc.slice(2)
-    }`;
+    sidc = `${unitData.sidc[0]}${getCoalitionIdentity(
+      unit.coalition
+    )}${unitData.sidc.slice(2)}`;
   } else {
     sidc = `S${getCoalitionIdentity(unit.coalition)}G-E-----`;
   }
@@ -56,10 +56,7 @@ function renderGroundUnit(layer: maptalks.VectorLayer, unit: Entity) {
     }).toDataURL();
   }
 
-  const icon = new maptalks.Marker([
-    unit.longitude,
-    unit.latitude,
-  ], {
+  const icon = new maptalks.Marker([unit.longitude, unit.latitude], {
     draggable: false,
     visible: true,
     editable: false,
@@ -67,10 +64,20 @@ function renderGroundUnit(layer: maptalks.VectorLayer, unit: Entity) {
       markerFile: sidc && groundIconCache[sidc],
       markerDy: 10,
       markerWidth: {
-        stops: [[8, 12], [10, 24], [12, 36], [14, 48]],
+        stops: [
+          [8, 12],
+          [10, 24],
+          [12, 36],
+          [14, 48],
+        ],
       },
       markerHeight: {
-        stops: [[8, 12], [10, 24], [12, 36], [14, 48]],
+        stops: [
+          [8, 12],
+          [10, 24],
+          [12, 36],
+          [14, 48],
+        ],
       },
     },
   });
@@ -86,11 +93,15 @@ function renderGroundUnit(layer: maptalks.VectorLayer, unit: Entity) {
   layer.addGeometry(col);
 }
 
-function renderGroundUnits(map: maptalks.Map, [entities, offset, server]: [
-  Immutable.Map<number, Entity>,
-  number,
-  Server | null,
-], [_x, lastOffset, _y]: [unknown, number, unknown]) {
+function renderGroundUnits(
+  map: maptalks.Map,
+  [entities, offset, server]: [
+    Immutable.Map<number, Entity>,
+    number,
+    Server | null
+  ],
+  [_x, lastOffset, _y]: [unknown, number, unknown]
+) {
   const layer = map.getLayer("ground-units") as maptalks.VectorLayer;
   const groundUnitMode = settingsStore.getState().map.groundUnitMode;
 
@@ -102,13 +113,9 @@ function renderGroundUnits(map: maptalks.Map, [entities, offset, server]: [
       return false;
     }
 
-    if (
-      groundUnitMode === GroundUnitMode.FRIENDLY
-    ) {
+    if (groundUnitMode === GroundUnitMode.FRIENDLY) {
       return target.coalition === "Enemies";
-    } else if (
-      groundUnitMode === GroundUnitMode.ENEMY
-    ) {
+    } else if (groundUnitMode === GroundUnitMode.ENEMY) {
       return target.coalition === "Allies" || target.coalition === "Enemies";
     }
     return false;
@@ -123,8 +130,8 @@ function renderGroundUnits(map: maptalks.Map, [entities, offset, server]: [
 
   for (const entity of entities.valueSeq()) {
     if (
-      isVisible(entity) && (lastOffset === 0 ||
-        entity.updatedAt > lastOffset)
+      isVisible(entity) &&
+      (lastOffset === 0 || entity.updatedAt > lastOffset)
     ) {
       renderGroundUnit(layer, entity);
     }
@@ -133,23 +140,27 @@ function renderGroundUnits(map: maptalks.Map, [entities, offset, server]: [
   lastOffset = offset;
 }
 
-export default function useRenderGroundUnit(
-  map: maptalks.Map | null,
-) {
+export default function useRenderGroundUnit(map: maptalks.Map | null) {
   const [groundUnitMode] = settingsStore((state) => [state.map.groundUnitMode]);
 
   useEffect(() => {
     if (!map) return;
     const { entities, offset, server } = serverStore.getState();
     if (!server) return;
-    renderGroundUnits(map, [
-      entities.filter((it) =>
-        it.types.includes("Ground") && !it.types.includes("Air") &&
-        !it.types.includes("Static")
-      ),
-      offset,
-      server,
-    ], [null, 0, null]);
+    renderGroundUnits(
+      map,
+      [
+        entities.filter(
+          (it) =>
+            it.types.includes("Ground") &&
+            !it.types.includes("Air") &&
+            !it.types.includes("Static")
+        ),
+        offset,
+        server,
+      ],
+      [null, 0, null]
+    );
   }, [map, groundUnitMode]);
 
   useEffect(() => {
@@ -158,17 +169,17 @@ export default function useRenderGroundUnit(
     return serverStore.subscribe(
       (a: [Immutable.Map<number, Entity>, number, Server | null], b) =>
         renderGroundUnits(map, a, b),
-      (
-        state,
-      ) =>
+      (state) =>
         [
-          state.entities.filter((it) =>
-            it.types.includes("Ground") && !it.types.includes("Air") &&
-            !it.types.includes("Static")
+          state.entities.filter(
+            (it) =>
+              it.types.includes("Ground") &&
+              !it.types.includes("Air") &&
+              !it.types.includes("Static")
           ),
           state.offset,
           state.server,
-        ] as [Immutable.Map<number, Entity>, number, Server | null],
+        ] as [Immutable.Map<number, Entity>, number, Server | null]
     );
   }, [map]);
 }

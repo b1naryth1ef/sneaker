@@ -50,10 +50,11 @@ export function estimatedSpeed(pings: Array<EntityTrackPing>): number {
   }
 
   const seconds = (pings[0].time - pings[pings.length - 1].time) / 1000;
-  return (getFlyDistance(
-    pings[0].position,
-    pings[pings.length - 1].position,
-  ) / seconds) * 3600;
+  return (
+    (getFlyDistance(pings[0].position, pings[pings.length - 1].position) /
+      seconds) *
+    3600
+  );
 }
 
 // Returns the estimated altitude rate (in fpm) of an entity based on its track
@@ -63,13 +64,14 @@ export function estimatedAltitudeRate(track: Array<EntityTrackPing>): number {
   }
 
   const seconds = (track[0].time - track[track.length - 1].time) / 1000;
-  return ((track[0].altitude - track[track.length - 1].altitude) / seconds) *
-    60;
+  return (
+    ((track[0].altitude - track[track.length - 1].altitude) / seconds) * 60
+  );
 }
 
 function entityTrackPing(entity: RawEntityData): EntityTrackPing {
   return {
-    time: (new Date()).getTime(),
+    time: new Date().getTime(),
     position: [entity.latitude, entity.longitude],
     altitude: entity.altitude,
     heading: entity.heading,
@@ -90,10 +92,7 @@ export const trackStore = create<TrackStoreData>(() => {
 (window as any).trackStore = trackStore;
 
 function isEntityTrackable(entity: RawEntityData) {
-  return (
-    entity.types.includes("Air") &&
-    !entity.types.includes("Parachutist")
-  );
+  return entity.types.includes("Air") && !entity.types.includes("Parachutist");
 }
 
 export function createTracks(event: SneakerInitialStateEvent) {
@@ -101,9 +100,9 @@ export function createTracks(event: SneakerInitialStateEvent) {
     return {
       ...state,
       tracks: Immutable.Map<number, Array<EntityTrackPing>>(
-        event.d.objects?.filter((obj) => isEntityTrackable(obj)).map((
-          obj,
-        ) => [obj.id, [entityTrackPing(obj)]]) || [],
+        event.d.objects
+          ?.filter((obj) => isEntityTrackable(obj))
+          .map((obj) => [obj.id, [entityTrackPing(obj)]]) || []
       ),
     };
   });
@@ -116,9 +115,7 @@ export function updateTracks(event: SneakerRadarSnapshotEvent) {
       tracks: state.tracks.withMutations((obj) => {
         for (const entity of event.d.created) {
           if (!isEntityTrackable(entity)) continue;
-          obj.set(entity.id, [
-            entityTrackPing(entity),
-          ]);
+          obj.set(entity.id, [entityTrackPing(entity)]);
         }
         for (const entity of event.d.updated) {
           if (!isEntityTrackable(entity)) continue;
@@ -142,7 +139,7 @@ export function setTrackOptions(entityId: number, opts: TrackOptions) {
     return {
       ...state,
       trackOptions: state.trackOptions.set(entityId, {
-        ...state.trackOptions.get(entityId) || {},
+        ...(state.trackOptions.get(entityId) || {}),
         ...opts,
       }),
     };
@@ -156,12 +153,12 @@ setTimeout(() => {
       ...trackState,
       trackOptions: trackState.trackOptions.withMutations((obj) => {
         for (const [entityId, metadata] of state.entities) {
-          const profile = getProfilesForTags(metadata.tags).map((
-            it,
-          ) => [it.defaultThreatRadius, it.defaultWarningRadius]).reduce(
-            (a, b) => [a[0] || b[0], a[1] || b[1]],
-            [undefined, undefined],
-          );
+          const profile = getProfilesForTags(metadata.tags)
+            .map((it) => [it.defaultThreatRadius, it.defaultWarningRadius])
+            .reduce(
+              (a, b) => [a[0] || b[0], a[1] || b[1]],
+              [undefined, undefined]
+            );
           if (profile[0] || profile[1]) {
             const current = obj.get(entityId);
             obj = obj.set(entityId, {

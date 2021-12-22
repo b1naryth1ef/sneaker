@@ -2,9 +2,11 @@ import * as mgrs from "mgrs";
 import React from "react";
 import { formatDDM, formatDMS } from "../util";
 
-export default function DetailedCoords(
-  { coords }: { coords: [number, number] },
-) {
+export default function DetailedCoords({
+  coords,
+}: {
+  coords: [number, number];
+}) {
   return (
     <>
       <div className="flex flex-row w-full">

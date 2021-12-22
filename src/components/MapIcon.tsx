@@ -7,16 +7,18 @@ export const colorMode: ms.ColorMode = ms.ColorMode(
   "#17c2f6",
   "#ff8080",
   "#FDE68A",
-  "#ffffff",
+  "#ffffff"
 );
 
-export function MapIcon(
-  { obj, className, size }: {
-    obj: Entity | string;
-    className?: string;
-    size?: number;
-  },
-): JSX.Element {
+export function MapIcon({
+  obj,
+  className,
+  size,
+}: {
+  obj: Entity | string;
+  className?: string;
+  size?: number;
+}): JSX.Element {
   if (typeof obj === "object" && obj.types.length === 0) {
     return <></>;
   }
@@ -32,7 +34,7 @@ export function MapIcon(
     <span
       dangerouslySetInnerHTML={{ __html: svg }}
       className={className}
-      style={{ "transform": "translateX(-40%) translateY(-45%)" }}
+      style={{ transform: "translateX(-40%) translateY(-45%)" }}
     />
   );
 }

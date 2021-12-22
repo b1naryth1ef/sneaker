@@ -15,18 +15,12 @@ import DetailedCoords from "./DetailedCoords";
 function maybeParseCoord(newCoord: string): null | [number, number] {
   try {
     const coord = new Coord(newCoord);
-    return [
-      coord.getLatitude(),
-      coord.getLongitude(),
-    ];
+    return [coord.getLatitude(), coord.getLongitude()];
   } catch (e) {
     try {
-      const coord = mgrs.toPoint(
-        newCoord.replace(" ", ""),
-      );
+      const coord = mgrs.toPoint(newCoord.replace(" ", ""));
       return [coord[1], coord[0]];
-    } catch (e) {
-    }
+    } catch (e) {}
   }
   return null;
 }
@@ -42,82 +36,63 @@ function GeometryDetails({ geo, edit }: { geo: Geometry; edit: boolean }) {
     <>
       <div className="flex flex-row flex-grow w-full">
         <span className="pr-2 flex-grow">Name</span>
-        {edit
-          ? (
-            <input
-              className="flex-grow p-0.5 text-right"
-              value={geo.name}
-              onChange={(e) => {
-                updateGeometrySafe(geo.id, { name: e.target.value });
-              }}
-            />
-          )
-          : geo.name}
+        {edit ? (
+          <input
+            className="flex-grow p-0.5 text-right"
+            value={geo.name}
+            onChange={(e) => {
+              updateGeometrySafe(geo.id, { name: e.target.value });
+            }}
+          />
+        ) : (
+          geo.name
+        )}
       </div>
       {geo.type === "markpoint" && <DetailedCoords coords={geo.position} />}
-      {geo.type === "markpoint" && edit &&
-        (
-          <>
-            {/* TODO: sort out parsing coords from human input */}
-            {(
-              <div className="flex flex-row flex-grow w-full">
-                <span className="pr-2 flex-grow">Coords</span>
-                <input
-                  className={classNames(
-                    "flex-grow p-0.5 text-right rounded-sm",
-                    {
-                      "ring-red-600 ring": newCoord &&
-                        maybeParseCoord(newCoord) === null,
-                    },
-                  )}
-                  value={newCoord}
-                  onChange={(e) => {
-                    setNewCoord(e.target.value);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
+      {geo.type === "markpoint" && edit && (
+        <>
+          {/* TODO: sort out parsing coords from human input */}
+          {
+            <div className="flex flex-row flex-grow w-full">
+              <span className="pr-2 flex-grow">Coords</span>
+              <input
+                className={classNames("flex-grow p-0.5 text-right rounded-sm", {
+                  "ring-red-600 ring":
+                    newCoord && maybeParseCoord(newCoord) === null,
+                })}
+                value={newCoord}
+                onChange={(e) => {
+                  setNewCoord(e.target.value);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    try {
+                      const coord = new Coord(newCoord);
+                      updateGeometrySafe(geo.id, {
+                        position: [coord.getLatitude(), coord.getLongitude()],
+                      });
+                    } catch (e) {
                       try {
-                        const coord = new Coord(newCoord);
+                        const coord = mgrs.toPoint(newCoord.replace(" ", ""));
                         updateGeometrySafe(geo.id, {
-                          position: [
-                            coord.getLatitude(),
-                            coord.getLongitude(),
-                          ],
+                          position: [coord[1], coord[0]],
                         });
                       } catch (e) {
-                        try {
-                          const coord = mgrs.toPoint(
-                            newCoord.replace(" ", ""),
-                          );
-                          updateGeometrySafe(
-                            geo.id,
-                            {
-                              position: [
-                                coord[1],
-                                coord[0],
-                              ],
-                            },
-                          );
-                        } catch (e) {
-                          console.error(e);
-                        }
+                        console.error(e);
                       }
                     }
-                  }}
-                />
-              </div>
-            )}
-          </>
-        )}
+                  }
+                }}
+              />
+            </div>
+          }
+        </>
+      )}
     </>
   );
 }
 
-export default function MapGeometryInfo(
-  { map }: {
-    map: maptalks.Map;
-  },
-) {
+export default function MapGeometryInfo({ map }: { map: maptalks.Map }) {
   const selectedGeometry = geometryStore((state) =>
     state.selectedGeometry !== null
       ? state.geometry.get(state.selectedGeometry)
@@ -131,9 +106,9 @@ export default function MapGeometryInfo(
 
   useEffect(() => {
     if (!selectedGeometry) return () => {};
-    const layer = (map.getLayer("custom-geometry") as maptalks.VectorLayer);
+    const layer = map.getLayer("custom-geometry") as maptalks.VectorLayer;
     const item = layer.getGeometryById(
-      selectedGeometry.id,
+      selectedGeometry.id
     ) as maptalks.GeometryCollection;
 
     const geo = item.getGeometries()[0];
@@ -159,9 +134,7 @@ export default function MapGeometryInfo(
   if (!selectedGeometry) return <></>;
 
   return (
-    <div
-      className="flex flex-col bg-gray-300 border border-gray-500 shadow select-none rounded-sm"
-    >
+    <div className="flex flex-col bg-gray-300 border border-gray-500 shadow select-none rounded-sm">
       <div className="p-2 bg-gray-400 text-sm flex flex-row">
         <b className="flex flex-grow">
           {selectedGeometry.name ||

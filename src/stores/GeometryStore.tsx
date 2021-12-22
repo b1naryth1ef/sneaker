@@ -16,7 +16,7 @@ export type Zone = {
   points: Array<[number, number]>;
 } & GeometryBase;
 
-export type Geometry = (MarkPoint | Zone);
+export type Geometry = MarkPoint | Zone;
 
 type GeometryStoreData = {
   geometry: Immutable.Map<number, Geometry>;

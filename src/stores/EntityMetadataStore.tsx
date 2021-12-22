@@ -15,7 +15,7 @@ export const entityMetadataStore = create<EntityMetadataStoreData>(() => {
 });
 
 export function useEntityMetadata(
-  entityId: number,
+  entityId: number
 ): EntityMetadata | undefined {
   return entityMetadataStore((state) => state.entities.get(entityId));
 }
@@ -25,12 +25,9 @@ export function pushEntityTag(entityId: number, tag: string) {
     const existing = state.entities.get(entityId);
     const tags = existing ? existing.tags.add(tag) : Immutable.Set.of(tag);
 
-    const profiles = getProfilesForTags(tags).map((
-      it,
-    ) => [it.defaultThreatRadius, it.defaultWarningRadius]).reduce(
-      (a, b) => [a[0] || b[0], a[1] || b[1]],
-      [undefined, undefined],
-    );
+    const profiles = getProfilesForTags(tags)
+      .map((it) => [it.defaultThreatRadius, it.defaultWarningRadius])
+      .reduce((a, b) => [a[0] || b[0], a[1] || b[1]], [undefined, undefined]);
 
     setTrackOptions(entityId, {
       profileThreatRadius: profiles[0],
@@ -61,12 +58,9 @@ export function popEntityTag(entityId: number, label: string) {
       return state;
     } else {
       const tags = existing.tags.remove(label);
-      const profiles = getProfilesForTags(tags).map((
-        it,
-      ) => [it.defaultThreatRadius, it.defaultWarningRadius]).reduce(
-        (a, b) => [a[0] || b[0], a[1] || b[1]],
-        [undefined, undefined],
-      );
+      const profiles = getProfilesForTags(tags)
+        .map((it) => [it.defaultThreatRadius, it.defaultWarningRadius])
+        .reduce((a, b) => [a[0] || b[0], a[1] || b[1]], [undefined, undefined]);
 
       setTrackOptions(entityId, {
         profileThreatRadius: profiles[0],

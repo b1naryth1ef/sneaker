@@ -6,19 +6,23 @@ import useFetch, { CachePolicies } from "use-http";
 import { Map } from "./components/Map";
 import { Caucasus } from "./dcs/maps/Caucasus";
 import { DCSMap } from "./dcs/maps/DCSMap";
+import { Marianas } from "./dcs/maps/Marianas";
 import { PersianGulf } from "./dcs/maps/PersianGulf";
 import { Syria } from "./dcs/maps/Syria";
 import { Server, serverStore } from "./stores/ServerStore";
 import { route } from "./util";
 
 function ServerConnectModal() {
-  const { loading, error, data: servers, get } = useFetch<
-    Array<{ name: string }>
-  >(
+  const {
+    loading,
+    error,
+    data: servers,
+    get,
+  } = useFetch<Array<{ name: string }>>(
     process.env.NODE_ENV === "production"
       ? `/api/servers`
       : `http://localhost:7789/api/servers`,
-    [],
+    []
   );
 
   return (
@@ -26,7 +30,7 @@ function ServerConnectModal() {
       className={classNames(
         "flex flex-col overflow-x-hidden overflow-y-auto absolute",
         "inset-0 z-50 bg-gray-100 mx-auto my-auto max-w-3xl",
-        "border border-gray-200 rounded-sm shadow-md",
+        "border border-gray-200 rounded-sm shadow-md"
       )}
       style={{ maxHeight: "50%" }}
     >
@@ -34,35 +38,27 @@ function ServerConnectModal() {
         <div className="text-2xl">Select Server</div>
       </div>
       <div className="flex flex-row p-2 h-full">
-        {loading &&
-          (
-            <BiLoader
-              className="h-6 w-6 text-blue-400 animate-spin my-auto mx-auto"
-            />
-          )}
+        {loading && (
+          <BiLoader className="h-6 w-6 text-blue-400 animate-spin my-auto mx-auto" />
+        )}
         {error && (
           <div>
             Something went wrong accessing the backend server. Please check your
             connection and <button onClick={() => get()}>try again</button>.
           </div>
         )}
-        {servers &&
-          (
-            <div
-              className="flex flex-col gap-1 w-full text-center text-3xl font-bold"
-            >
-              {servers.map((
-                it,
-              ) => (
-                <Link
-                  to={`/servers/${it.name}`}
-                  className="p-2 bg-gray-100 hover:bg-gray-200 border-gray-400 border rounded-sm shadow-sm w-full"
-                >
-                  {it.name}
-                </Link>
-              ))}
-            </div>
-          )}
+        {servers && (
+          <div className="flex flex-col gap-1 w-full text-center text-3xl font-bold">
+            {servers.map((it) => (
+              <Link
+                to={`/servers/${it.name}`}
+                className="p-2 bg-gray-100 hover:bg-gray-200 border-gray-400 border rounded-sm shadow-sm w-full"
+              >
+                {it.name}
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -78,10 +74,15 @@ function ServerContainer({ serverName }: { serverName: string }) {
     ];
   });
 
-  const { response, data: server, loading, error } = useFetch<Server>(
+  const {
+    response,
+    data: server,
+    loading,
+    error,
+  } = useFetch<Server>(
     route(`/servers/${serverName}`),
     { cachePolicy: CachePolicies.NO_CACHE },
-    [serverName],
+    [serverName]
   );
 
   useEffect(() => {
@@ -105,19 +106,19 @@ function ServerContainer({ serverName }: { serverName: string }) {
 
   if (loading || !refLat || !refLng) {
     return (
-      <BiLoader
-        className="h-6 w-6 text-blue-400 animate-spin my-auto mx-auto"
-      />
+      <BiLoader className="h-6 w-6 text-blue-400 animate-spin my-auto mx-auto" />
     );
   }
 
   let dcsMap: DCSMap | null = null;
-  if ((refLat > 28 && refLat < 32) && (refLng > 29 && refLng < 33)) {
+  if (refLat > 28 && refLat < 32 && refLng > 29 && refLng < 33) {
     dcsMap = Syria;
-  } else if ((refLat > 37 && refLat < 41) && (refLng > 31 && refLng < 38)) {
+  } else if (refLat > 37 && refLat < 41 && refLng > 31 && refLng < 38) {
     dcsMap = Caucasus;
-  } else if ((refLat > 18 && refLat < 24) && (refLng > 48 && refLng < 54)) {
+  } else if (refLat > 18 && refLat < 24 && refLng > 48 && refLng < 54) {
     dcsMap = PersianGulf;
+  } else if (refLat > 5 && refLat < 14 && refLng > 136 && refLng < 144) {
+    dcsMap = Marianas;
   } else {
     console.log(refLat, refLng);
     return (
@@ -132,15 +133,17 @@ function ServerContainer({ serverName }: { serverName: string }) {
 
 function App() {
   return (
-    <div
-      className="bg-gray-700 max-w-full max-h-full w-full h-full"
-    >
+    <div className="bg-gray-700 max-w-full max-h-full w-full h-full">
       <Switch>
         <Route exact path="/" component={ServerConnectModal} />
         <Route
           exact
           path="/servers/:serverName"
-          render={({ match: { params: { serverName } } }) => {
+          render={({
+            match: {
+              params: { serverName },
+            },
+          }) => {
             return <ServerContainer serverName={serverName} />;
           }}
         />

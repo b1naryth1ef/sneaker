@@ -9,14 +9,11 @@ import {
   setSelectedGeometry,
 } from "../stores/GeometryStore";
 
-export default function DrawConsoleTab(
-  { map }: {
-    map: maptalks.Map;
-  },
-) {
-  const [geometry, selectedId] = geometryStore((
-    state,
-  ) => [state.geometry, state.selectedGeometry]);
+export default function DrawConsoleTab({ map }: { map: maptalks.Map }) {
+  const [geometry, selectedId] = geometryStore((state) => [
+    state.geometry,
+    state.selectedGeometry,
+  ]);
 
   return (
     <div className="p-2">
@@ -53,7 +50,7 @@ export default function DrawConsoleTab(
               key={it.id}
               className={classNames(
                 "bg-indigo-100 hover:border-indigo-300 hover:bg-indigo-200 border-indigo-200 border rounded-sm p-1",
-                { "bg-indigo-200 border-indigo-300": it.id === selectedId },
+                { "bg-indigo-200 border-indigo-300": it.id === selectedId }
               )}
               onClick={() => {
                 setSelectedGeometry(it.id);
@@ -64,13 +61,16 @@ export default function DrawConsoleTab(
                 }
 
                 if (position) {
-                  map.animateTo({
-                    center: position,
-                    zoom: 10,
-                  }, {
-                    duration: 250,
-                    easing: "out",
-                  });
+                  map.animateTo(
+                    {
+                      center: position,
+                      zoom: 10,
+                    },
+                    {
+                      duration: 250,
+                      easing: "out",
+                    }
+                  );
                 }
               }}
             >

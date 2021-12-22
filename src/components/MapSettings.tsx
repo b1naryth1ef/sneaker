@@ -4,30 +4,30 @@ import { BiCheckbox, BiCheckboxChecked } from "react-icons/bi";
 import { serverStore } from "../stores/ServerStore";
 import { GroundUnitMode, settingsStore } from "../stores/SettingsStore";
 
-function BigCheckbox(
-  { checked, toggle, className }: {
-    checked: boolean;
-    toggle: () => void;
-    className?: string;
-  },
-): JSX.Element {
-  return checked
-    ? (
-      <BiCheckboxChecked
-        className={classNames("inline-block w-16 h-16 p-2", className)}
-        onClick={() => {
-          toggle();
-        }}
-      />
-    )
-    : (
-      <BiCheckbox
-        className={classNames("inline-block w-16 h-16 p-2", className)}
-        onClick={() => {
-          toggle();
-        }}
-      />
-    );
+function BigCheckbox({
+  checked,
+  toggle,
+  className,
+}: {
+  checked: boolean;
+  toggle: () => void;
+  className?: string;
+}): JSX.Element {
+  return checked ? (
+    <BiCheckboxChecked
+      className={classNames("inline-block w-16 h-16 p-2", className)}
+      onClick={() => {
+        toggle();
+      }}
+    />
+  ) : (
+    <BiCheckbox
+      className={classNames("inline-block w-16 h-16 p-2", className)}
+      onClick={() => {
+        toggle();
+      }}
+    />
+  );
 }
 
 export function MapSettings(): JSX.Element {
@@ -77,7 +77,8 @@ export function MapSettings(): JSX.Element {
                   ...mapSettings,
                   showTrackLabels: !mapSettings.showTrackLabels,
                 },
-              })}
+              })
+            }
             checked={mapSettings.showTrackLabels !== false}
             className="ml-auto"
           />
@@ -94,9 +95,10 @@ export function MapSettings(): JSX.Element {
             value={mapSettings.groundUnitMode || "none"}
             className="form-select ml-auto border rounded-sm p-2 border-gray-400"
             onChange={(e) => {
-              const value = e.target.value === "none"
-                ? undefined
-                : e.target.value as GroundUnitMode;
+              const value =
+                e.target.value === "none"
+                  ? undefined
+                  : (e.target.value as GroundUnitMode);
               settingsStore.setState({
                 map: {
                   ...mapSettings,
@@ -105,20 +107,26 @@ export function MapSettings(): JSX.Element {
               });
             }}
           >
-            <option key="none" value="none">None</option>
+            <option key="none" value="none">
+              None
+            </option>
             <option
               key="friendly"
               value={GroundUnitMode.FRIENDLY}
-              disabled={!server ||
-                !server.ground_unit_modes?.includes(GroundUnitMode.FRIENDLY)}
+              disabled={
+                !server ||
+                !server.ground_unit_modes?.includes(GroundUnitMode.FRIENDLY)
+              }
             >
               Friendly
             </option>
             <option
               key="enemy"
               value={GroundUnitMode.ENEMY}
-              disabled={!server ||
-                !server.ground_unit_modes?.includes(GroundUnitMode.ENEMY)}
+              disabled={
+                !server ||
+                !server.ground_unit_modes?.includes(GroundUnitMode.ENEMY)
+              }
             >
               Enemy (JTAC-Mode)
             </option>

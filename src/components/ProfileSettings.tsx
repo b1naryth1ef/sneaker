@@ -10,9 +10,7 @@ import ProfileTagList from "./ProfileTagList";
 
 function ProfileDetails({ profile }: { profile: Profile }) {
   return (
-    <div
-      className="border-b border-gray-300 text-sm flex flex-col gap-1 py-1 my-2"
-    >
+    <div className="border-b border-gray-300 text-sm flex flex-col gap-1 py-1 my-2">
       <div className="flex flex-row mb-1">
         <div className="flex-grow text-xl">{profile.name}</div>
         <div>
@@ -37,9 +35,8 @@ function ProfileDetails({ profile }: { profile: Profile }) {
             onChange={(e) => {
               updateProfile({
                 name: profile.name,
-                defaultThreatRadius: e.target.value !== ""
-                  ? parseInt(e.target.value)
-                  : undefined,
+                defaultThreatRadius:
+                  e.target.value !== "" ? parseInt(e.target.value) : undefined,
               });
             }}
           />
@@ -52,9 +49,8 @@ function ProfileDetails({ profile }: { profile: Profile }) {
             onChange={(e) => {
               updateProfile({
                 name: profile.name,
-                defaultWarningRadius: e.target.value !== ""
-                  ? parseInt(e.target.value)
-                  : undefined,
+                defaultWarningRadius:
+                  e.target.value !== "" ? parseInt(e.target.value) : undefined,
               });
             }}
           />
@@ -94,9 +90,9 @@ export function ProfileSettings(): JSX.Element {
         </div>
       </div>
       <div className="flex flex-grow flex-col">
-        {profiles.valueSeq().map((
-          it,
-        ) => <ProfileDetails profile={it} key={it.name} />)}
+        {profiles.valueSeq().map((it) => (
+          <ProfileDetails profile={it} key={it.name} />
+        ))}
       </div>
     </div>
   );

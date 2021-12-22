@@ -29,13 +29,13 @@ export const profileStore = create<ProfileStoreData>(() => {
 
 export function getProfilesForTags(
   tags: Immutable.Set<string>,
-  profiles?: Immutable.Map<string, Profile>,
+  profiles?: Immutable.Map<string, Profile>
 ): Array<Profile> {
-  return (profiles || profileStore.getState().profiles).valueSeq().filter((
-    it,
-  ) => tags.intersect(it.tags).size > 0).sort((a, b) =>
-    a.name > b.name ? -1 : 1
-  ).toArray();
+  return (profiles || profileStore.getState().profiles)
+    .valueSeq()
+    .filter((it) => tags.intersect(it.tags).size > 0)
+    .sort((a, b) => (a.name > b.name ? -1 : 1))
+    .toArray();
 }
 
 export function addProfile(name: string) {
@@ -52,15 +52,14 @@ export function deleteProfile(name: string) {
 
     trackStore.setState((state) => {
       let trackOptions = state.trackOptions;
-      for (
-        const [entityId, metadata] of entityMetadataStore.getState().entities
-      ) {
-        const profile = getProfilesForTags(metadata.tags, profiles).map((
-          it,
-        ) => [it.defaultThreatRadius, it.defaultWarningRadius]).reduce(
-          (a, b) => [a[0] || b[0], a[1] || b[1]],
-          [undefined, undefined],
-        );
+      for (const [entityId, metadata] of entityMetadataStore.getState()
+        .entities) {
+        const profile = getProfilesForTags(metadata.tags, profiles)
+          .map((it) => [it.defaultThreatRadius, it.defaultWarningRadius])
+          .reduce(
+            (a, b) => [a[0] || b[0], a[1] || b[1]],
+            [undefined, undefined]
+          );
 
         const opts = trackOptions.get(entityId) || {};
         trackOptions = trackOptions.set(entityId, {
@@ -88,15 +87,14 @@ export function updateProfile(profile: { name: string } & Partial<Profile>) {
 
     trackStore.setState((state) => {
       let trackOptions = state.trackOptions;
-      for (
-        const [entityId, metadata] of entityMetadataStore.getState().entities
-      ) {
-        const profile = getProfilesForTags(metadata.tags, profiles).map((
-          it,
-        ) => [it.defaultThreatRadius, it.defaultWarningRadius]).reduce(
-          (a, b) => [a[0] || b[0], a[1] || b[1]],
-          [undefined, undefined],
-        );
+      for (const [entityId, metadata] of entityMetadataStore.getState()
+        .entities) {
+        const profile = getProfilesForTags(metadata.tags, profiles)
+          .map((it) => [it.defaultThreatRadius, it.defaultWarningRadius])
+          .reduce(
+            (a, b) => [a[0] || b[0], a[1] || b[1]],
+            [undefined, undefined]
+          );
 
         const opts = trackOptions.get(entityId) || {};
         trackOptions = trackOptions.set(entityId, {
@@ -116,10 +114,7 @@ export function updateProfile(profile: { name: string } & Partial<Profile>) {
 
 profileStore.subscribe(
   throttle((profiles: ProfileStoreData["profiles"]) => {
-    localStorage.setItem(
-      "profiles",
-      JSON.stringify(profiles.toJSON()),
-    );
+    localStorage.setItem("profiles", JSON.stringify(profiles.toJSON()));
   }, 100),
-  (state) => state.profiles,
+  (state) => state.profiles
 );

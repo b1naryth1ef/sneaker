@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import { BiX } from "react-icons/bi";
 import { Profile, updateProfile } from "../stores/ProfileStore";
 
-export default function ProfileTagList(
-  { profile }: { profile: Profile },
-): JSX.Element {
+export default function ProfileTagList({
+  profile,
+}: {
+  profile: Profile;
+}): JSX.Element {
   const [addTagText, setAddTagText] = useState("");
 
   return (
@@ -48,7 +50,8 @@ export default function ProfileTagList(
                   updateProfile({
                     name: profile.name,
                     tags: profile.tags.filter((it) => it !== tag),
-                  })}
+                  })
+                }
                 className="text-red-500"
               >
                 <BiX className="inline-flex h-5 w-5 ml-1" />

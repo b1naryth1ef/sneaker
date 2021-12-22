@@ -48,7 +48,7 @@ function runSneakerClient(server: Server | null) {
   if (server !== null) {
     setTimeout(() => {
       sneakerClient = new SneakerClient(
-        route(`/servers/${server.name}/events`),
+        route(`/servers/${server.name}/events`)
       );
       sneakerClient?.run((event) => {
         if (event.e === "SESSION_STATE") {
@@ -57,7 +57,7 @@ function runSneakerClient(server: Server | null) {
               ...state,
               sessionId: event.d.session_id,
               entities: Immutable.Map<number, Entity>(
-                event.d.objects?.map((obj) => [obj.id, new Entity(obj)]) || [],
+                event.d.objects?.map((obj) => [obj.id, new Entity(obj)]) || []
               ),
             };
           });

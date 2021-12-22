@@ -4,13 +4,15 @@ import { serverStore } from "../stores/ServerStore";
 import { Entity } from "../types/entity";
 import DetailedCoords from "./DetailedCoords";
 
-function DebugEntity(
-  { entity, selected, setSelected }: {
-    entity: Entity;
-    selected: boolean;
-    setSelected: (v: number | null) => void;
-  },
-) {
+function DebugEntity({
+  entity,
+  selected,
+  setSelected,
+}: {
+  entity: Entity;
+  selected: boolean;
+  setSelected: (v: number | null) => void;
+}) {
   return (
     <div
       className="flex flex-col border border-gray-400"
@@ -21,7 +23,9 @@ function DebugEntity(
           "hover:bg-gray-300 cursor-pointer": !selected,
         })}
       >
-        <div>{entity.id} / {entity.name}</div>
+        <div>
+          {entity.id} / {entity.name}
+        </div>
         <div>{entity.coalition}</div>
         <div>{entity.types.join(", ")}</div>
       </div>
@@ -40,11 +44,11 @@ export function DebugSettings() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
   const selectedEntities = useMemo(() => {
-    return entities.filter((it) =>
-      (it.name &&
-        it.name.toLowerCase().includes(search.toLowerCase())) ||
-      it.id.toString() === search ||
-      it.types.map((it) => it.toLowerCase()).includes(search.toLowerCase())
+    return entities.filter(
+      (it) =>
+        (it.name && it.name.toLowerCase().includes(search.toLowerCase())) ||
+        it.id.toString() === search ||
+        it.types.map((it) => it.toLowerCase()).includes(search.toLowerCase())
     );
   }, [search]);
 
@@ -55,18 +59,14 @@ export function DebugSettings() {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
-      {selectedEntities.valueSeq().map((
-        it,
-      ) =>
-        (
-          <DebugEntity
-            entity={it}
-            key={it.id}
-            selected={selectedId === it.id}
-            setSelected={setSelectedId}
-          />
-        )
-      )}
+      {selectedEntities.valueSeq().map((it) => (
+        <DebugEntity
+          entity={it}
+          key={it.id}
+          selected={selectedId === it.id}
+          setSelected={setSelectedId}
+        />
+      ))}
     </div>
   );
 }

@@ -33,13 +33,15 @@ function SettingsHome() {
   );
 }
 
-function SettingsTab(
-  { name, active, setTab }: {
-    active: boolean;
-    name: SettingsTabs;
-    setTab: (v: SettingsTabs) => void;
-  },
-) {
+function SettingsTab({
+  name,
+  active,
+  setTab,
+}: {
+  active: boolean;
+  name: SettingsTabs;
+  setTab: (v: SettingsTabs) => void;
+}) {
   return (
     <button
       onClick={() => setTab(name)}
@@ -48,7 +50,7 @@ function SettingsTab(
         {
           "text-blue-400": !active,
           "text-blue-500 bg-gray-50": active,
-        },
+        }
       )}
     >
       {name[0].toUpperCase() + name.slice(1)}
@@ -64,7 +66,7 @@ export function Settings({ close }: { close: () => void }): JSX.Element {
       className={classNames(
         "flex flex-col overflow-x-hidden overflow-y-auto absolute",
         "inset-0 z-50 bg-gray-100 mx-auto my-auto max-w-3xl",
-        "border border-gray-200 rounded-sm shadow-md",
+        "border border-gray-200 rounded-sm shadow-md"
       )}
       style={{ maxHeight: "80%" }}
     >
@@ -78,9 +80,7 @@ export function Settings({ close }: { close: () => void }): JSX.Element {
         </button>
       </div>
       <div className="flex flex-row p-2 h-full">
-        <div
-          className="flex-none flex flex-col w-32 h-full border-r border-gray-400 pr-2 gap-1"
-        >
+        <div className="flex-none flex flex-col w-32 h-full border-r border-gray-400 pr-2 gap-1">
           <SettingsTab setTab={setTab} name="home" active={tab === "home"} />
           <SettingsTab setTab={setTab} name="map" active={tab === "map"} />
           <SettingsTab

@@ -32,7 +32,7 @@ function isTrackInViolation(
   entity: Entity,
   triggerEntity: Entity,
   track: Array<EntityTrackPing> | null,
-  radius: number,
+  radius: number
 ): boolean {
   const trackVisible = track === null || estimatedSpeed(track) >= 25;
   if (!trackVisible) {
@@ -40,13 +40,10 @@ function isTrackInViolation(
   }
 
   const d0 = Math.floor(
-    getFlyDistance([
-      entity.latitude,
-      entity.longitude,
-    ], [
-      triggerEntity.latitude,
-      triggerEntity.longitude,
-    ]),
+    getFlyDistance(
+      [entity.latitude, entity.longitude],
+      [triggerEntity.latitude, triggerEntity.longitude]
+    )
   );
 
   return d0 <= radius;
@@ -58,9 +55,7 @@ export function checkAlerts() {
 
   for (let [entityId, opts] of trackState.trackOptions.entrySeq()) {
     const entity = entities.get(entityId);
-    if (
-      !entity || !entity.types.includes("Air")
-    ) {
+    if (!entity || !entity.types.includes("Air")) {
       continue;
     }
 
@@ -70,7 +65,9 @@ export function checkAlerts() {
     }
 
     if (
-      !opts.warningRadius && !opts.threatRadius && !opts.profileThreatRadius &&
+      !opts.warningRadius &&
+      !opts.threatRadius &&
+      !opts.profileThreatRadius &&
       !opts.profileThreatRadius
     ) {
       continue;
@@ -127,7 +124,7 @@ function clearAlerts() {
         for (const alert of alerts) {
           triggeredEntities = decrementTriggeredEntity(
             triggeredEntities,
-            alert.targetEntityId,
+            alert.targetEntityId
           );
         }
 
@@ -143,9 +140,11 @@ function clearAlerts() {
       for (const [index, alert] of alerts.toKeyedSeq()) {
         let radius: number | undefined = undefined;
 
-        const warningRadius = trackOpts &&
+        const warningRadius =
+          trackOpts &&
           (trackOpts.warningRadius || trackOpts.profileWarningRadius);
-        const threatRadius = trackOpts &&
+        const threatRadius =
+          trackOpts &&
           (trackOpts.threatRadius || trackOpts.profileThreatRadius);
         if (alert.type === "warning" && warningRadius) {
           radius = warningRadius;
@@ -155,9 +154,7 @@ function clearAlerts() {
 
         if (radius !== undefined) {
           const triggerEntity = entities.get(alert.targetEntityId);
-          if (
-            triggerEntity
-          ) {
+          if (triggerEntity) {
             if (isTrackInViolation(ourEntity, triggerEntity, null, radius)) {
               continue;
             }
@@ -167,7 +164,7 @@ function clearAlerts() {
         alerts = alerts.remove(index);
         triggeredEntities = decrementTriggeredEntity(
           triggeredEntities,
-          alert.targetEntityId,
+          alert.targetEntityId
         );
       }
 
@@ -185,7 +182,7 @@ function clearAlerts() {
 export function deleteAlert(
   entityId: number,
   type: string,
-  triggerEntityId: number,
+  triggerEntityId: number
 ) {
   alertStore.setState((state) => {
     let existingAlerts = state.alerts.get(entityId);
@@ -210,19 +207,16 @@ export function deleteAlert(
       ...state,
       triggeredEntities: decrementTriggeredEntity(
         state.triggeredEntities,
-        triggerEntityId,
+        triggerEntityId
       ),
-      alerts: state.alerts.set(
-        entityId,
-        existingAlerts,
-      ),
+      alerts: state.alerts.set(entityId, existingAlerts),
     };
   });
 }
 
 function incrementTriggeredEntity(
   triggeredEntities: Immutable.Map<number, number>,
-  entityId: number,
+  entityId: number
 ): Immutable.Map<number, number> {
   const existing = triggeredEntities.get(entityId);
   if (!existing) {
@@ -233,13 +227,13 @@ function incrementTriggeredEntity(
 
 function decrementTriggeredEntity(
   triggeredEntities: Immutable.Map<number, number>,
-  entityId: number,
+  entityId: number
 ): Immutable.Map<number, number> {
   const existing = triggeredEntities.get(entityId);
   if (!existing) {
     console.error(
       "decrementTriggeredEntity for non-stored triggered entity",
-      entityId,
+      entityId
     );
     return triggeredEntities;
   } else if (existing == 1) {
@@ -282,7 +276,7 @@ export function upsertAlert(entityId: number, alert: Alert) {
         ...state,
         triggeredEntities: incrementTriggeredEntity(
           state.triggeredEntities,
-          alert.targetEntityId,
+          alert.targetEntityId
         ),
         alerts: alerts.set(entityId, existingAlerts),
       };
@@ -297,7 +291,7 @@ export function upsertAlert(entityId: number, alert: Alert) {
       ...state,
       triggeredEntities: incrementTriggeredEntity(
         state.triggeredEntities,
-        alert.targetEntityId,
+        alert.targetEntityId
       ),
       alerts: alerts.set(entityId, Immutable.List.of(alert)),
     };

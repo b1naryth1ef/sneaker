@@ -16,19 +16,16 @@ const markPointSIDC = "GHG-GPRN--";
 
 function renderZone(layer: maptalks.VectorLayer, zone: Zone) {
   const collection = layer.getGeometryById(
-    zone.id,
+    zone.id
   ) as maptalks.GeometryCollection;
   if (collection) {
     const [polygon, text] = collection.getGeometries() as [
       maptalks.Polygon,
-      maptalks.Label,
+      maptalks.Label
     ];
 
     polygon.setCoordinates(zone.points.map((it) => [it[1], it[0]]));
-    text.setCoordinates([
-      zone.points[0][1],
-      zone.points[0][0],
-    ]);
+    text.setCoordinates([zone.points[0][1], zone.points[0][0]]);
     (text.setContent as any)(zone.name || `Zone #${zone.id}`);
 
     return;
@@ -41,41 +38,42 @@ function renderZone(layer: maptalks.VectorLayer, zone: Zone) {
       visible: true,
       editable: true,
       symbol: {
-        "lineColor": "#FBBF24",
-        "lineWidth": 2,
-        "polygonFill": "#D97706",
-        "polygonOpacity": 0.1,
+        lineColor: "#FBBF24",
+        lineWidth: 2,
+        polygonFill: "#D97706",
+        polygonOpacity: 0.1,
       },
-    },
+    }
   );
 
-  const text = new maptalks.Label(zone.name || `Zone #${zone.id}`, [
-    zone.points[0][1],
-    zone.points[0][0],
-  ], {
-    draggable: false,
-    visible: true,
-    editable: false,
-    boxStyle: {
-      "padding": [2, 2],
-      "horizontalAlignment": "left",
-      "verticalAlignment": "middle",
-      "symbol": {
-        "markerType": "square",
-        "markerFill": "#4B5563",
-        "markerFillOpacity": 0.5,
-        "markerLineOpacity": 0,
-        textHorizontalAlignment: "right",
-        textVerticalAlignment: "middle",
-        textDx: 10,
+  const text = new maptalks.Label(
+    zone.name || `Zone #${zone.id}`,
+    [zone.points[0][1], zone.points[0][0]],
+    {
+      draggable: false,
+      visible: true,
+      editable: false,
+      boxStyle: {
+        padding: [2, 2],
+        horizontalAlignment: "left",
+        verticalAlignment: "middle",
+        symbol: {
+          markerType: "square",
+          markerFill: "#4B5563",
+          markerFillOpacity: 0.5,
+          markerLineOpacity: 0,
+          textHorizontalAlignment: "right",
+          textVerticalAlignment: "middle",
+          textDx: 10,
+        },
       },
-    },
-    "textSymbol": {
-      "textFaceName": '"microsoft yahei"',
-      "textFill": "#FBBF24",
-      "textSize": 12,
-    },
-  });
+      textSymbol: {
+        textFaceName: '"microsoft yahei"',
+        textFill: "#FBBF24",
+        textSize: 12,
+      },
+    }
+  );
 
   const col = new maptalks.GeometryCollection([polygon, text], {
     id: zone.id,
@@ -96,68 +94,63 @@ function renderZone(layer: maptalks.VectorLayer, zone: Zone) {
 
 function renderMarkPoint(layer: maptalks.VectorLayer, markPoint: MarkPoint) {
   const collection = layer.getGeometryById(
-    markPoint.id,
+    markPoint.id
   ) as maptalks.GeometryCollection;
   if (collection) {
     // This is maybe not the safest :)
     const [icon, text] = collection.getGeometries() as [
       maptalks.Marker,
-      maptalks.Label,
+      maptalks.Label
     ];
 
-    icon.setCoordinates([
-      markPoint.position[1],
-      markPoint.position[0],
-    ]);
-    text.setCoordinates([
-      markPoint.position[1],
-      markPoint.position[0],
-    ]);
+    icon.setCoordinates([markPoint.position[1], markPoint.position[0]]);
+    text.setCoordinates([markPoint.position[1], markPoint.position[0]]);
     (text.setContent as any)(markPoint.name || `Mark #${markPoint.id}`);
 
     return;
   }
 
-  const icon = new maptalks.Marker([
-    markPoint.position[1],
-    markPoint.position[0],
-  ], {
-    draggable: false,
-    visible: true,
-    editable: false,
-    symbol: {
-      markerFile: iconCache[markPointSIDC],
-      markerDy: 10,
-    },
-  });
-
-  const text = new maptalks.Label(markPoint.name || `Mark #${markPoint.id}`, [
-    markPoint.position[1],
-    markPoint.position[0],
-  ], {
-    draggable: false,
-    visible: true,
-    editable: false,
-    boxStyle: {
-      "padding": [2, 2],
-      "horizontalAlignment": "left",
-      "verticalAlignment": "middle",
-      "symbol": {
-        "markerType": "square",
-        "markerFill": "#4B5563",
-        "markerFillOpacity": 0.5,
-        "markerLineOpacity": 0,
-        textHorizontalAlignment: "right",
-        textVerticalAlignment: "middle",
-        textDx: 20,
+  const icon = new maptalks.Marker(
+    [markPoint.position[1], markPoint.position[0]],
+    {
+      draggable: false,
+      visible: true,
+      editable: false,
+      symbol: {
+        markerFile: iconCache[markPointSIDC],
+        markerDy: 10,
       },
-    },
-    "textSymbol": {
-      "textFaceName": '"microsoft yahei"',
-      "textFill": "#FBBF24",
-      "textSize": 12,
-    },
-  });
+    }
+  );
+
+  const text = new maptalks.Label(
+    markPoint.name || `Mark #${markPoint.id}`,
+    [markPoint.position[1], markPoint.position[0]],
+    {
+      draggable: false,
+      visible: true,
+      editable: false,
+      boxStyle: {
+        padding: [2, 2],
+        horizontalAlignment: "left",
+        verticalAlignment: "middle",
+        symbol: {
+          markerType: "square",
+          markerFill: "#4B5563",
+          markerFillOpacity: 0.5,
+          markerLineOpacity: 0,
+          textHorizontalAlignment: "right",
+          textVerticalAlignment: "middle",
+          textDx: 20,
+        },
+      },
+      textSymbol: {
+        textFaceName: '"microsoft yahei"',
+        textFill: "#FBBF24",
+        textSize: 12,
+      },
+    }
+  );
 
   const col = new maptalks.GeometryCollection([icon, text], {
     id: markPoint.id,
@@ -178,7 +171,7 @@ function renderMarkPoint(layer: maptalks.VectorLayer, markPoint: MarkPoint) {
 
 function renderGeometry(
   map: maptalks.Map,
-  geometry: Immutable.Map<number, Geometry>,
+  geometry: Immutable.Map<number, Geometry>
 ) {
   const layer = map.getLayer("custom-geometry") as maptalks.VectorLayer;
   for (const geo of layer.getGeometries()) {
@@ -196,9 +189,7 @@ function renderGeometry(
   }
 }
 
-export default function useRenderGeometry(
-  map: maptalks.Map | null,
-) {
+export default function useRenderGeometry(map: maptalks.Map | null) {
   if (iconCache[markPointSIDC] === undefined) {
     iconCache[markPointSIDC] = new ms.Symbol(markPointSIDC, {
       size: 14,
@@ -215,7 +206,7 @@ export default function useRenderGeometry(
         if (map === null) return;
         renderGeometry(map, geometry);
       },
-      (state) => state.geometry,
+      (state) => state.geometry
     );
   }, [map]);
 

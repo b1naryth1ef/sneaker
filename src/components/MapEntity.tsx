@@ -9,14 +9,14 @@ import { Alert, alertStore } from "../stores/AlertStore";
 import {
   popEntityTag,
   pushEntityTag,
-  useEntityMetadata
+  useEntityMetadata,
 } from "../stores/EntityMetadataStore";
 import { serverStore, setSelectedEntityId } from "../stores/ServerStore";
 import {
   EntityTrackPing,
   estimatedSpeed,
   setTrackOptions,
-  trackStore
+  trackStore,
 } from "../stores/TrackStore";
 import { Entity } from "../types/entity";
 import { getBearingMap, getCardinal, getFlyDistance } from "../util";
@@ -25,14 +25,17 @@ import { colorMode } from "./MapIcon";
 
 export const iconCache: Record<string, string> = {};
 
-export function EntityInfo(
-  { map, dcsMap, entity, track }: {
-    map: maptalks.Map;
-    dcsMap: DCSMap;
-    entity: Entity;
-    track: Array<EntityTrackPing> | null;
-  },
-) {
+export function EntityInfo({
+  map,
+  dcsMap,
+  entity,
+  track,
+}: {
+  map: maptalks.Map;
+  dcsMap: DCSMap;
+  entity: Entity;
+  track: Array<EntityTrackPing> | null;
+}) {
   const trackOptions = trackStore((state) => state.trackOptions.get(entity.id));
   const alerts = alertStore((state) => state.alerts.get(entity.id));
   const entities = serverStore((state) => state.entities);
@@ -44,46 +47,38 @@ export function EntityInfo(
   useEffect(() => {
     if (!inputRef.current) return;
     if (
-      isEnterPressed && addTagText !== "" &&
-      (document.activeElement === inputRef.current)
+      isEnterPressed &&
+      addTagText !== "" &&
+      document.activeElement === inputRef.current
     ) {
       pushEntityTag(entity.id, addTagText);
       setAddTagText("");
     }
   }, [isEnterPressed, inputRef, addTagText]);
 
-  let alertEntities = useMemo(() =>
-    alerts?.map((it) => {
-      const targetEntity = entities.get(it.targetEntityId);
-      if (!targetEntity) {
-        return;
-      }
+  let alertEntities = useMemo(
+    () =>
+      alerts
+        ?.map((it) => {
+          const targetEntity = entities.get(it.targetEntityId);
+          if (!targetEntity) {
+            return;
+          }
 
-      const distance = getFlyDistance([
-        entity.latitude,
-        entity.longitude,
-      ], [
-        targetEntity.latitude,
-        targetEntity.longitude,
-      ]);
+          const distance = getFlyDistance(
+            [entity.latitude, entity.longitude],
+            [targetEntity.latitude, targetEntity.longitude]
+          );
 
-      return [
-        it,
-        targetEntity,
-        distance,
-      ];
-    }).filter((it): it is [Alert, Entity, number] => it !== undefined).sort((
-      [x, y, a],
-      [e, f, b],
-    ) => a - b), [
-    alerts,
-    entities,
-  ]);
+          return [it, targetEntity, distance];
+        })
+        .filter((it): it is [Alert, Entity, number] => it !== undefined)
+        .sort(([x, y, a], [e, f, b]) => a - b),
+    [alerts, entities]
+  );
 
   return (
-    <div
-      className="flex flex-col bg-gray-300 border border-gray-500 shadow select-none rounded-sm"
-    >
+    <div className="flex flex-col bg-gray-300 border border-gray-500 shadow select-none rounded-sm">
       <div className="p-2 bg-gray-400 text-sm flex flex-row gap-2">
         <b>{entity.group}</b>
         <button
@@ -113,19 +108,20 @@ export function EntityInfo(
           <div>ID: {entity.id}</div>
         </div>
         {track && (
-          <div
-            className="flex flex-col border-l border-black px-2 gap-1 flex-grow"
-          >
+          <div className="flex flex-col border-l border-black px-2 gap-1 flex-grow">
             <button
               className="p-1 text-xs bg-blue-300 border border-blue-400"
               onClick={() => {
-                map.animateTo({
-                  center: [entity.longitude, entity.latitude],
-                  zoom: 10,
-                }, {
-                  duration: 250,
-                  easing: "out",
-                });
+                map.animateTo(
+                  {
+                    center: [entity.longitude, entity.latitude],
+                    zoom: 10,
+                  },
+                  {
+                    duration: 250,
+                    easing: "out",
+                  }
+                );
               }}
             >
               Snap
@@ -170,7 +166,8 @@ export function EntityInfo(
                   onChange={(e) =>
                     setTrackOptions(entity.id, {
                       watching: e.target.checked,
-                    })}
+                    })
+                  }
                 />
               </div>
               <div className="flex flex-row flex-grow items-center">
@@ -210,13 +207,12 @@ export function EntityInfo(
       )}
       {alertEntities && (
         <div className="flex flex-col gap-1 p-2">
-          {alertEntities.map((
-            [alert, threatEntity, distance],
-          ) => {
-            const bearing = getBearingMap([entity.latitude, entity.longitude], [
-              threatEntity.latitude,
-              threatEntity.longitude,
-            ], dcsMap);
+          {alertEntities.map(([alert, threatEntity, distance]) => {
+            const bearing = getBearingMap(
+              [entity.latitude, entity.longitude],
+              [threatEntity.latitude, threatEntity.longitude],
+              dcsMap
+            );
 
             return (
               <button
@@ -225,28 +221,29 @@ export function EntityInfo(
                   {
                     "border-red-400": alert.type === "threat",
                     "border-yellow-400": alert.type === "warning",
-                  },
+                  }
                 )}
                 key={`${alert.type}-${alert.targetEntityId}`}
                 onClick={() => {
-                  map.animateTo({
-                    center: [threatEntity.longitude, threatEntity.latitude],
-                    zoom: 10,
-                  }, {
-                    duration: 250,
-                    easing: "out",
-                  });
+                  map.animateTo(
+                    {
+                      center: [threatEntity.longitude, threatEntity.latitude],
+                      zoom: 10,
+                    },
+                    {
+                      duration: 250,
+                      easing: "out",
+                    }
+                  );
                 }}
               >
+                <div>{threatEntity.name}</div>
                 <div>
-                  {threatEntity.name}
+                  {bearing} {getCardinal(bearing)}
                 </div>
-                <div>{bearing} {getCardinal(bearing)}</div>
                 <div>{Math.round(distance)}NM</div>
                 <div>
-                  {Math.floor(
-                    (threatEntity.altitude * 3.28084) / 1000,
-                  )}
+                  {Math.floor((threatEntity.altitude * 3.28084) / 1000)}
                 </div>
               </button>
             );
@@ -257,19 +254,20 @@ export function EntityInfo(
   );
 }
 
-export function MapSimpleEntity(
-  { map, entity, size, strokeWidth }: {
-    map: maptalks.Map;
-    entity: Entity;
-    size?: number;
-    strokeWidth?: number;
-  },
-) {
+export function MapSimpleEntity({
+  map,
+  entity,
+  size,
+  strokeWidth,
+}: {
+  map: maptalks.Map;
+  entity: Entity;
+  size?: number;
+  strokeWidth?: number;
+}) {
   useEffect(() => {
     const iconLayer = map.getLayer("track-icons") as maptalks.VectorLayer;
-    let marker = iconLayer.getGeometryById(
-      entity.id,
-    ) as maptalks.Marker;
+    let marker = iconLayer.getGeometryById(entity.id) as maptalks.Marker;
     if (!marker) {
       if (iconCache[entity.sidc] === undefined) {
         iconCache[entity.sidc] = new ms.Symbol(entity.sidc, {
@@ -280,28 +278,20 @@ export function MapSimpleEntity(
           strokeWidth: strokeWidth || 8,
         }).toDataURL();
       }
-      marker = new maptalks.Marker(
-        [entity.longitude, entity.latitude],
-        {
-          id: entity.id,
-          draggable: false,
-          visible: true,
-          editable: false,
-          symbol: {
-            markerFile: iconCache[entity.sidc],
-            markerDy: 10,
-          },
+      marker = new maptalks.Marker([entity.longitude, entity.latitude], {
+        id: entity.id,
+        draggable: false,
+        visible: true,
+        editable: false,
+        symbol: {
+          markerFile: iconCache[entity.sidc],
+          markerDy: 10,
         },
-      );
-      marker.on("click", () => setSelectedEntityId(entity.id))
-      iconLayer.addGeometry(
-        marker,
-      );
+      });
+      marker.on("click", () => setSelectedEntityId(entity.id));
+      iconLayer.addGeometry(marker);
     } else {
-      marker.setCoordinates([
-        entity.longitude,
-        entity.latitude,
-      ]);
+      marker.setCoordinates([entity.longitude, entity.latitude]);
     }
   }, [entity]);
 

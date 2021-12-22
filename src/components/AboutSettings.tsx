@@ -8,7 +8,8 @@ export function AboutSettings() {
           href="https://github.com/b1naryth1ef/sneaker"
         >
           Open Source
-        </a>.
+        </a>
+        .
       </div>
     </div>
   );

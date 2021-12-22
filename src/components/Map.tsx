@@ -47,7 +47,7 @@ const syncVisibility = (geo: maptalks.Geometry, value: boolean) => {
 
 function pruneLayer(
   layer: maptalks.VectorLayer,
-  keepFn: (geoId: number) => boolean,
+  keepFn: (geoId: number) => boolean
 ) {
   for (const geo of layer.getGeometries()) {
     if (!keepFn((geo as any)._id)) {
@@ -56,12 +56,13 @@ function pruneLayer(
   }
 }
 
-function MapRadarTracks(
-  { map, selectedEntityId }: {
-    map: maptalks.Map;
-    selectedEntityId: number | null;
-  },
-) {
+function MapRadarTracks({
+  map,
+  selectedEntityId,
+}: {
+  map: maptalks.Map;
+  selectedEntityId: number | null;
+}) {
   const radarTracks = trackStore((state) => state.tracks.entrySeq().toArray());
   const triggeredEntityIds = alertStore((state) =>
     state.triggeredEntities.keySeq().toSet()
@@ -78,10 +79,10 @@ function MapRadarTracks(
     const altLayer = map.getLayer("track-altitude") as maptalks.VectorLayer;
     const speedLayer = map.getLayer("track-speed") as maptalks.VectorLayer;
     const vertLayer = map.getLayer(
-      "track-verticalvelo",
+      "track-verticalvelo"
     ) as maptalks.VectorLayer;
     const alertLayer = map.getLayer(
-      "track-alert-radius",
+      "track-alert-radius"
     ) as maptalks.VectorLayer;
 
     pruneLayer(vvLayer, (it) => tracks.has(it));
@@ -110,9 +111,7 @@ function MapRadarTracks(
 
       const trackOptions = trackStore.getState().trackOptions.get(entityId);
 
-      const iconGeo = iconLayer.getGeometryById(
-        entityId,
-      ) as maptalks.Marker;
+      const iconGeo = iconLayer.getGeometryById(entityId) as maptalks.Marker;
       if (!iconGeo) {
         if (iconCache[entity.sidc] === undefined) {
           iconCache[entity.sidc] = new ms.Symbol(entity.sidc, {
@@ -134,26 +133,20 @@ function MapRadarTracks(
               markerFile: iconCache[entity.sidc],
               markerDy: 10,
             },
-          },
+          }
         );
 
-        iconLayer.addGeometry(
-          iconGeo,
-        );
+        iconLayer.addGeometry(iconGeo);
         iconGeo.on("click", (e) => {
           setSelectedEntityId(entity.id);
           return false;
         });
       } else {
-        iconGeo.setCoordinates(
-          [entity.longitude, entity.latitude],
-        );
+        iconGeo.setCoordinates([entity.longitude, entity.latitude]);
         syncVisibility(iconGeo, trackVisible);
       }
 
-      const nameGeo = nameLayer.getGeometryById(
-        entityId,
-      ) as maptalks.Label;
+      const nameGeo = nameLayer.getGeometryById(entityId) as maptalks.Label;
       if (!nameGeo) {
         let name = entity.name;
         if (entity.pilot && !entity.pilot.startsWith(entity.group)) {
@@ -173,21 +166,21 @@ function MapRadarTracks(
           visible: false,
           editable: false,
           boxStyle: {
-            "padding": [2, 2],
-            "horizontalAlignment": "left",
-            "symbol": {
-              "markerType": "square",
-              "markerFill": "#4B5563",
-              "markerFillOpacity": 0.5,
-              "markerLineColor": color,
+            padding: [2, 2],
+            horizontalAlignment: "left",
+            symbol: {
+              markerType: "square",
+              markerFill: "#4B5563",
+              markerFillOpacity: 0.5,
+              markerLineColor: color,
               textHorizontalAlignment: "right",
               textDx: 20,
             },
           },
-          "textSymbol": {
-            "textFaceName": '"microsoft yahei"',
-            "textFill": "white",
-            "textSize": 12,
+          textSymbol: {
+            textFaceName: '"microsoft yahei"',
+            textFill: "white",
+            textSize: 12,
           },
         });
         nameLabel.on("click", (e) => {
@@ -197,9 +190,7 @@ function MapRadarTracks(
         nameLayer.addGeometry(nameLabel);
       } else {
         const symbol = nameGeo.getSymbol();
-        if (
-          triggeredEntityIds.has(entity.id)
-        ) {
+        if (triggeredEntityIds.has(entity.id)) {
           if ((symbol as any).markerLineWidth !== 4) {
             nameGeo.setSymbol({
               ...symbol,
@@ -228,15 +219,11 @@ function MapRadarTracks(
           });
         }
 
-        nameGeo.setCoordinates(
-          [entity.longitude, entity.latitude],
-        );
+        nameGeo.setCoordinates([entity.longitude, entity.latitude]);
         syncVisibility(nameGeo, trackVisible);
       }
 
-      const altGeo = altLayer.getGeometryById(
-        entityId,
-      ) as maptalks.Label;
+      const altGeo = altLayer.getGeometryById(entityId) as maptalks.Label;
       if (!altGeo) {
         const altLabel = new maptalks.Label("", [0, 0], {
           id: entityId,
@@ -244,42 +231,36 @@ function MapRadarTracks(
           visible: false,
           editable: false,
           boxStyle: {
-            "padding": [2, 2],
-            "horizontalAlignment": "left",
-            "symbol": {
-              "markerType": "square",
-              "markerFillOpacity": 0,
-              "markerLineOpacity": 0,
+            padding: [2, 2],
+            horizontalAlignment: "left",
+            symbol: {
+              markerType: "square",
+              markerFillOpacity: 0,
+              markerLineOpacity: 0,
               textHorizontalAlignment: "right",
               textDx: 20,
               textDy: 18,
             },
           },
-          "textSymbol": {
-            "textFaceName": '"microsoft yahei"',
-            "textFill": "#FFC0CB",
-            "textSize": 12,
+          textSymbol: {
+            textFaceName: '"microsoft yahei"',
+            textFill: "#FFC0CB",
+            textSize: 12,
           },
         });
         altLayer.addGeometry(altLabel);
       } else {
         (altGeo.setContent as any)(
-          `${
-            ((entity.altitude * 3.28084) / 1000).toFixed(1).toString().padStart(
-              3,
-              "0",
-            )
-          }`,
+          `${((entity.altitude * 3.28084) / 1000)
+            .toFixed(1)
+            .toString()
+            .padStart(3, "0")}`
         );
-        altGeo.setCoordinates(
-          [entity.longitude, entity.latitude],
-        );
+        altGeo.setCoordinates([entity.longitude, entity.latitude]);
         syncVisibility(altGeo, trackVisible);
       }
 
-      const speedGeo = speedLayer.getGeometryById(
-        entityId,
-      ) as maptalks.Label;
+      const speedGeo = speedLayer.getGeometryById(entityId) as maptalks.Label;
       if (!speedGeo) {
         const speedLabel = new maptalks.Label("", [0, 0], {
           id: entityId,
@@ -287,38 +268,32 @@ function MapRadarTracks(
           visible: false,
           editable: false,
           boxStyle: {
-            "padding": [2, 2],
-            "horizontalAlignment": "left",
-            "symbol": {
-              "markerType": "square",
-              "markerFillOpacity": 0,
-              "markerLineOpacity": 0,
+            padding: [2, 2],
+            horizontalAlignment: "left",
+            symbol: {
+              markerType: "square",
+              markerFillOpacity: 0,
+              markerLineOpacity: 0,
               textHorizontalAlignment: "right",
               textDx: 45,
               textDy: 18,
             },
           },
-          "textSymbol": {
-            "textFaceName": '"microsoft yahei"',
-            "textFill": "orange",
-            "textSize": 12,
+          textSymbol: {
+            textFaceName: '"microsoft yahei"',
+            textFill: "orange",
+            textSize: 12,
           },
         });
         speedLayer.addGeometry(speedLabel);
       } else {
-        (speedGeo.setContent as any)(
-          `${Math.round(estimatedSpeed(track))}`,
-        );
-        speedGeo.setCoordinates(
-          [entity.longitude, entity.latitude],
-        );
+        (speedGeo.setContent as any)(`${Math.round(estimatedSpeed(track))}`);
+        speedGeo.setCoordinates([entity.longitude, entity.latitude]);
 
         syncVisibility(speedGeo, trackVisible);
       }
 
-      const vertGeo = vertLayer.getGeometryById(
-        entityId,
-      ) as maptalks.Label;
+      const vertGeo = vertLayer.getGeometryById(entityId) as maptalks.Label;
       if (!vertGeo) {
         const vertLabel = new maptalks.Label("", [0, 0], {
           id: entityId,
@@ -326,36 +301,34 @@ function MapRadarTracks(
           visible: false,
           editable: false,
           boxStyle: {
-            "padding": [2, 2],
-            "horizontalAlignment": "left",
-            "symbol": {
-              "markerType": "square",
-              "markerFillOpacity": 0,
-              "markerLineOpacity": 0,
+            padding: [2, 2],
+            horizontalAlignment: "left",
+            symbol: {
+              markerType: "square",
+              markerFillOpacity: 0,
+              markerLineOpacity: 0,
               textHorizontalAlignment: "right",
               textDx: 70,
               textDy: 18,
             },
           },
-          "textSymbol": {
-            "textFaceName": '"microsoft yahei"',
-            "textFill": "#6EE7B7",
-            "textSize": 12,
+          textSymbol: {
+            textFaceName: '"microsoft yahei"',
+            textFill: "#6EE7B7",
+            textSize: 12,
           },
         });
         vertLayer.addGeometry(vertLabel);
       } else {
         (vertGeo.setContent as any)(
-          `${Math.round(estimatedAltitudeRate(track))}`,
+          `${Math.round(estimatedAltitudeRate(track))}`
         );
-        vertGeo.setCoordinates(
-          [entity.longitude, entity.latitude],
-        );
+        vertGeo.setCoordinates([entity.longitude, entity.latitude]);
         syncVisibility(vertGeo, trackVisible);
       }
 
       let threatCircle = alertLayer.getGeometryById(
-        `${entityId}-threat`,
+        `${entityId}-threat`
       ) as maptalks.Circle;
       if (!threatCircle) {
         threatCircle = new maptalks.Circle([0, 0], 500, {
@@ -371,16 +344,12 @@ function MapRadarTracks(
         });
         alertLayer.addGeometry(threatCircle);
       } else {
-        const threatRadius = trackOptions &&
+        const threatRadius =
+          trackOptions &&
           (trackOptions.threatRadius || trackOptions.profileThreatRadius);
         if (threatRadius) {
-          threatCircle.setCoordinates(
-            [entity.longitude, entity.latitude],
-          );
-          threatCircle.setRadius(
-            threatRadius *
-              1852,
-          );
+          threatCircle.setCoordinates([entity.longitude, entity.latitude]);
+          threatCircle.setRadius(threatRadius * 1852);
           trackVisible ? threatCircle.show() : threatCircle.hide();
         } else {
           threatCircle.hide();
@@ -388,7 +357,7 @@ function MapRadarTracks(
       }
 
       let warningCircle = alertLayer.getGeometryById(
-        `${entityId}-warning`,
+        `${entityId}-warning`
       ) as maptalks.Circle;
       if (!warningCircle) {
         warningCircle = new maptalks.Circle([0, 0], 500, {
@@ -404,26 +373,20 @@ function MapRadarTracks(
         });
         alertLayer.addGeometry(warningCircle);
       } else {
-        const warningRadius = trackOptions &&
+        const warningRadius =
+          trackOptions &&
           (trackOptions.warningRadius || trackOptions.profileWarningRadius);
-        syncVisibility(
-          warningCircle,
-          warningRadius && trackVisible || false,
-        );
+        syncVisibility(warningCircle, (warningRadius && trackVisible) || false);
         if (warningRadius) {
-          warningCircle.setCoordinates(
-            [entity.longitude, entity.latitude],
-          );
-          warningCircle.setRadius(
-            warningRadius * 1852,
-          );
+          warningCircle.setCoordinates([entity.longitude, entity.latitude]);
+          warningCircle.setRadius(warningRadius * 1852);
         }
       }
 
       const numShownPings = 9;
 
       let trackPingGroup = trailLayer.getGeometryById(
-        entityId,
+        entityId
       ) as maptalks.GeometryCollection;
       if (!trackPingGroup) {
         const trackPings = [];
@@ -438,7 +401,7 @@ function MapRadarTracks(
               dragShadow: false,
               drawOnAxis: null,
               symbol: {},
-            }),
+            })
           );
         }
         trackPingGroup = new maptalks.GeometryCollection(trackPings, {
@@ -447,9 +410,8 @@ function MapRadarTracks(
         trailLayer.addGeometry(trackPingGroup);
       }
 
-      const trackPointGeos = trackPingGroup.getGeometries() as Array<
-        maptalks.Marker
-      >;
+      const trackPointGeos =
+        trackPingGroup.getGeometries() as Array<maptalks.Marker>;
 
       if (estimatedSpeed(track) < 25) {
         for (const trackGeo of trackPointGeos) {
@@ -476,53 +438,56 @@ function MapRadarTracks(
             color = entity.coalition !== "Allies" ? "#17c2f6" : "#ff8080";
           }
 
-          trackPointGeo.setSymbol(
-            {
-              "markerType": "square",
-              "markerFill": color,
-              "markerLineColor": "black",
-              "markerLineOpacity": 0.1,
-              "markerLineWidth": 1,
-              "markerWidth": 5,
-              "markerHeight": 5,
-              "markerDx": 0,
-              "markerDy": 0,
-              "markerFillOpacity": (100 - (index * 10)) / 100,
-            },
-          );
+          trackPointGeo.setSymbol({
+            markerType: "square",
+            markerFill: color,
+            markerLineColor: "black",
+            markerLineOpacity: 0.1,
+            markerLineWidth: 1,
+            markerWidth: 5,
+            markerHeight: 5,
+            markerDx: 0,
+            markerDy: 0,
+            markerFillOpacity: (100 - index * 10) / 100,
+          });
         }
       }
 
       const speed = track && estimatedSpeed(track);
-      const dirArrowEnd = speed && track && isTrackVisible(track) &&
+      const dirArrowEnd =
+        speed &&
+        track &&
+        isTrackVisible(track) &&
         computeBRAA(
           track[0].position[0],
           track[0].position[1],
           track[0].heading,
           // knots -> meters per second -> 30 seconds
-          ((speed * 0.514444)) * 30,
+          speed * 0.514444 * 30
         );
       const geo = vvLayer.getGeometryById(
-        entityId,
-      ) as (maptalks.LineString | null);
+        entityId
+      ) as maptalks.LineString | null;
 
       if (dirArrowEnd) {
         if (!geo) {
           vvLayer.addGeometry(
-            new maptalks.LineString([
-              [track[0].position[1], track[0].position[0]],
-              [dirArrowEnd[1], dirArrowEnd[0]],
-            ], {
-              id: entityId,
-              arrowStyle: "classic",
-              arrowPlacement: "vertex",
-              symbol: {
-                "lineColor": entity.coalition !== "Allies"
-                  ? "#17c2f6"
-                  : "#ff8080",
-                "lineWidth": 1.5,
-              },
-            }),
+            new maptalks.LineString(
+              [
+                [track[0].position[1], track[0].position[0]],
+                [dirArrowEnd[1], dirArrowEnd[0]],
+              ],
+              {
+                id: entityId,
+                arrowStyle: "classic",
+                arrowPlacement: "vertex",
+                symbol: {
+                  lineColor:
+                    entity.coalition !== "Allies" ? "#17c2f6" : "#ff8080",
+                  lineWidth: 1.5,
+                },
+              }
+            )
           );
         } else {
           geo.setCoordinates([
@@ -540,7 +505,7 @@ function MapRadarTracks(
 
   useEffect(() => {
     const alertLayer = map.getLayer(
-      "track-alert-radius",
+      "track-alert-radius"
     ) as maptalks.VectorLayer;
     for (const geo of alertLayer.getGeometries()) {
       const [entityId, typeName] = ((geo as any)._id as string).split("-");
@@ -555,7 +520,7 @@ function MapRadarTracks(
           geo.setSymbol({
             lineColor: "yellow",
             lineWidth: 2,
-            lineOpacity: 0.60,
+            lineOpacity: 0.6,
           });
         }
       } else {
@@ -563,7 +528,7 @@ function MapRadarTracks(
           geo.setSymbol({
             lineColor: "red",
             lineWidth: 1,
-            lineOpacity: 0.50,
+            lineOpacity: 0.5,
           });
         } else if (typeName === "warning") {
           geo.setSymbol({
@@ -590,32 +555,28 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
   const [drawBraaStart, setDrawBraaStart] = useState<
     number | [number, number] | null
   >(null);
-  const [cursorPos, setCursorPos] = useState<[number, number] | null>(
-    null,
-  );
+  const [cursorPos, setCursorPos] = useState<[number, number] | null>(null);
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [scratchPadOpen, setScratchPadOpen] = useState(false);
 
-  const [entities, selectedEntity] = serverStore((
-    state,
-  ) => [
+  const [entities, selectedEntity] = serverStore((state) => [
     state.entities,
     state.selectedEntityId && state.entities.get(state.selectedEntityId),
   ]);
 
   // TODO: server should set coalition
-  const bullsEntity = entities.find((it) =>
-    it.types.includes("Bullseye") && it.coalition === "Enemies"
+  const bullsEntity = entities.find(
+    (it) => it.types.includes("Bullseye") && it.coalition === "Enemies"
   );
   const ships = useMemo(
     () => entities.filter((it) => it.types.includes("Sea")),
-    [entities],
+    [entities]
   );
 
-  const selectedTrack = trackStore((
-    state,
-  ) => selectedEntity && state.tracks.get(selectedEntity.id));
+  const selectedTrack = trackStore(
+    (state) => selectedEntity && state.tracks.get(selectedEntity.id)
+  );
 
   const isSnapPressed = useKeyPress("s");
   const isDecluttered = useKeyPress("d");
@@ -639,33 +600,33 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
       dragShadow: false,
       drawOnAxis: null,
       symbol: {
-        "lineColor": "yellow",
-        "lineWidth": 2,
+        lineColor: "yellow",
+        lineWidth: 2,
       },
     });
 
     var braaText = new maptalks.Label("", [0, 0], {
       id: "braa-text",
-      "draggable": false,
+      draggable: false,
       visible: false,
       editable: false,
-      "boxStyle": {
-        "padding": [2, 2],
-        "verticalAlignment": "top",
-        "horizontalAlignment": "left",
-        "symbol": {
-          "markerType": "square",
-          "markerFill": "rgb(135,196,240)",
-          "markerFillOpacity": 0.9,
-          "markerLineColor": "#34495e",
-          "markerLineWidth": 1,
+      boxStyle: {
+        padding: [2, 2],
+        verticalAlignment: "top",
+        horizontalAlignment: "left",
+        symbol: {
+          markerType: "square",
+          markerFill: "rgb(135,196,240)",
+          markerFillOpacity: 0.9,
+          markerLineColor: "#34495e",
+          markerLineWidth: 1,
         },
       },
-      "textSymbol": {
-        "textFaceName": '"microsoft yahei"',
-        "textFill": "white",
-        "textSize": 18,
-        "textVerticalAlignment": "top",
+      textSymbol: {
+        textFaceName: '"microsoft yahei"',
+        textFill: "white",
+        textSize: 18,
+        textVerticalAlignment: "top",
       },
     });
 
@@ -679,12 +640,10 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
     });
 
     entityInfoPanel.current = new maptalks.control.Panel({
-      "position": "bottom-left",
-      "draggable": true,
-      "custom": false,
-      "content": renderToString(
-        <div></div>,
-      ),
+      position: "bottom-left",
+      draggable: true,
+      custom: false,
+      content: renderToString(<div></div>),
     });
 
     map.current = new maptalks.Map(mapContainer.current, {
@@ -755,23 +714,22 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
         new maptalks.VectorLayer("track-verticalvelo", [], {
           hitDetect: false,
         }),
-        new maptalks.VectorLayer("braa", [
-          braaLine,
-          braaText,
-          selectedCircle.current,
-        ], {
-          hitDetect: false,
-          forceRenderOnZooming: true,
-          forceRenderOnMoving: true,
-          forceRenderOnRotating: true,
-        }),
+        new maptalks.VectorLayer(
+          "braa",
+          [braaLine, braaText, selectedCircle.current],
+          {
+            hitDetect: false,
+            forceRenderOnZooming: true,
+            forceRenderOnMoving: true,
+            forceRenderOnRotating: true,
+          }
+        ),
       ],
     } as any);
 
     map.current.addControl(entityInfoPanel.current);
 
-    map.current.on("contextmenu", (e) => {
-    });
+    map.current.on("contextmenu", (e) => {});
 
     map.current.on("zooming", (e) => {
       setZoom(map.current!.getZoom());
@@ -832,42 +790,41 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
           visible: true,
           editable: false,
           boxStyle: {
-            "padding": [2, 2],
-            "horizontalAlignment": "left",
-            "symbol": {
-              "markerType": "square",
-              "markerFill": "black",
-              "markerFillOpacity": 0,
-              "markerLineWidth": 0,
+            padding: [2, 2],
+            horizontalAlignment: "left",
+            symbol: {
+              markerType: "square",
+              markerFill: "black",
+              markerFillOpacity: 0,
+              markerLineWidth: 0,
               textHorizontalAlignment: "center",
               textDy: -25,
             },
           },
-          "textSymbol": {
-            "textFaceName": '"microsoft yahei"',
-            "textFill": "white",
-            "textOpacity": 0.5,
-            "textSize": 10,
+          textSymbol: {
+            textFaceName: '"microsoft yahei"',
+            textFill: "white",
+            textOpacity: 0.5,
+            textSize: 10,
           },
-        },
+        }
       );
       layer.addGeometry(airportLabel);
 
-      const airportMarker = new maptalks.Marker([
-        airport.position[1],
-        airport.position[0],
-      ], {
-        symbol: {
-          markerFile: icon,
-        },
-      });
+      const airportMarker = new maptalks.Marker(
+        [airport.position[1], airport.position[0]],
+        {
+          symbol: {
+            markerFile: icon,
+          },
+        }
+      );
       layer.addGeometry(airportMarker);
     }
   }, [map]);
 
-  const mouseDownHandlerRef: MutableRefObject<
-    null | maptalks.EvenableHandlerFun
-  > = useRef(null);
+  const mouseDownHandlerRef: MutableRefObject<null | maptalks.EvenableHandlerFun> =
+    useRef(null);
 
   useEffect(() => {
     if (!map.current) return;
@@ -886,33 +843,34 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
 
       if (e.domEvent.button === 2) {
         if (isSnapPressed) {
-          map.current.identify({
-            "coordinate": e.coordinate,
-            "layers": [
-              nameLayer,
-              iconLayer,
-              airportsLayer,
-              farpNameLayer,
-              farpIconLayer,
-              customGeoLayer,
-            ],
-          }, (geos: Array<maptalks.Geometry>) => {
-            if (geos.length >= 1) {
-              const rawId = geos[0].getId();
-              if (geos[0].options.entityId !== undefined) {
-                setDrawBraaStart(geos[0].options.entityId);
-              } else if (typeof rawId === "string") {
-                setDrawBraaStart(parseInt(rawId));
-              } else {
-                const coord = geos[0].getCenter();
-                setDrawBraaStart([coord.y, coord.x]);
+          map.current.identify(
+            {
+              coordinate: e.coordinate,
+              layers: [
+                nameLayer,
+                iconLayer,
+                airportsLayer,
+                farpNameLayer,
+                farpIconLayer,
+                customGeoLayer,
+              ],
+            },
+            (geos: Array<maptalks.Geometry>) => {
+              if (geos.length >= 1) {
+                const rawId = geos[0].getId();
+                if (geos[0].options.entityId !== undefined) {
+                  setDrawBraaStart(geos[0].options.entityId);
+                } else if (typeof rawId === "string") {
+                  setDrawBraaStart(parseInt(rawId));
+                } else {
+                  const coord = geos[0].getCenter();
+                  setDrawBraaStart([coord.y, coord.x]);
+                }
               }
             }
-          });
-        } else {
-          setDrawBraaStart(
-            [e.coordinate.y, e.coordinate.x],
           );
+        } else {
+          setDrawBraaStart([e.coordinate.y, e.coordinate.x]);
         }
       }
     };
@@ -929,9 +887,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
       }
 
       selectedCircle.current.show();
-      selectedCircle.current.setRadius(
-        map.current.getScale(zoom) * 3,
-      );
+      selectedCircle.current.setRadius(map.current.getScale(zoom) * 3);
       selectedCircle.current.setCoordinates([
         selectedEntity.longitude,
         selectedEntity.latitude,
@@ -979,17 +935,12 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
         ]);
 
         const scale = map.current!.getScale(map.current!.getZoom());
-        text.setCoordinates([end[1], end[0]]).translate(
-          scale / 9000,
-          0,
-        );
+        text.setCoordinates([end[1], end[0]]).translate(scale / 9000, 0);
 
         (text.setContent as any)(
-          `${bearing.toString().padStart(3, "0")}${getCardinal(bearing)} / ${
-            Math.round(
-              getFlyDistance(start, end),
-            )
-          }`,
+          `${bearing.toString().padStart(3, "0")}${getCardinal(
+            bearing
+          )} / ${Math.round(getFlyDistance(start, end))}`
         );
 
         text.show();
@@ -1010,32 +961,29 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
     const bearing = getBearingMap(
       [bullsEntity.latitude, bullsEntity.longitude],
       cursorPos,
-      dcsMap,
+      dcsMap
     );
-    return `${bearing.toString().padStart(3, "0")}${getCardinal(bearing)} / ${
-      Math.round(
-        getFlyDistance(cursorPos, [
-          bullsEntity.latitude,
-          bullsEntity.longitude,
-        ]),
-      )
-    }`;
+    return `${bearing.toString().padStart(3, "0")}${getCardinal(
+      bearing
+    )} / ${Math.round(
+      getFlyDistance(cursorPos, [bullsEntity.latitude, bullsEntity.longitude])
+    )}`;
   }, [cursorPos, bullsEntity]);
 
   const farps = useMemo(
     () =>
-      entities.filter((it) =>
-        it.types.includes("Aerodrome") && it.coalition !== "Allies"
+      entities.filter(
+        (it) => it.types.includes("Aerodrome") && it.coalition !== "Allies"
       ),
-    [entities],
+    [entities]
   );
   useEffect(() => {
     if (!map.current) return;
     const farpNameLayer = map.current.getLayer(
-      "farp-name",
+      "farp-name"
     ) as maptalks.VectorLayer;
     const farpIconLayer = map.current.getLayer(
-      "farp-icon",
+      "farp-icon"
     ) as maptalks.VectorLayer;
 
     for (const farpGeo of farpNameLayer.getGeometries()) {
@@ -1060,7 +1008,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
 
     for (const [_, farp] of farps) {
       let farpNameGeo = farpNameLayer.getGeometryById(
-        farp.id,
+        farp.id
       ) as maptalks.Label;
       if (!farpNameGeo) {
         farpNameGeo = new maptalks.Label(
@@ -1074,41 +1022,35 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
             visible: true,
             editable: false,
             boxStyle: {
-              "padding": [2, 2],
-              "horizontalAlignment": "left",
-              "symbol": {
-                "markerType": "square",
-                "markerFill": "black",
-                "markerFillOpacity": 0,
-                "markerLineWidth": 0,
+              padding: [2, 2],
+              horizontalAlignment: "left",
+              symbol: {
+                markerType: "square",
+                markerFill: "black",
+                markerFillOpacity: 0,
+                markerLineWidth: 0,
                 textHorizontalAlignment: "center",
                 textDy: -25,
               },
             },
-            "textSymbol": {
-              "textFaceName": '"microsoft yahei"',
-              "textFill": "white",
-              "textOpacity": 0.5,
-              "textSize": 10,
+            textSymbol: {
+              textFaceName: '"microsoft yahei"',
+              textFill: "white",
+              textOpacity: 0.5,
+              textSize: 10,
             },
-          },
+          }
         );
         farpNameLayer.addGeometry(farpNameGeo);
       } else {
-        farpNameGeo.setCoordinates([
-          farp.longitude,
-          farp.latitude,
-        ]);
+        farpNameGeo.setCoordinates([farp.longitude, farp.latitude]);
       }
 
       let farpIconGeo = farpIconLayer.getGeometryById(
-        farp.id,
+        farp.id
       ) as maptalks.Marker;
       if (!farpIconGeo) {
-        farpIconGeo = new maptalks.Marker([
-          farp.longitude,
-          farp.latitude,
-        ], {
+        farpIconGeo = new maptalks.Marker([farp.longitude, farp.latitude], {
           ...({
             entityId: farp.id,
           } as any),
@@ -1118,10 +1060,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
         });
         farpIconLayer.addGeometry(farpIconGeo);
       } else {
-        farpNameGeo.setCoordinates([
-          farp.longitude,
-          farp.latitude,
-        ]);
+        farpNameGeo.setCoordinates([farp.longitude, farp.latitude]);
       }
     }
   }, [farps]);
@@ -1150,33 +1089,27 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
           overflow: "hidden",
         }}
         ref={mapContainer}
-      >
-      </div>
+      ></div>
       {settingsOpen && <Settings close={() => setSettingsOpen(false)} />}
-      {currentCursorBulls &&
-        (
-          <div
-            className="absolute right-0 bottom-0 max-w-xl max-h-32 text-yellow-600 text-3xl bg-gray-400 bg-opacity-20 p-1"
-          >
-            {currentCursorBulls}
-          </div>
-        )}
+      {currentCursorBulls && (
+        <div className="absolute right-0 bottom-0 max-w-xl max-h-32 text-yellow-600 text-3xl bg-gray-400 bg-opacity-20 p-1">
+          {currentCursorBulls}
+        </div>
+      )}
       <MissionTimer />
-      <div
-        className="m-2 absolute left-0 top-0 flex flex-col gap-2"
-      >
-        {selectedEntity && map.current &&
-          (
-            <EntityInfo
-              map={map.current}
-              dcsMap={dcsMap}
-              track={selectedTrack || null}
-              entity={selectedEntity}
-            />
-          )}
+      <div className="m-2 absolute left-0 top-0 flex flex-col gap-2">
+        {selectedEntity && map.current && (
+          <EntityInfo
+            map={map.current}
+            dcsMap={dcsMap}
+            track={selectedTrack || null}
+            entity={selectedEntity}
+          />
+        )}
         {map.current && <MapGeometryInfo map={map.current} />}
-        {scratchPadOpen &&
-          <ScratchPad close={() => setScratchPadOpen(false)} />}
+        {scratchPadOpen && (
+          <ScratchPad close={() => setScratchPadOpen(false)} />
+        )}
       </div>
       {map.current && (
         <Console
@@ -1185,31 +1118,32 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
           map={map.current}
         />
       )}
-      {map.current &&
-        (
-          <MapRadarTracks
-            map={map.current}
-            selectedEntityId={selectedEntity ? selectedEntity.id : null}
-          />
-        )}
-      {map.current && bullsEntity &&
-        (
-          <MapSimpleEntity
-            map={map.current}
-            entity={bullsEntity}
-            size={32}
-            strokeWidth={4}
-          />
-        )}
-      {map.current && ships.valueSeq().map((ship) => (
-        <MapSimpleEntity
-          key={ship.id}
-          map={map.current!}
-          entity={ship}
-          size={12}
-          strokeWidth={8}
+      {map.current && (
+        <MapRadarTracks
+          map={map.current}
+          selectedEntityId={selectedEntity ? selectedEntity.id : null}
         />
-      ))}
+      )}
+      {map.current && bullsEntity && (
+        <MapSimpleEntity
+          map={map.current}
+          entity={bullsEntity}
+          size={32}
+          strokeWidth={4}
+        />
+      )}
+      {map.current &&
+        ships
+          .valueSeq()
+          .map((ship) => (
+            <MapSimpleEntity
+              key={ship.id}
+              map={map.current!}
+              entity={ship}
+              size={12}
+              strokeWidth={8}
+            />
+          ))}
     </div>
   );
 }

@@ -9,7 +9,7 @@ export const hackStore = create<HackStoreData>(() => {
 });
 
 export function pushHack(): number {
-  const startAt = (new Date()).getTime();
+  const startAt = new Date().getTime();
   hackStore.setState((state) => {
     return { hacks: state.hacks.add(startAt) };
   });
