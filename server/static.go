@@ -24,7 +24,7 @@ func (h *httpServer) serveEmbeddedFile(path string, w http.ResponseWriter, r *ht
 		fileName := filepath.Base(path)
 		http.ServeContent(w, r, fileName, time.Now(), bytes.NewReader(contents))
 	} else {
-		f, err := sneaker.Static.ReadFile(filepath.Join("dist", path))
+		f, err := sneaker.Static.ReadFile("dist/" + path)
 		if err != nil {
 			http.Error(w, "Not Found", http.StatusNotFound)
 			return
