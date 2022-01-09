@@ -130,7 +130,7 @@ func (s *serverSession) run() {
 }
 
 func (s *serverSession) runTacViewClient() error {
-	client := NewTacViewClient(s.server.Hostname, s.server.Port)
+	client := NewTacViewClient(s.server.Hostname, s.server.Port, s.server.Password)
 	header, timeFrameStream, err := client.Start()
 	if err != nil {
 		return err
