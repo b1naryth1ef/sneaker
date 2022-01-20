@@ -1,0 +1,12 @@
+{
+  "servers": [
+    {
+      "name": "myserver",
+      "hostname": "tacview.myserver.com",
+      "port": 12345,
+      "radar_refresh_rate": 5,
+      "enable_friendly_ground_units": true,
+      "enable_enemy_ground_units": true
+    }
+  ]
+}
