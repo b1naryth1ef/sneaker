@@ -111,8 +111,14 @@ func (s *serverSession) publish(event string, data interface{}) error {
 	}
 
 	s.Lock()
-	for _, sub := range s.subscribers {
-		sub <- encoded
+	for subId, sub := range s.subscribers {
+		select {
+		case sub <- encoded:
+			continue
+		default:
+			log.Printf("[session:%v] subscriber %v non-responsive, closing", s.server.Name, subId)
+			close(sub)
+		}
 	}
 	s.Unlock()
 	return nil

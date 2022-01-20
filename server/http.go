@@ -176,7 +176,11 @@ func (h *httpServer) streamServerEvents(w http.ResponseWriter, r *http.Request) 
 
 	for {
 		select {
-		case msg := <-sub:
+		case msg, ok := <-sub:
+			if !ok {
+				return
+			}
+
 			outgoing := []byte("data: ")
 			outgoing = append(outgoing, msg...)
 			outgoing = append(outgoing, '\n', '\n')
