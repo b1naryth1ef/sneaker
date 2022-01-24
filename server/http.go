@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/alioygur/gores"
@@ -35,14 +36,55 @@ func (h *httpServer) getServerList(w http.ResponseWriter, r *http.Request) {
 			Name:            server.Name,
 			GroundUnitModes: getGroundUnitModes(&server),
 		}
+
+		session, err := h.getOrCreateSession(server.Name)
+		if err == nil {
+			players := []playerMetadata{}
+			session.state.RLock()
+			for _, object := range session.state.objects {
+				isPlayer := false
+
+				for _, typeName := range object.Types {
+					if typeName == "Air" {
+						isPlayer = true
+						continue
+					}
+				}
+				if !isPlayer {
+					continue
+				}
+
+				pilotName, ok := object.Properties["Pilot"]
+				if !ok {
+					continue
+				}
+
+				if strings.HasPrefix(pilotName, object.Properties["Group"]) {
+					continue
+				}
+
+				players = append(players, playerMetadata{
+					Name: pilotName,
+					Type: object.Properties["Name"],
+				})
+			}
+			session.state.RUnlock()
+			result[idx].Players = players
+		}
 	}
 
 	gores.JSON(w, 200, result)
 }
 
+type playerMetadata struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
+}
+
 type tacViewServerMetadata struct {
-	Name            string   `json:"name"`
-	GroundUnitModes []string `json:"ground_unit_modes"`
+	Name            string           `json:"name"`
+	GroundUnitModes []string         `json:"ground_unit_modes"`
+	Players         []playerMetadata `json:"players"`
 }
 
 func getGroundUnitModes(config *TacViewServerConfig) []string {
