@@ -12,13 +12,32 @@ import { Syria } from "./dcs/maps/Syria";
 import { Server, serverStore } from "./stores/ServerStore";
 import { route } from "./util";
 
+type ServerMetadata = {
+  name: string;
+  players: Array<{ name: string; type: string }>;
+};
+
+function ServerOption({ server }: { server: ServerMetadata }) {
+  return (
+    <Link
+      to={`/servers/${server.name}`}
+      className="p-2 bg-gray-100 hover:bg-gray-200 border-gray-400 border rounded-sm shadow-sm w-full items-center flex flex-row"
+    >
+      <span className="text-3xl font-bold flex-grow">{server.name} </span>
+      <span className="text-gray-600 text-sm font-light text-right">
+        ({server.players.length} online)
+      </span>
+    </Link>
+  );
+}
+
 function ServerConnectModal() {
   const {
     loading,
     error,
     data: servers,
     get,
-  } = useFetch<Array<{ name: string }>>(
+  } = useFetch<Array<ServerMetadata>>(
     process.env.NODE_ENV === "production"
       ? `/api/servers`
       : `http://localhost:7789/api/servers`,
@@ -48,14 +67,9 @@ function ServerConnectModal() {
           </div>
         )}
         {servers && (
-          <div className="flex flex-col gap-1 w-full text-center text-3xl font-bold">
+          <div className="flex flex-col gap-1 w-full">
             {servers.map((it) => (
-              <Link
-                to={`/servers/${it.name}`}
-                className="p-2 bg-gray-100 hover:bg-gray-200 border-gray-400 border rounded-sm shadow-sm w-full"
-              >
-                {it.name}
-              </Link>
+              <ServerOption key={it.name} server={it} />
             ))}
           </div>
         )}
