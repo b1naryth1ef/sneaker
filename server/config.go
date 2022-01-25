@@ -1,9 +1,17 @@
 package server
 
 type Config struct {
-	Bind       string                `json:"bind"`
-	Servers    []TacViewServerConfig `json:"servers"`
-	AssetsPath *string               `json:"assets_path"`
+	Bind       string                    `json:"bind"`
+	Servers    []TacViewServerConfig     `json:"servers"`
+	AssetsPath *string                   `json:"assets_path"`
+	Discord    *DiscordIntegrationConfig `json:"discord"`
+}
+
+type DiscordIntegrationConfig struct {
+	Token          string  `json:"token"`
+	ApplicationKey string  `json:"application_key"`
+	ApplicationID  string  `json:"application_id"`
+	StatePath      *string `json:"state_path"`
 }
 
 type TacViewServerConfig struct {

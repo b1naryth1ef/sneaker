@@ -5,7 +5,6 @@ import (
 	"errors"
 	"log"
 	"net/http"
-	"strings"
 	"sync"
 
 	"github.com/alioygur/gores"
@@ -39,52 +38,17 @@ func (h *httpServer) getServerList(w http.ResponseWriter, r *http.Request) {
 
 		session, err := h.getOrCreateSession(server.Name)
 		if err == nil {
-			players := []playerMetadata{}
-			session.state.RLock()
-			for _, object := range session.state.objects {
-				isPlayer := false
-
-				for _, typeName := range object.Types {
-					if typeName == "Air" {
-						isPlayer = true
-						continue
-					}
-				}
-				if !isPlayer {
-					continue
-				}
-
-				pilotName, ok := object.Properties["Pilot"]
-				if !ok {
-					continue
-				}
-
-				if strings.HasPrefix(pilotName, object.Properties["Group"]) {
-					continue
-				}
-
-				players = append(players, playerMetadata{
-					Name: pilotName,
-					Type: object.Properties["Name"],
-				})
-			}
-			session.state.RUnlock()
-			result[idx].Players = players
+			result[idx].Players = session.GetPlayerList()
 		}
 	}
 
 	gores.JSON(w, 200, result)
 }
 
-type playerMetadata struct {
-	Name string `json:"name"`
-	Type string `json:"type"`
-}
-
 type tacViewServerMetadata struct {
 	Name            string           `json:"name"`
 	GroundUnitModes []string         `json:"ground_unit_modes"`
-	Players         []playerMetadata `json:"players"`
+	Players         []PlayerMetadata `json:"players"`
 }
 
 func getGroundUnitModes(config *TacViewServerConfig) []string {
@@ -255,6 +219,21 @@ func Run(config *Config) error {
 	r.Get("/api/servers", server.getServerList)
 	r.Get("/api/servers/{serverName}", server.getServer)
 	r.Get("/api/servers/{serverName}/events", server.streamServerEvents)
+
+	if config.Discord != nil {
+		discord := NewDiscordIntegration(server, config.Discord)
+		r.Handle("/api/discord/*", discord)
+
+		err := discord.Setup()
+		if err != nil {
+			log.Panicf("Failed to setup discord integration: %v", err)
+		}
+	}
+
+	log.Printf("Starting up %v Tacview clients", len(config.Servers))
+	for _, serverConfig := range config.Servers {
+		server.getOrCreateSession(serverConfig.Name)
+	}
 
 	return http.ListenAndServe(config.Bind, r)
 }
