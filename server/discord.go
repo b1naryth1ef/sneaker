@@ -218,6 +218,12 @@ func (d *DiscordIntegration) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		gores.Error(w, 400, "failed to decode request")
 		return
 	}
+	var userId string
+	if interaction.Member != nil {
+		userId = interaction.Member.User.ID
+	} else if interaction.User != nil {
+		userId = interaction.User.ID
+	}
 
 	if interaction.Type == discordgo.InteractionPing {
 		gores.JSON(w, 200, discordgo.InteractionResponse{
@@ -225,15 +231,7 @@ func (d *DiscordIntegration) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	} else if interaction.Type == discordgo.InteractionApplicationCommand {
-		data := interaction.Data.(discordgo.ApplicationCommandInteractionData)
-		var userId string
-		if interaction.Member != nil {
-			userId = interaction.Member.User.ID
-		} else if interaction.User != nil {
-			userId = interaction.User.ID
-		} else {
-			return
-		}
+		data := interaction.ApplicationCommandData()
 
 		if data.Name == "gci" {
 			switch data.Options[0].Name {
@@ -249,6 +247,38 @@ func (d *DiscordIntegration) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		} else if data.Name == "sneaker-status" {
 			d.commandSneakerStatus(w, &interaction, data.Options)
 		}
+	} else if interaction.Type == discordgo.InteractionMessageComponent {
+		data := interaction.MessageComponentData()
+
+		if data.CustomID == "refresh-gci" {
+			gores.JSON(w, 200, discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseDeferredMessageUpdate,
+				Data: &discordgo.InteractionResponseData{},
+			})
+
+			d.Lock()
+			gci, ok := d.gcis[userId]
+			if ok {
+				gci.ExpiresAt = time.Now().Add(time.Minute * time.Duration(*d.config.Timeout))
+				gci.Warned = false
+				d.save()
+
+				err = d.session.InteractionRespond(
+					&interaction,
+					&discordgo.InteractionResponse{
+						Type: discordgo.InteractionResponseUpdateMessage,
+						Data: &discordgo.InteractionResponseData{
+							Content: "Your GCI session has been refreshed!",
+						},
+					},
+				)
+				if err != nil {
+					log.Printf("error: failed to interact respond: %v", err)
+				}
+			}
+			d.Unlock()
+		}
+		return
 	}
 
 	gores.NoContent(w)
@@ -342,7 +372,7 @@ func (d *DiscordIntegration) expireLoop() {
 							Components: []discordgo.MessageComponent{
 								&discordgo.Button{
 									Label:    "Refresh",
-									CustomID: fmt.Sprintf("refresh-%v", gci.DiscordId),
+									CustomID: "refresh-gci",
 									Style:    discordgo.SuccessButton,
 								},
 							},
