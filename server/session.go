@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"log"
+	"strings"
 	"sync"
 	"time"
 )
@@ -32,6 +33,45 @@ type serverSession struct {
 
 func newServerSession(server *TacViewServerConfig) (*serverSession, error) {
 	return &serverSession{server: server, subscribers: make(map[int]chan<- []byte)}, nil
+}
+
+type PlayerMetadata struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
+}
+
+func (s *serverSession) GetPlayerList() []PlayerMetadata {
+	players := []PlayerMetadata{}
+	s.state.RLock()
+	for _, object := range s.state.objects {
+		isPlayer := false
+
+		for _, typeName := range object.Types {
+			if typeName == "Air" {
+				isPlayer = true
+				continue
+			}
+		}
+		if !isPlayer {
+			continue
+		}
+
+		pilotName, ok := object.Properties["Pilot"]
+		if !ok {
+			continue
+		}
+
+		if strings.HasPrefix(pilotName, object.Properties["Group"]) {
+			continue
+		}
+
+		players = append(players, PlayerMetadata{
+			Name: pilotName,
+			Type: object.Properties["Name"],
+		})
+	}
+	s.state.RUnlock()
+	return players
 }
 
 func (s *serverSession) updateLoop() {

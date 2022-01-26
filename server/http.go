@@ -5,8 +5,8 @@ import (
 	"errors"
 	"log"
 	"net/http"
-	"strings"
 	"sync"
+	"time"
 
 	"github.com/alioygur/gores"
 	"github.com/go-chi/chi/v5"
@@ -19,6 +19,7 @@ type httpServer struct {
 
 	config   *Config
 	sessions map[string]*serverSession
+	discord  *DiscordIntegration
 }
 
 func newHttpServer(config *Config) *httpServer {
@@ -28,63 +29,49 @@ func newHttpServer(config *Config) *httpServer {
 	}
 }
 
+func (h *httpServer) getServerMetadata(server *TacViewServerConfig) serverMetadata {
+	result := serverMetadata{
+		Name:            server.Name,
+		GroundUnitModes: getGroundUnitModes(server),
+		GCIs:            []gciMetadata{},
+	}
+
+	session, err := h.getOrCreateSession(server.Name)
+	if err == nil {
+		result.Players = session.GetPlayerList()
+	}
+
+	if h.discord != nil {
+		gciList := h.discord.GetGCIList(server.Name)
+		for _, gciState := range gciList {
+			result.GCIs = append(result.GCIs, gciMetadata{
+				Id:        gciState.DiscordId,
+				Notes:     gciState.Notes,
+				ExpiresAt: gciState.ExpiresAt,
+			})
+		}
+	}
+
+	return result
+}
+
 // Returns a list of available servers
 func (h *httpServer) getServerList(w http.ResponseWriter, r *http.Request) {
-	result := make([]*tacViewServerMetadata, len(h.config.Servers))
+	result := make([]serverMetadata, len(h.config.Servers))
 	for idx, server := range h.config.Servers {
-		result[idx] = &tacViewServerMetadata{
-			Name:            server.Name,
-			GroundUnitModes: getGroundUnitModes(&server),
-		}
+		// note: safe, we're not leaking this reference anywhere
+		result[idx] = h.getServerMetadata(&server)
 
-		session, err := h.getOrCreateSession(server.Name)
-		if err == nil {
-			players := []playerMetadata{}
-			session.state.RLock()
-			for _, object := range session.state.objects {
-				isPlayer := false
-
-				for _, typeName := range object.Types {
-					if typeName == "Air" {
-						isPlayer = true
-						continue
-					}
-				}
-				if !isPlayer {
-					continue
-				}
-
-				pilotName, ok := object.Properties["Pilot"]
-				if !ok {
-					continue
-				}
-
-				if strings.HasPrefix(pilotName, object.Properties["Group"]) {
-					continue
-				}
-
-				players = append(players, playerMetadata{
-					Name: pilotName,
-					Type: object.Properties["Name"],
-				})
-			}
-			session.state.RUnlock()
-			result[idx].Players = players
-		}
 	}
 
 	gores.JSON(w, 200, result)
 }
 
-type playerMetadata struct {
-	Name string `json:"name"`
-	Type string `json:"type"`
-}
-
-type tacViewServerMetadata struct {
+type serverMetadata struct {
 	Name            string           `json:"name"`
 	GroundUnitModes []string         `json:"ground_unit_modes"`
-	Players         []playerMetadata `json:"players"`
+	Players         []PlayerMetadata `json:"players"`
+	GCIs            []gciMetadata    `json:"gcis"`
 }
 
 func getGroundUnitModes(config *TacViewServerConfig) []string {
@@ -98,8 +85,7 @@ func getGroundUnitModes(config *TacViewServerConfig) []string {
 	return result
 }
 
-// Return information about a specific server
-func (h *httpServer) getServer(w http.ResponseWriter, r *http.Request) {
+func (h *httpServer) ensureServer(w http.ResponseWriter, r *http.Request) *TacViewServerConfig {
 	serverName := chi.URLParam(r, "serverName")
 
 	var server *TacViewServerConfig
@@ -111,13 +97,25 @@ func (h *httpServer) getServer(w http.ResponseWriter, r *http.Request) {
 	}
 	if server == nil {
 		gores.Error(w, 404, "server not found")
+		return nil
+	}
+	return server
+}
+
+type gciMetadata struct {
+	Id        string    `json:"id"`
+	Notes     string    `json:"notes"`
+	ExpiresAt time.Time `json:"expires_at"`
+}
+
+// Return information about a specific server
+func (h *httpServer) getServer(w http.ResponseWriter, r *http.Request) {
+	server := h.ensureServer(w, r)
+	if server == nil {
 		return
 	}
 
-	gores.JSON(w, 200, &tacViewServerMetadata{
-		Name:            server.Name,
-		GroundUnitModes: getGroundUnitModes(server),
-	})
+	gores.JSON(w, 200, h.getServerMetadata(server))
 }
 
 var errNoServerFound = errors.New("no server by that name was found")
@@ -255,6 +253,21 @@ func Run(config *Config) error {
 	r.Get("/api/servers", server.getServerList)
 	r.Get("/api/servers/{serverName}", server.getServer)
 	r.Get("/api/servers/{serverName}/events", server.streamServerEvents)
+
+	if config.Discord != nil {
+		server.discord = NewDiscordIntegration(server, config.Discord)
+		r.Handle("/api/discord/*", server.discord)
+
+		err := server.discord.Setup()
+		if err != nil {
+			log.Panicf("Failed to setup discord integration: %v", err)
+		}
+	}
+
+	log.Printf("Starting up %v Tacview clients", len(config.Servers))
+	for _, serverConfig := range config.Servers {
+		server.getOrCreateSession(serverConfig.Name)
+	}
 
 	return http.ListenAndServe(config.Bind, r)
 }

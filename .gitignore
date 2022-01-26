@@ -13,3 +13,4 @@ yarn-error.log*
 /scratch.txt
 /config.json
 /sneaker-server
+/state.json
