@@ -12,6 +12,8 @@ type DiscordIntegrationConfig struct {
 	ApplicationKey string  `json:"application_key"`
 	ApplicationID  string  `json:"application_id"`
 	StatePath      *string `json:"state_path"`
+	Timeout        *int    `json:"timeout"`
+	Reminder       *int    `json:"reminder"`
 }
 
 type TacViewServerConfig struct {

@@ -18,13 +18,12 @@ import (
 )
 
 type gciState struct {
-	DiscordId string
-	Server    string
-	Notes     string
-	ExpiresAt time.Time
-	Warned    bool
-
-	dm *discordgo.Channel
+	DiscordId       string
+	Server          string
+	Notes           string
+	ExpiresAt       time.Time
+	Warned          bool
+	DirectMessageId string
 }
 
 type DiscordIntegration struct {
@@ -51,6 +50,16 @@ func NewDiscordIntegration(http *httpServer, config *DiscordIntegrationConfig) *
 
 	key := ed25519.PublicKey(keyBytes)
 
+	if config.Timeout == nil {
+		timeout := 60
+		config.Timeout = &timeout
+	}
+
+	if config.Reminder == nil {
+		reminder := 5
+		config.Reminder = &reminder
+	}
+
 	return &DiscordIntegration{
 		key:     key,
 		config:  config,
@@ -58,6 +67,143 @@ func NewDiscordIntegration(http *httpServer, config *DiscordIntegrationConfig) *
 		http:    http,
 		gcis:    make(map[string]*gciState),
 	}
+}
+
+func respondWithMessage(w http.ResponseWriter, content string) {
+	gores.JSON(w, 200, discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: content,
+		},
+	})
+}
+
+func (d *DiscordIntegration) commandGCISunrise(w http.ResponseWriter, interaction *discordgo.Interaction, options []*discordgo.ApplicationCommandInteractionDataOption, userId string) {
+	server := options[0].Value.(string)
+	var notes string
+	if len(options) > 1 {
+		notes = options[1].Value.(string)
+	}
+
+	d.RLock()
+	state, exists := d.gcis[userId]
+	d.RUnlock()
+	if exists {
+		respondWithMessage(w, fmt.Sprintf("You are already registered as an active GCI on %s", state.Server))
+		return
+	}
+
+	d.http.Lock()
+	_, exists = d.http.sessions[server]
+	d.http.Unlock()
+	if !exists {
+		respondWithMessage(w, fmt.Sprintf("No server named '%s'.", server))
+		return
+	}
+
+	dm, _ := d.session.UserChannelCreate(userId)
+
+	d.Lock()
+	d.gcis[userId] = &gciState{
+		DiscordId:       userId,
+		Server:          server,
+		Notes:           notes,
+		ExpiresAt:       time.Now().Add(time.Minute * time.Duration(*d.config.Timeout)),
+		DirectMessageId: dm.ID,
+	}
+	d.save()
+	d.Unlock()
+
+	welcome := "You have been marked on-duty as an active GCI, good luck <:blobsalute:357248938933223434>"
+	if dm == nil {
+		welcome += fmt.Sprintf(
+			" (Warning: you have DMs disabled so the bot will not be able to warn you before your GCI session expires. Make sure to /gci refresh every %d minutes!",
+			*d.config.Timeout,
+		)
+	}
+
+	respondWithMessage(w, welcome)
+}
+
+func (d *DiscordIntegration) commandGCISunset(w http.ResponseWriter, interaction *discordgo.Interaction, userId string) {
+	d.Lock()
+	_, ok := d.gcis[userId]
+	if !ok {
+		respondWithMessage(w, "You are not on-duty as a GCI.")
+	} else {
+		delete(d.gcis, userId)
+		d.save()
+		respondWithMessage(w, "You have been marked off-duty. Thanks for your service <:blobsalute:357248938933223434>")
+	}
+	d.Unlock()
+
+}
+
+func (d *DiscordIntegration) commandGCIRefresh(w http.ResponseWriter, interaction *discordgo.Interaction, userId string) {
+	d.Lock()
+	gci, ok := d.gcis[userId]
+	if !ok {
+		respondWithMessage(w, "You are not on-duty as a GCI.")
+	} else {
+		gci.ExpiresAt = time.Now().Add(time.Minute * time.Duration(*d.config.Timeout))
+		gci.Warned = false
+		d.save()
+		respondWithMessage(w, fmt.Sprintf("Your GCI session has been refreshed for another %d minutes.", *d.config.Timeout))
+	}
+	d.Unlock()
+
+}
+
+func (d *DiscordIntegration) commandSneakerStatus(
+	w http.ResponseWriter,
+	interaction *discordgo.Interaction,
+	options []*discordgo.ApplicationCommandInteractionDataOption,
+) {
+	var serverName string
+	if len(options) == 0 {
+		if len(d.http.config.Servers) > 0 {
+			serverName = d.http.config.Servers[0].Name
+		} else {
+			respondWithMessage(w, fmt.Sprintf("No servers available to GCI on."))
+			return
+		}
+	} else {
+		serverName = options[0].Value.(string)
+	}
+
+	session, err := d.http.getOrCreateSession(serverName)
+	if err != nil {
+		respondWithMessage(w, fmt.Sprintf("No server named '%s'.", serverName))
+	} else {
+		d.RLock()
+		gcis := []*gciState{}
+		for _, gci := range d.gcis {
+			if gci.Server == serverName {
+				gcis = append(gcis, gci)
+			}
+		}
+		d.RUnlock()
+
+		playerList := session.GetPlayerList()
+		respondWithMessage(w, fmt.Sprintf(
+			"%s Status\n**Flying**: %d\n**GCI**: %s\n**Players**: \n```\n%s\n```",
+			strings.ToUpper(serverName),
+			len(playerList),
+			formatGCIList(gcis),
+			formatPlayerListTable(playerList),
+		))
+	}
+
+}
+
+func (d *DiscordIntegration) commandGCIInfo(w http.ResponseWriter, interaction *discordgo.Interaction) {
+	d.RLock()
+	gcis := []*gciState{}
+	for _, gci := range d.gcis {
+		gcis = append(gcis, gci)
+	}
+	d.RUnlock()
+	respondWithMessage(w, fmt.Sprintf("**Active GCIs**: %s", formatGCIList(gcis)))
 }
 
 func (d *DiscordIntegration) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -92,175 +238,35 @@ func (d *DiscordIntegration) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if data.Name == "gci" {
 			switch data.Options[0].Name {
 			case "info":
-				d.RLock()
-				gcis := []*gciState{}
-				for _, gci := range d.gcis {
-					gcis = append(gcis, gci)
-				}
-				d.RUnlock()
-				gores.JSON(w, 200, discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-					Data: &discordgo.InteractionResponseData{
-						Content: fmt.Sprintf("**Active GCIs**: %s", formatGCIList(gcis)),
-					},
-				})
+				d.commandGCIInfo(w, &interaction)
 			case "sunrise":
-				server := data.Options[0].Options[0].Value.(string)
-				var notes string
-				if len(data.Options[0].Options) > 1 {
-					notes = data.Options[0].Options[1].Value.(string)
-				}
-
-				d.RLock()
-				state, exists := d.gcis[userId]
-				d.RUnlock()
-				if exists {
-					gores.JSON(w, 200, discordgo.InteractionResponse{
-						Type: discordgo.InteractionResponseChannelMessageWithSource,
-						Data: &discordgo.InteractionResponseData{
-							Content: fmt.Sprintf("You are already registered as an active GCI on %s", state.Server),
-						},
-					})
-					return
-				}
-
-				d.http.Lock()
-				_, exists = d.http.sessions[server]
-				d.http.Unlock()
-				if !exists {
-					gores.JSON(w, 200, discordgo.InteractionResponse{
-						Type: discordgo.InteractionResponseChannelMessageWithSource,
-						Data: &discordgo.InteractionResponseData{
-							Content: fmt.Sprintf("No server by that name"),
-						},
-					})
-					return
-				}
-
-				dm, _ := d.session.UserChannelCreate(userId)
-
-				d.Lock()
-				d.gcis[userId] = &gciState{
-					DiscordId: userId,
-					Server:    server,
-					Notes:     notes,
-					ExpiresAt: time.Now().Add(time.Minute * 60),
-					dm:        dm,
-				}
-				d.save()
-				d.Unlock()
-
-				welcome := "You have been marked on-duty as an active GCI, good luck <:blobsalute:357248938933223434>"
-				if dm == nil {
-					welcome += " (Warning: you have DMs disabled so the bot will not be able to warn you before your GCI session expires. Make sure to /gci refresh every 60 minutes!"
-				}
-
-				gores.JSON(w, 200, discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-					Data: &discordgo.InteractionResponseData{
-						Content: welcome,
-					},
-				})
+				d.commandGCISunrise(w, &interaction, data.Options[0].Options, userId)
 			case "sunset":
-				d.Lock()
-				_, ok := d.gcis[userId]
-				if !ok {
-					gores.JSON(w, 200, discordgo.InteractionResponse{
-						Type: discordgo.InteractionResponseChannelMessageWithSource,
-						Data: &discordgo.InteractionResponseData{
-							Content: "You are not an active GCI!",
-						},
-					})
-				} else {
-					delete(d.gcis, userId)
-					gores.JSON(w, 200, discordgo.InteractionResponse{
-						Type: discordgo.InteractionResponseChannelMessageWithSource,
-						Data: &discordgo.InteractionResponseData{
-							Content: "You have been marked offline. Thanks for your service <:blobsalute:357248938933223434>",
-						},
-					})
-					d.save()
-				}
-				d.Unlock()
+				d.commandGCISunset(w, &interaction, userId)
 			case "refresh":
-				d.Lock()
-				gci, ok := d.gcis[userId]
-				if !ok {
-					gores.JSON(w, 200, discordgo.InteractionResponse{
-						Type: discordgo.InteractionResponseChannelMessageWithSource,
-						Data: &discordgo.InteractionResponseData{
-							Content: "You are not an active GCI!",
-						},
-					})
-				} else {
-					gci.ExpiresAt = time.Now().Add(time.Minute * 60)
-					gci.Warned = false
-					gores.JSON(w, 200, discordgo.InteractionResponse{
-						Type: discordgo.InteractionResponseChannelMessageWithSource,
-						Data: &discordgo.InteractionResponseData{
-							Content: "Your GCI session has been refreshed for another 60 minutes.",
-						},
-					})
-					d.save()
-				}
-				d.Unlock()
+				d.commandGCIRefresh(w, &interaction, userId)
 			}
-			return
 		} else if data.Name == "sneaker-status" {
-			var serverName string
-			if len(data.Options) == 0 {
-				if len(d.http.config.Servers) > 0 {
-					serverName = d.http.config.Servers[0].Name
-				} else {
-					gores.JSON(w, 200, discordgo.InteractionResponse{
-						Type: discordgo.InteractionResponseChannelMessageWithSource,
-						Data: &discordgo.InteractionResponseData{
-							Content: fmt.Sprintf("No servers available!"),
-						},
-					})
-					return
-				}
-			} else {
-				serverName = data.Options[0].Value.(string)
-			}
-
-			session, err := d.http.getOrCreateSession(serverName)
-			if err != nil {
-				gores.JSON(w, 200, discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-					Data: &discordgo.InteractionResponseData{
-						Content: fmt.Sprintf("Hmmm, I couldn't find a server named '%s'", serverName),
-					},
-				})
-			} else {
-				d.RLock()
-				gcis := []*gciState{}
-				for _, gci := range d.gcis {
-					if gci.Server == serverName {
-						gcis = append(gcis, gci)
-					}
-				}
-				d.RUnlock()
-
-				playerList := session.GetPlayerList()
-				gores.JSON(w, 200, discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-					Data: &discordgo.InteractionResponseData{
-						Content: fmt.Sprintf(
-							"%s Status\n**Flying**: %d\n**GCI**: %s\n**Players**: \n```\n%s\n```",
-							strings.ToUpper(serverName),
-							len(playerList),
-							formatGCIList(gcis),
-							formatPlayerListTable(playerList),
-						),
-					},
-				})
-			}
-			return
+			d.commandSneakerStatus(w, &interaction, data.Options)
 		}
 	}
 
 	gores.NoContent(w)
+}
+
+// Returns a copy of the GCI list for a given server
+func (d *DiscordIntegration) GetGCIList(serverName string) []gciState {
+	d.RLock()
+	defer d.RUnlock()
+	result := []gciState{}
+	for _, gci := range d.gcis {
+		if gci.Server != serverName {
+			continue
+		}
+
+		result = append(result, *gci)
+	}
+	return result
 }
 
 func formatGCIList(gciList []*gciState) string {
@@ -317,16 +323,35 @@ func (d *DiscordIntegration) expireLoop() {
 			if gci.ExpiresAt.Before(time.Now().Add(time.Second * 10)) {
 				delete(d.gcis, id)
 				_, err := d.session.ChannelMessageSend(
-					gci.dm.ID, "Your GCI session has expired. Please re-sunrise if you are not done yet.",
+					gci.DirectMessageId, "Your GCI session has expired. Please re-sunrise if you are not done yet.",
 				)
 				if err != nil {
 					log.Printf("warning: failed to send GCI expiry warning: %v", err)
 					continue
 				}
-			} else if gci.ExpiresAt.Before(time.Now().Add(time.Minute*5)) && !gci.Warned {
+			} else if gci.ExpiresAt.Before(time.Now().Add(time.Minute*time.Duration(*d.config.Reminder))) && !gci.Warned {
 				gci.Warned = true
-				_, err := d.session.ChannelMessageSend(
-					gci.dm.ID, "Your GCI session expires in 5 minutes! Please /gci refresh if you are not done yet.",
+
+				data := &discordgo.MessageSend{
+					Content: fmt.Sprintf(
+						"Your GCI session expires in %d minutes! Please /gci refresh if you are not done yet.",
+						*d.config.Reminder,
+					),
+					Components: []discordgo.MessageComponent{
+						&discordgo.ActionsRow{
+							Components: []discordgo.MessageComponent{
+								&discordgo.Button{
+									Label:    "Refresh",
+									CustomID: fmt.Sprintf("refresh-%v", gci.DiscordId),
+									Style:    discordgo.SuccessButton,
+								},
+							},
+						},
+					},
+				}
+				_, err := d.session.ChannelMessageSendComplex(
+					gci.DirectMessageId,
+					data,
 				)
 				if err != nil {
 					log.Printf("warning: failed to send GCI expiry warning: %v", err)
