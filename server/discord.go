@@ -275,6 +275,16 @@ func (d *DiscordIntegration) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				if err != nil {
 					log.Printf("error: failed to interact respond: %v", err)
 				}
+			} else {
+				d.session.InteractionRespond(
+					&interaction,
+					&discordgo.InteractionResponse{
+						Type: discordgo.InteractionResponseUpdateMessage,
+						Data: &discordgo.InteractionResponseData{
+							Content: "No active GCI session.",
+						},
+					},
+				)
 			}
 			d.Unlock()
 		}
