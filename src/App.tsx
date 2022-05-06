@@ -125,19 +125,20 @@ function ServerContainer({ serverName }: { serverName: string }) {
   }
 
   let dcsMap: DCSMap | null = null;
-  if (refLat > 28 && refLat < 32 && refLng > 29 && refLng < 33) {
+  if (refLat >= 28 && refLat <= 32 && refLng >= 29 && refLng <= 35) {
     dcsMap = Syria;
-  } else if (refLat > 37 && refLat < 41 && refLng > 31 && refLng < 38) {
+  } else if (refLat >= 37 && refLat <= 41 && refLng >= 31 && refLng <= 38) {
     dcsMap = Caucasus;
-  } else if (refLat > 18 && refLat < 24 && refLng > 48 && refLng < 54) {
+  } else if (refLat >= 18 && refLat <= 24 && refLng >= 48 && refLng <= 54) {
     dcsMap = PersianGulf;
-  } else if (refLat > 5 && refLat < 14 && refLng > 136 && refLng < 144) {
+  } else if (refLat >= 5 && refLat <= 14 && refLng >= 136 && refLng <= 144) {
     dcsMap = Marianas;
   } else {
     console.log(refLat, refLng);
     return (
       <div className="p-2 border border-red-400 bg-red-100 text-red-400">
-        Failed to detect map.
+        Failed to detect map. Please include the following in a bug report: (
+        {refLat}, {refLng})
       </div>
     );
   }
