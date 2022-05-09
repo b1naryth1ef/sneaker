@@ -127,7 +127,7 @@ function ServerContainer({ serverName }: { serverName: string }) {
   let dcsMap: DCSMap | null = null;
   if (refLat >= 28 && refLat <= 32 && refLng >= 29 && refLng <= 35) {
     dcsMap = Syria;
-  } else if (refLat >= 37 && refLat <= 41 && refLng >= 31 && refLng <= 38) {
+  } else if (refLat >= 37 && refLat <= 41 && refLng >= 31 && refLng <= 39) {
     dcsMap = Caucasus;
   } else if (refLat >= 18 && refLat <= 24 && refLng >= 48 && refLng <= 54) {
     dcsMap = PersianGulf;
