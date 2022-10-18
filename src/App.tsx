@@ -9,6 +9,7 @@ import { DCSMap } from "./dcs/maps/DCSMap";
 import { Marianas } from "./dcs/maps/Marianas";
 import { PersianGulf } from "./dcs/maps/PersianGulf";
 import { Syria } from "./dcs/maps/Syria";
+import { Falklands } from "./dcs/maps/Falklands";
 import { Server, serverStore } from "./stores/ServerStore";
 import { route } from "./util";
 
@@ -133,6 +134,8 @@ function ServerContainer({ serverName }: { serverName: string }) {
     dcsMap = PersianGulf;
   } else if (refLat >= 5 && refLat <= 14 && refLng >= 136 && refLng <= 144) {
     dcsMap = Marianas;
+  } else if (refLat >= -59 && refLat <= -54 && refLng >= -76 && refLng <= -70) {
+    dcsMap = Falklands;
   } else {
     console.log(refLat, refLng);
     return (
