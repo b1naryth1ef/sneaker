@@ -129,21 +129,21 @@ function ServerContainer({ serverName }: { serverName: string }) {
   }
 
   let dcsMap: DCSMap | null = null;
-  if (refLat >= 31 && refLat <= 38 && refLng >= 29 && refLng <= 42) {
-    dcsMap = Syria;
-  } else if (refLat >= 38 && refLat <= 49 && refLng >= 26 && refLng <= 48) {
+  if (refLat >= 37 && refLat <= 49 && refLng >= 26 && refLng <= 48) {
     dcsMap = Caucasus;
+  } else if (refLat >= 31 && refLat <= 38 && refLng >= 29 && refLng <= 42) {
+    dcsMap = Syria;
   } else if (refLat >= 21 && refLat <= 33 && refLng >= 46 && refLng <= 64) {
     dcsMap = PersianGulf;
   } else if (refLat >= 10 && refLat <= 23 && refLng >= 136 && refLng <= 153) {
     dcsMap = Marianas;
-  } else if (refLat >= -57 && refLat <= -45 && refLng >= -88 && refLng <= -38) {
+  } else if (refLat >= -59 && refLat <= -45 && refLng >= -88 && refLng <= -38) {
     dcsMap = Falklands;
-  } else if (refLat >= 48 && refLat <= 52 && refLng >= -5 && refLng <= 3) {
+  } else if (refLat >= 45 && refLat <= 52 && refLng >= -6 && refLng <= 3) {
     dcsMap = Normandy;
-  } else if (refLat >= 34 && refLat <= 40 && refLng >= -120 && refLng <= -112) {
+  } else if (refLat >= 32 && refLat <= 40 && refLng >= -120 && refLng <= -112) {
     dcsMap = Nevada;
-  } else if (refLat >= 46 && refLat <= 52 && refLng >= -1 && refLng <= 4) {
+  } else if (refLat >= 46 && refLat <= 52 && refLng >= -4 && refLng <= 4) {
     dcsMap = TheChannel;
   } else {
     console.log(refLat, refLng);
