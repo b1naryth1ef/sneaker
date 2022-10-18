@@ -10,6 +10,9 @@ import { Marianas } from "./dcs/maps/Marianas";
 import { PersianGulf } from "./dcs/maps/PersianGulf";
 import { Syria } from "./dcs/maps/Syria";
 import { Falklands } from "./dcs/maps/Falklands";
+import { Normandy } from "./dcs/maps/Normandy";
+import { TheChannel } from "./dcs/maps/TheChannel";
+import { Nevada } from "./dcs/maps/Nevada";
 import { Server, serverStore } from "./stores/ServerStore";
 import { route } from "./util";
 
@@ -126,16 +129,22 @@ function ServerContainer({ serverName }: { serverName: string }) {
   }
 
   let dcsMap: DCSMap | null = null;
-  if (refLat >= 28 && refLat <= 32 && refLng >= 29 && refLng <= 35) {
+  if (refLat >= 31 && refLat <= 38 && refLng >= 29 && refLng <= 42) {
     dcsMap = Syria;
-  } else if (refLat >= 37 && refLat <= 41 && refLng >= 31 && refLng <= 39) {
+  } else if (refLat >= 38 && refLat <= 49 && refLng >= 26 && refLng <= 48) {
     dcsMap = Caucasus;
-  } else if (refLat >= 18 && refLat <= 24 && refLng >= 48 && refLng <= 54) {
+  } else if (refLat >= 21 && refLat <= 33 && refLng >= 46 && refLng <= 64) {
     dcsMap = PersianGulf;
-  } else if (refLat >= 5 && refLat <= 14 && refLng >= 136 && refLng <= 144) {
+  } else if (refLat >= 10 && refLat <= 23 && refLng >= 136 && refLng <= 153) {
     dcsMap = Marianas;
-  } else if (refLat >= -59 && refLat <= -54 && refLng >= -76 && refLng <= -70) {
+  } else if (refLat >= -57 && refLat <= -45 && refLng >= -88 && refLng <= -38) {
     dcsMap = Falklands;
+  } else if (refLat >= 48 && refLat <= 52 && refLng >= -5 && refLng <= 3) {
+    dcsMap = Normandy;
+  } else if (refLat >= 34 && refLat <= 40 && refLng >= -120 && refLng <= -112) {
+    dcsMap = Nevada;
+  } else if (refLat >= 46 && refLat <= 52 && refLng >= -1 && refLng <= 4) {
+    dcsMap = TheChannel;
   } else {
     console.log(refLat, refLng);
     return (

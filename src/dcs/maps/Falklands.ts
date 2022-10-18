@@ -4,6 +4,6 @@ import { convertRawAirBaseData, DCSMap } from "./DCSMap";
 export const Falklands: DCSMap = {
   name: "Falklands",
   center: [-52, -59],
-  magDec: -2,
+  magDec: 6,
   airports: convertRawAirBaseData(FalklandsAirBases),
 };
