@@ -131,11 +131,11 @@ function ServerContainer({ serverName }: { serverName: string }) {
   let dcsMap: DCSMap | null = null;
   if (refLat >= 37 && refLat <= 49 && refLng >= 26 && refLng <= 48) {
     dcsMap = Caucasus;
-  } else if (refLat >= 31 && refLat <= 38 && refLng >= 29 && refLng <= 42) {
+  } else if (refLat >= 30 && refLat <= 38 && refLng >= 29 && refLng <= 42) {
     dcsMap = Syria;
-  } else if (refLat >= 21 && refLat <= 33 && refLng >= 46 && refLng <= 64) {
+  } else if (refLat >= 20 && refLat <= 33 && refLng >= 46 && refLng <= 64) {
     dcsMap = PersianGulf;
-  } else if (refLat >= 10 && refLat <= 23 && refLng >= 136 && refLng <= 153) {
+  } else if (refLat >= 9 && refLat <= 23 && refLng >= 136 && refLng <= 153) {
     dcsMap = Marianas;
   } else if (refLat >= -59 && refLat <= -45 && refLng >= -88 && refLng <= -38) {
     dcsMap = Falklands;

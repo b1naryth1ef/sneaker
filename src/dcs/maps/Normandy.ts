@@ -3,7 +3,7 @@ import { convertRawAirBaseData, DCSMap } from "./DCSMap";
 
 export const Normandy: DCSMap = {
   name: "Normandy",
-  center: [50.7, 0.25],
+  center: [50.12, 0.3],
   magDec: 1,
   airports: convertRawAirBaseData(NormandyAirBases),
 };
