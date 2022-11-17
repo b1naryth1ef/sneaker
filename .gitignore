@@ -16,3 +16,4 @@ yarn-error.log*
 /sneaker-server
 /state.json
 *.bak
+*.exe
