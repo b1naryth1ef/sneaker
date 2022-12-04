@@ -658,6 +658,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
       dragRotate: false,
       dragPitch: false,
       touchZoom: true,
+      touchRotate: false,
       doubleClickZoom: false,
       center: [dcsMap.center[1], dcsMap.center[0]],
       zoom: 8,
