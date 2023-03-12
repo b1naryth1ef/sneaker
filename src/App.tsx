@@ -129,9 +129,10 @@ function ServerContainer({ serverName }: { serverName: string }) {
   }
 
   let dcsMap: DCSMap | null = null;
+    console.log(refLat, refLng);
   if (refLat >= 38 && refLat <= 48 && refLng >= 26 && refLng <= 48) {
     dcsMap = Caucasus;
-  } else if (refLat >= 30 && refLat <= 38 && refLng >= 27 && refLng <= 42) {
+  } else if (refLat >= 28 && refLat < 38 && refLng >= 27 && refLng <= 42) {
     dcsMap = Syria;
   } else if (refLat >= 20 && refLat <= 33 && refLng >= 46 && refLng <= 64) {
     dcsMap = PersianGulf;
@@ -141,7 +142,7 @@ function ServerContainer({ serverName }: { serverName: string }) {
     dcsMap = Falklands;
   } else if (refLat >= 45 && refLat <= 52 && refLng >= -6 && refLng <= 3) {
     dcsMap = Normandy;
-  } else if (refLat >= 32 && refLat <= 40 && refLng >= -120 && refLng <= -112) {
+  } else if (refLat >= 32 && refLat <= 40 && refLng >= -121 && refLng <= -112) {
     dcsMap = Nevada;
   } else if (refLat >= 46 && refLat <= 52 && refLng >= -4 && refLng <= 4) {
     dcsMap = TheChannel;
