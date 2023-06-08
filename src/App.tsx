@@ -8,6 +8,7 @@ import { Caucasus } from "./dcs/maps/Caucasus";
 import { DCSMap } from "./dcs/maps/DCSMap";
 import { Marianas } from "./dcs/maps/Marianas";
 import { PersianGulf } from "./dcs/maps/PersianGulf";
+import { Sinai } from "./dcs/maps/Sinai";
 import { Syria } from "./dcs/maps/Syria";
 import { Falklands } from "./dcs/maps/Falklands";
 import { Normandy } from "./dcs/maps/Normandy";
@@ -132,6 +133,8 @@ function ServerContainer({ serverName }: { serverName: string }) {
     console.log(refLat, refLng);
   if (refLat >= 38 && refLat <= 48 && refLng >= 26 && refLng <= 48) {
     dcsMap = Caucasus;
+  } else if (refLat >= 27 && refLat < 34 && refLng >= 28 && refLng <= 37) {
+    dcsMap = Sinai;
   } else if (refLat >= 28 && refLat < 38 && refLng >= 27 && refLng <= 42) {
     dcsMap = Syria;
   } else if (refLat >= 20 && refLat <= 33 && refLng >= 46 && refLng <= 64) {
