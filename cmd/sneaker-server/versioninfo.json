@@ -3,13 +3,13 @@
         "FileVersion": {
             "Major": 0,
             "Minor": 0,
-            "Patch": 12,
+            "Patch": 14,
             "Build": 0
         },
         "ProductVersion": {
             "Major": 0,
             "Minor": 0,
-            "Patch": 12,
+            "Patch": 14,
             "Build": 0
         },
         "FileFlagsMask": "3f",
@@ -22,14 +22,14 @@
         "Comments": "",
         "CompanyName": "b1naryth1ef",
         "FileDescription": "Web-based AEW&C interface for DCS",
-        "FileVersion": "v0.0.12.0",
+        "FileVersion": "v0.0.14.0",
         "InternalName": "sneaker.exe",
         "LegalCopyright": "Copyright 2021 Andrei Zbikowski",
         "LegalTrademarks": "",
         "OriginalFilename": "main.go",
         "PrivateBuild": "",
         "ProductName": "Sneaker",
-        "ProductVersion": "v0.0.12.0",
+        "ProductVersion": "v0.0.14.0",
         "SpecialBuild": ""
     },
     "VarFileInfo": {

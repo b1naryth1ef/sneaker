@@ -133,7 +133,7 @@ function ServerContainer({ serverName }: { serverName: string }) {
     console.log(refLat, refLng);
   if (refLat >= 38 && refLat <= 48 && refLng >= 26 && refLng <= 48) {
     dcsMap = Caucasus;
-  } else if (refLat >= 27 && refLat < 34 && refLng >= 28 && refLng <= 37) {
+  } else if (refLat >= 25 && refLat < 34 && refLng >= 28 && refLng <= 37) {
     dcsMap = Sinai;
   } else if (refLat >= 28 && refLat < 38 && refLng >= 27 && refLng <= 42) {
     dcsMap = Syria;
