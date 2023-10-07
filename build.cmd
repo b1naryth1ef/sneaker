@@ -4,6 +4,7 @@ set GOARCH=386
 echo Cleaning up...
 del sneaker.exe 2>NUL
 del cmd\sneaker-server\resource.syso 2>NUL
+del /F dist\*.ico 2>NUL
 del /F dist\*.mp3 2>NUL
 del /F dist\*.LICENSE.txt 2>NUL
 del /F dist\*.js 2>NUL

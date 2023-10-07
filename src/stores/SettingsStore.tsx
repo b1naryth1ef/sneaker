@@ -24,7 +24,7 @@ export const settingsStore = create<SettingsStoreData>(() => {
       showTrackIcons: true,
       showTrackLabels: true,
       trackTrailLength: 9,
-      groundUnitMode: GroundUnitMode.FRIENDLY,
+      groundUnitMode: GroundUnitMode.ENEMY,
     },
   };
 });
