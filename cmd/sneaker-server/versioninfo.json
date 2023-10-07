@@ -3,13 +3,13 @@
         "FileVersion": {
             "Major": 0,
             "Minor": 0,
-            "Patch": 14,
+            "Patch": 15,
             "Build": 0
         },
         "ProductVersion": {
             "Major": 0,
             "Minor": 0,
-            "Patch": 14,
+            "Patch": 15,
             "Build": 0
         },
         "FileFlagsMask": "3f",
@@ -19,17 +19,17 @@
         "FileSubType": "00"
     },
     "StringFileInfo": {
-        "Comments": "",
+        "Comments": "Fork by Special K",
         "CompanyName": "b1naryth1ef",
         "FileDescription": "Web-based AEW&C interface for DCS",
-        "FileVersion": "v0.0.14.0",
+        "FileVersion": "v0.0.15.0",
         "InternalName": "sneaker.exe",
         "LegalCopyright": "Copyright 2021 Andrei Zbikowski",
         "LegalTrademarks": "",
         "OriginalFilename": "main.go",
         "PrivateBuild": "",
         "ProductName": "Sneaker",
-        "ProductVersion": "v0.0.14.0",
+        "ProductVersion": "v0.0.15.0",
         "SpecialBuild": ""
     },
     "VarFileInfo": {
@@ -38,6 +38,6 @@
             "CharsetID": "04B0"
         }
     },
-    "IconPath": "",
+    "IconPath": "../../src/favicon.ico",
     "ManifestPath": ""
 }
