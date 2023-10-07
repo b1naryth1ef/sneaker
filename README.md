@@ -15,7 +15,7 @@ A live example of Sneaker can be viewed [here](https://sneaker.precontact.net/).
 1. Download the latest released version [from here](https://github.com/Special-K-s-Flightsim-Bots/sneaker/releases/latest).
 2. Create a configuration file based off the [example](/example.config.json), replacing the required information (and optionally adding multiple servers to the array)
 3. Run the executable with the configuration path: `sneaker.exe --config config.json`
-4. Browse to http://localhost:7788 to access Sneaker GCI. To make the website available over the network, specify use the bind parameter like so: `sneaker.exe --config config.json --bind 0.0.0.0:7788`
+4. Browse to http://localhost:7788 to access Sneaker GCI. To make the website available over the network, specify the bind parameter like so: `sneaker.exe --config config.json --bind 0.0.0.0:7788`
 
 ### Discord Integration
 
