@@ -658,6 +658,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
       dragRotate: false,
       dragPitch: false,
       touchZoom: true,
+      touchRotate: false,
       doubleClickZoom: false,
       center: [dcsMap.center[1], dcsMap.center[0]],
       zoom: 8,
@@ -1099,7 +1100,7 @@ export function Map({ dcsMap }: { dcsMap: DCSMap }) {
         </div>
       )}
       <MissionTimer />
-      <div className="m-2 absolute left-0 top-0 flex flex-col gap-2">
+      <div className="m-2 absolute left-0 top-14 md:top-0 flex flex-col gap-2">
         {selectedEntity && map.current && (
           <EntityInfo
             map={map.current}
