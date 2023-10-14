@@ -6,15 +6,16 @@ Sneaker is a browser-based radar and GCI simulation designed for use with [Tacvi
 - Searching, tagging, and watching flights allows you to reduce workload and allow a controller to work across many flights and packages.
 - Mission clock and hack timers for command and coordination.
 
-A live example of Sneaker can be viewed [here](https://hoggit.brrt.me/).
+A live example of Sneaker can be viewed [here](https://sneaker.precontact.net/).
 
-![UI preview](https://i.imgur.com/wkrZ4JU.png)
+![UI preview](https://i.imgur.com/KB2yzC3.png)
 
 ## Installation
 
-1. Download the latest released version [from here](https://github.com/b1naryth1ef/sneaker/releases).
+1. Download the latest released version [from here](https://github.com/Special-K-s-Flightsim-Bots/sneaker/releases/latest).
 2. Create a configuration file based off the [example](/example.config.json), replacing the required information (and optionally adding multiple servers to the array)
-3. Run the executable with the configuration path: `sneaker-server.exe --config config.json`
+3. Run the executable with the configuration path: `sneaker.exe --config config.json`
+4. Browse to http://localhost:7788 to access Sneaker GCI. To make the website available over the network, specify the bind parameter like so: `sneaker.exe --config config.json --bind 0.0.0.0:7788`
 
 ### Discord Integration
 
