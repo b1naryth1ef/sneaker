@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/alioygur/gores v1.2.2
-	github.com/b1naryth1ef/jambon v0.0.4-0.20220109012622-92223168294c
+	github.com/b1naryth1ef/jambon v0.0.4-0.20220527200438-d39a4cc60cbe
 	github.com/bwmarrin/discordgo v0.23.3-0.20211228023845-29269347e820
 	github.com/go-chi/chi/v5 v5.0.7
 	github.com/go-chi/cors v1.2.0

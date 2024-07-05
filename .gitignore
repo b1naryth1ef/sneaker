@@ -12,5 +12,9 @@ yarn-debug.log*
 yarn-error.log*
 /scratch.txt
 /config.json
+/sneaker.exe
 /sneaker-server
 /state.json
+*.bak
+*.exe
+cmd/sneaker-server/resource.syso

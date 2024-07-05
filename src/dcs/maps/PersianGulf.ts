@@ -4,6 +4,6 @@ import { convertRawAirBaseData, DCSMap } from "./DCSMap";
 export const PersianGulf: DCSMap = {
   name: "Persian Gulf",
   center: [26.10, 55.48],
-  magDec: -1,
+  magDec: 2,
   airports: convertRawAirBaseData(PersianGulfAirBases),
 };
